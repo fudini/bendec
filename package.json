@@ -1,5 +1,5 @@
 {
-  "name": "bender",
+  "name": "bendec",
   "version": "0.1.0",
   "description": "Buffer encoding / decoding for fixed size structs",
   "main": "./dist/index.js",
