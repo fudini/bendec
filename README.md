@@ -1,4 +1,4 @@
-# Bender (codename)
+# Bendec
 
 ### Binary encoder / decoder featuring fixed-size arrays
 

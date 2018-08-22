@@ -7,7 +7,7 @@
     "build": "./node_modules/.bin/tsc",
     "watch": "./node_modules/.bin/tsc -w",
     "perf": "node ./dist/tests/perf",
-    "test": "node ./dist/tests/bender"
+    "test": "node ./dist/tests/bendec"
   },
   "author": "Daniel Fudala <daniel@fuda.la>",
   "license": "MIT",

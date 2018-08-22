@@ -1,8 +1,8 @@
 import { performance } from 'perf_hooks'
 import { types, largeMessage, largeMessageEncoded, getVariant } from './fixtures'
-import { Bender,  invertLookup } from '../'
+import { Bendec,  invertLookup } from '../'
 
-const bender = new Bender({ types, getVariant })
+const bendec = new Bendec({ types, getVariant })
 
 const COUNT = 1e6
 
@@ -11,7 +11,7 @@ console.log('DECODE')
 const now = performance.now()
 
 for (let i = 0; i < COUNT; i ++) {
-  bender.decode(largeMessageEncoded)
+  bendec.decode(largeMessageEncoded)
 }
 
 const time = performance.now() - now
