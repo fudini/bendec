@@ -5,4 +5,5 @@
 TODO:
 
 * TypeScript definitions generator
+* Enum type
 * Better syntax than JSON to define structs (Rust?)

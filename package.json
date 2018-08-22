@@ -2,7 +2,7 @@
   "name": "bender",
   "version": "0.1.0",
   "description": "Buffer encoding / decoding for fixed size structs",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "build": "./node_modules/.bin/tsc",
     "watch": "./node_modules/.bin/tsc -w",
@@ -18,5 +18,6 @@
   },
   "dependencies": {
     "lodash": "4.17.10"
-  }
+  },
+  "typings": "./dist/index.d.ts"
 }
