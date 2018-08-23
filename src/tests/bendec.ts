@@ -1,16 +1,11 @@
 import test from 'tape'
 import * as _ from 'lodash'
 import { MsgType, types } from './fixtures'
-import { Bendec, invertLookup } from '../'
+import { Bendec, invertLookup, asciiReader, asciiWriter } from '../'
 
 // lets override readers and writers so we can deal with ascii
-const readers = {
-  'char[]': (index, length) => [`buffer.toString('ascii', ${index}, ${index + length}).replace(/\u0000+$/, '')`, index + length]
-}
-
-const writers = {
-  'char[]': (path, index, length) => [`buffer.write(${path}, ${index}, ${index + length}, 'ascii')`, length]
-}
+const readers = { 'char[]': asciiReader }
+const writers = { 'char[]': asciiWriter }
 
 const user = {
   firstName: 'Genezyp',

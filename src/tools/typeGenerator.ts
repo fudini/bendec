@@ -5,8 +5,9 @@ const getMembers = fields => {
 
   return fields.map(field => {
 
+    // TODO: make this configurable
     const theType = (field.type == 'char' && field.length > 0)
-      ? 'string'
+      ? 'Buffer'
       : field.type
     
     return `  ${field.name}: ${theType}`

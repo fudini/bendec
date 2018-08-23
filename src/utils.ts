@@ -34,4 +34,10 @@ const writers = {
   'char[]': (path, index, length) => [`${path}.copy(buffer, ${index})`, length]
 }
 
-export { invertLookup, readers, writers }
+const asciiReader = (index, length) => [`buffer.toString('ascii', ${index}, ${index + length}).replace(/\u0000+$/, '')`, index + length]
+const asciiWriter = (path, index, length) => [`buffer.write(${path}, ${index}, ${index + length}, 'ascii')`, length]
+
+const toAscii = (buffer: Buffer) => buffer.toString('ascii').replace(/\u0000+$/, '')
+const fromAscii = (ascii: string) => Buffer.from(ascii)
+
+export { invertLookup, readers, writers, asciiReader, asciiWriter, fromAscii, toAscii }
