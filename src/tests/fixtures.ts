@@ -131,7 +131,7 @@ const types = [
       name: 'person2',
       type: 'Person'
     }, {
-      name: 'aaq',
+      name: 'aaa',
       type: 'u32'
     }, {
       name: 'bbb',

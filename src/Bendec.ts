@@ -1,3 +1,4 @@
+import flat from 'flat'
 import * as _ from 'lodash'
 import {
   Primitive,
@@ -80,6 +81,29 @@ const genReadFunction = (readers, lookup, name) => {
   return new Function('buffer', `return ${stringified}`)
 }
 
+
+const genWrapFunction = (readers, writers, lookup, name) => {
+
+  let intermediate = genReadFields(readers, lookup)(name)[0]
+  let intermediateWriters = genReadFields(writers, lookup)(name)[0]
+
+  let flatten = _.toPairs(flat(intermediate))
+  let flattenWriters = _.toPairs(flat(intermediateWriters))
+
+  let withKeys = flatten.map(([key, value]) => {
+    return `get_${key.replace(/\./g, '_')}() { ${value} }`
+  })
+
+  let withKeysWriters = flattenWriters.map(([key, value]) => {
+    return `set_${key.replace(/\./g, '_')}(v) { ${value} }`
+  })
+
+  let all = withKeys.concat(withKeysWriters).join(',\n')
+
+  return new Function('buffer', `return { ${all} }`)
+}
+
+
 const genWriteFunction = (writers, lookup, type) => {
 
   let [intermediate] = encodeFunction(writers, lookup)([], type)
@@ -100,7 +124,7 @@ const encodeFunction = (writers, lookup) => {
     var writer = writers[key]
 
     if (writer) {
-      let [w, i] = writer(path, index, length)
+      let [w, i] = writer(index, length, path)
       buffer.push(indent + w)
       return [buffer, index + i]
     }
@@ -122,7 +146,7 @@ const encodeFunction = (writers, lookup) => {
     writer = writers[resolvedType]
 
     if(writer) {
-      let [w, l] = writer(path, index, length) 
+      let [w, l] = writer(index, length, path) 
       buffer.push(indent + w)
       return [buffer, index + l]
     }
@@ -149,6 +173,8 @@ class Bendec implements EncoderDecoder {
   private readers: any
   public decoders: Map<string, (o: any) => Buffer> = new Map()
   public encoders: Map<string, (buffer: Buffer) => any> = new Map()
+  // TODO: types
+  public wrappers: Map<string, any> = new Map()
 
   constructor(config: Config) {
 
@@ -177,6 +203,9 @@ class Bendec implements EncoderDecoder {
       let encodeFunc = <any>genWriteFunction(this.writers, this.lookup, type.name)
       this.decoders.set(type.name, decodeFunc)
       this.encoders.set(type.name, encodeFunc)
+
+      let wrapFunc = <any>genWrapFunction(this.readers, this.writers, lookup, type.name)
+      this.wrappers.set(type.name, wrapFunc)
     })
   }
 
