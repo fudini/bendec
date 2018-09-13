@@ -81,7 +81,6 @@ const genReadFunction = (readers, lookup, name) => {
   return new Function('buffer', `return ${stringified}`)
 }
 
-
 const genWrapFunction = (readers, writers, lookup, name) => {
 
   let intermediate = genReadFields(readers, lookup)(name)[0]
@@ -102,7 +101,6 @@ const genWrapFunction = (readers, writers, lookup, name) => {
 
   return new Function('buffer', `return { ${all} }`)
 }
-
 
 const genWriteFunction = (writers, lookup, type) => {
 
