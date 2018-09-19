@@ -1,6 +1,6 @@
 {
   "name": "bendec",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Buffer encoding / decoding for fixed size structs",
   "main": "./dist/index.js",
   "scripts": {
@@ -17,7 +17,6 @@
     "typescript": "3.0.1"
   },
   "dependencies": {
-    "flat": "4.1.0",
     "lodash": "4.17.10"
   },
   "typings": "./dist/index.d.ts"

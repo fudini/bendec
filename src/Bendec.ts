@@ -1,5 +1,3 @@
-import flat from 'flat'
-import { unflatten } from 'flat'
 import * as _ from 'lodash'
 import {
   Primitive,
