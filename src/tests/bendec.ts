@@ -120,3 +120,44 @@ test('Bendec write zeroes', t => {
   t.deepEqual(partialUserAddDecoded, decoded, 'Object with empty property')
   t.end()
 })
+
+test('Bendec wrapper', t => {
+
+
+  let size = bendec.getSize('UserAdd')
+  let buffer = Buffer.alloc(size)
+
+  let userAdd = bendec.wrap('UserAdd', buffer)
+
+  let user = {
+    firstName: 'genezyp',
+    lastName: 'bazakbal',
+    age: 255,
+    uri: {
+      protocol: 'aabbaabbaa',
+      host: '1122334455',
+      port: 123
+    }
+  }
+
+  userAdd.header.msgType = MsgType.USER_ADD
+  userAdd.user.firstName = 'genezyp'
+  userAdd.user.lastName = 'bazakbal' 
+  userAdd.user.age = 255
+  userAdd.user.uri.protocol = 'aabbaabbaa'
+  userAdd.user.uri.host = '1122334455'
+  userAdd.user.uri.port = 123
+
+  let decoded = bendec.decode(buffer)
+
+  t.deepEqual({
+    header: {
+      msgType: MsgType.USER_ADD
+    },
+    user
+  }, decoded)
+
+  t.end()
+})
+
+

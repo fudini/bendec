@@ -1,4 +1,5 @@
 import flat from 'flat'
+import { unflatten } from 'flat'
 import * as _ from 'lodash'
 import {
   Primitive,
@@ -6,7 +7,7 @@ import {
   Alias,
   EncoderDecoder,
   Config,
-  TypeDefinition
+  TypeDefinition,
 } from './types'
 import { readers, writers } from './utils'
 
@@ -81,25 +82,50 @@ const genReadFunction = (readers, lookup, name) => {
   return new Function('buffer', `return ${stringified}`)
 }
 
+const genWrap = (obj, write, path = []) => {
+
+  return _.map(obj, (v, k) => {
+
+    if (_.isArray(v)) {
+      return [
+        `set ${k}(v) {\n`,
+        `throw 'no support'\n`,
+        `},\n`,
+        `get ${k}() {\n`,
+        `throw 'no support'\n`,
+        `},\n`
+      ].join('')
+    }
+
+    if (_.isObject(v)) {
+      const gend = genWrap(v, write, [...path, k]).join('')
+      return [
+        `set ${k}(v) { for (let k in v) { this.${k}[k] = v[k] } },\n`,
+        `get ${k}() {\n`,
+        `return {\n`,
+        `${gend}\n`,
+        `}\n`,
+        `},\n`
+      ].join('')
+    }
+
+    let writeStatement = _.get(write, [...path, k])
+    let w = `set ${k}(v) { ${writeStatement} },\n`
+    let r = `get ${k}() { return ${v} },\n`
+    return w + r
+  })
+}
+
 const genWrapFunction = (readers, writers, lookup, name) => {
 
-  let intermediate = genReadFields(readers, lookup)(name)[0]
-  let intermediateWriters = genReadFields(writers, lookup)(name)[0]
+  let [read] = genReadFields(readers, lookup)(name)
+  let [write] = genReadFields(writers, lookup)(name)
 
-  let flatten = _.toPairs(flat(intermediate))
-  let flattenWriters = _.toPairs(flat(intermediateWriters))
+  let setBuffer = `setBuffer(b) { buffer = b; return this },\n`
+  let all = genWrap(read, write).join('') + setBuffer
 
-  let withKeys = flatten.map(([key, value]) => {
-    return `get_${key.replace(/\./g, '_')}() { ${value} }`
-  })
-
-  let withKeysWriters = flattenWriters.map(([key, value]) => {
-    return `set_${key.replace(/\./g, '_')}(v) { ${value} }`
-  })
-
-  let all = withKeys.concat(withKeysWriters).join(',\n')
-
-  return new Function('buffer', `return { ${all} }`)
+  let body = `return { ${all} }` 
+  return new Function('buffer', body)
 }
 
 const genWriteFunction = (writers, lookup, type) => {
@@ -122,9 +148,9 @@ const encodeFunction = (writers, lookup) => {
     var writer = writers[key]
 
     if (writer) {
-      let [w, i] = writer(index, length, path)
+      let [w, newIndex] = writer(index, length, path)
       buffer.push(indent + w)
-      return [buffer, index + i]
+      return [buffer, newIndex]
     }
 
     // encode array
@@ -144,9 +170,9 @@ const encodeFunction = (writers, lookup) => {
     writer = writers[resolvedType]
 
     if(writer) {
-      let [w, l] = writer(index, length, path) 
+      let [w, newIndex] = writer(index, length, path) 
       buffer.push(indent + w)
-      return [buffer, index + l]
+      return [buffer, newIndex]
     }
 
     let newIndex = index
@@ -203,7 +229,10 @@ class Bendec implements EncoderDecoder {
       this.encoders.set(type.name, encodeFunc)
 
       let wrapFunc = <any>genWrapFunction(this.readers, this.writers, lookup, type.name)
-      this.wrappers.set(type.name, wrapFunc)
+      // instantiate with empty buffer
+      let wrapInstance = wrapFunc(Buffer.alloc((<any>this.lookup[type.name]).size))
+      
+      this.wrappers.set(type.name, wrapInstance)
     })
   }
 
@@ -215,6 +244,14 @@ class Bendec implements EncoderDecoder {
   encode(obj) {
     const type = this.config.getVariant.encode(obj)
     return this.encoders.get(type)(obj)
+  }
+
+  wrap(typeName: string, buffer: Buffer) {
+    return this.wrappers.get(typeName).setBuffer(buffer)
+  }
+
+  getSize(typeName: string): number {
+    return (<any>this.lookup[typeName]).size
   }
 }
 

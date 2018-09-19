@@ -39,5 +39,6 @@ export interface Config {
 
 export interface EncoderDecoder {
   encode(o: any): Buffer
-  decode(o: Buffer): any
+  decode(b: Buffer): any
+  wrap(name: string, b: Buffer): any
 }
