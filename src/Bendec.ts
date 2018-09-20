@@ -73,12 +73,12 @@ class Bendec {
     })
   }
 
-  decode(buffer) {
+  decode(buffer: Buffer): any {
     const type = this.config.getVariant.decode(buffer)
     return this.decoders.get(type)(buffer)
   }
 
-  encode(obj) {
+  encode(obj): Buffer {
     const type = this.config.getVariant.encode(obj)
     return this.encoders.get(type)(obj)
   }
