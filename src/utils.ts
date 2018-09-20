@@ -1,4 +1,5 @@
 import * as _ from 'lodash'
+import { Errors } from './types'
 
 interface Variants {
   [key: string]: number
@@ -40,4 +41,56 @@ const asciiWriter = (index, length, path = 'v') => [`buffer.write(${path}, ${ind
 const toAscii = (buffer: Buffer) => buffer.toString('ascii').replace(/\u0000+$/, '')
 const fromAscii = (ascii: string) => Buffer.from(ascii)
 
-export { invertLookup, readers, writers, asciiReader, asciiWriter, fromAscii, toAscii }
+const getTypeSize = lookup => type => {
+
+  const t = resolveType(lookup, type)
+  const typeDef = lookup[t]
+
+  if(typeDef.size) {
+    return typeDef.size
+  }
+
+  if(typeDef.fields) {
+    return _.sum(_.map(typeDef.fields, field => {
+      let size = getTypeSize(lookup)(field.type)
+      if(field.length) {
+        return size * field.length
+      }
+      return size
+    }))
+  }
+
+  throw `${Errors.UNKNOWN_SIZE}:${type}`
+}
+
+// recursively resolve the name type
+const resolveType = (lookup, type) => {
+
+  const lookedUp = lookup[type]
+
+  if(!lookedUp) {
+    throw `${Errors.TYPE_NOT_FOUND}:${type}`
+  }
+
+  if(lookedUp.fields) {
+    return type
+  }
+
+  if(lookedUp.alias) {
+    return resolveType(lookup, lookedUp.alias)
+  }
+
+  return type
+}
+
+export {
+  getTypeSize,
+  resolveType,
+  invertLookup,
+  readers,
+  writers,
+  asciiReader,
+  asciiWriter,
+  fromAscii,
+  toAscii
+}

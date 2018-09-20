@@ -42,3 +42,9 @@ export interface EncoderDecoder {
   decode(b: Buffer): any
   wrap(name: string, b: Buffer): any
 }
+
+export const Errors = {
+  TYPE_NOT_FOUND: 'TYPE_NOT_FOUND',
+  UNKNOWN_SIZE: 'UNKNOWN_SIZE'
+}
+
