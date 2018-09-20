@@ -187,16 +187,23 @@ const encodeFunction = (writers, lookup) => {
   return encode
 }
 
+type Reader = (index: number, length: number) => [string, number]
+type Writer = (index: number, length: number, path?: string) => [string, number]
+
+interface BufferWrapper {
+  setBuffer(buffer: Buffer): any
+}
+
 class Bendec implements EncoderDecoder {
 
   private config: Config
   private lookup: Lookup = {}
-  private writers: any
-  private readers: any
+  private writers: { [t: string]: Writer }
+  private readers: { [t: string]: Reader }
   public decoders: Map<string, (o: any) => Buffer> = new Map()
   public encoders: Map<string, (buffer: Buffer) => any> = new Map()
   // TODO: types
-  public wrappers: Map<string, any> = new Map()
+  public wrappers: Map<string, BufferWrapper> = new Map()
 
   constructor(config: Config) {
 
@@ -244,7 +251,7 @@ class Bendec implements EncoderDecoder {
     return this.encoders.get(type)(obj)
   }
 
-  wrap(typeName: string, buffer: Buffer) {
+  wrap(typeName: string, buffer: Buffer): any {
     return this.wrappers.get(typeName).setBuffer(buffer)
   }
 

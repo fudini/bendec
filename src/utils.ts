@@ -26,13 +26,6 @@ const readers = {
 /**
  * Default writers
  */
-//const writers = {
-  //bool: (index, length, path = 'v') => [`!!buffer.writeUInt8(${path}, ${index})`, 1],
-  //u8: (index, length, path = 'v') => [`buffer.writeUInt8(${path}, ${index})`, 1],
-  //u16: (index, length, path = 'v') => [`buffer.writeUInt16LE(${path}, ${index})`, 2],
-  //u32: (index, length, path = 'v') => [`buffer.writeUInt32LE(${path}, ${index})`, 4],
-  //'char[]': (index, length, path = 'v') => [`${path}.copy(buffer, ${index})`, length]
-//}
 const writers = {
   bool: (index, length, path = 'v') => [`!!buffer.writeUInt8(${path}, ${index})`, index + 1],
   u8: (index, length, path = 'v') => [`buffer.writeUInt8(${path}, ${index})`, index + 1],
