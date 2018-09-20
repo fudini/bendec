@@ -33,9 +33,9 @@ class Bendec {
   private lookup: Lookup = {}
   private writers: { [t: string]: Writer }
   private readers: { [t: string]: Reader }
-  public decoders: Map<string, (o: any) => Buffer> = new Map()
-  public encoders: Map<string, (buffer: Buffer) => any> = new Map()
-  public wrappers: Map<string, BufferWrapper> = new Map()
+  private decoders: Map<string, (o: any) => Buffer> = new Map()
+  private encoders: Map<string, (buffer: Buffer) => any> = new Map()
+  private wrappers: Map<string, BufferWrapper> = new Map()
 
   constructor(config: Config) {
 
