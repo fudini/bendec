@@ -2,7 +2,6 @@ import * as _ from 'lodash'
 import {
   Primitive,
   Alias,
-  EncoderDecoder,
   Config,
   TypeDefinition,
   Reader,
@@ -28,7 +27,7 @@ interface BufferWrapper {
   setBuffer(buffer: Buffer): any
 }
 
-class Bendec implements EncoderDecoder {
+class Bendec {
 
   private config: Config
   private lookup: Lookup = {}

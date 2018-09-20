@@ -40,12 +40,6 @@ export interface Config {
   getVariant: VariantGetter
 }
 
-export interface EncoderDecoder {
-  encode(o: any): Buffer
-  decode(b: Buffer): any
-  wrap(name: string, b: Buffer): any
-}
-
 export const Errors = {
   TYPE_NOT_FOUND: 'TYPE_NOT_FOUND',
   UNKNOWN_SIZE: 'UNKNOWN_SIZE'
