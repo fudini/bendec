@@ -35,8 +35,12 @@ const writers = {
   'char[]': (index, length, path = 'v') => [`${path}.copy(buffer, ${index})`, index + length]
 }
 
-const asciiReader = (index, length) => [`buffer.toString('ascii', ${index}, ${index + length}).replace(/\u0000+$/, '')`, index + length]
-const asciiWriter = (index, length, path = 'v') => [`buffer.write(${path}, ${index}, ${index + length}, 'ascii')`, index + length]
+const asciiReader = (index, length): [string, number] => {
+  return [`buffer.toString('ascii', ${index}, ${index + length}).replace(/\u0000+$/, '')`, index + length]
+}
+const asciiWriter = (index, length, path = 'v'): [string, number] => {
+  return [`buffer.write(${path}, ${index}, ${index + length}, 'ascii')`, index + length]
+}
 
 const toAscii = (buffer: Buffer) => buffer.toString('ascii').replace(/\u0000+$/, '')
 const fromAscii = (ascii: string) => Buffer.from(ascii)

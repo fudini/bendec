@@ -25,6 +25,9 @@ export interface Custom {
 
 export type TypeDefinition = Primitive | Alias | Custom
 
+type Reader = (index: number, length: number) => [string, number]
+type Writer = (index: number, length: number, path?: string) => [string, number]
+
 interface VariantGetter {
   encode(msg: any): string
   decode(buf: Buffer): string
@@ -32,8 +35,8 @@ interface VariantGetter {
 
 export interface Config {
   types: TypeDefinition[]
-  readers?: any
-  writers?: any
+  readers?: { [t: string]: Reader }
+  writers?: { [t: string]: Writer }
   getVariant: VariantGetter
 }
 
@@ -48,3 +51,7 @@ export const Errors = {
   UNKNOWN_SIZE: 'UNKNOWN_SIZE'
 }
 
+export {
+  Reader,
+  Writer
+}

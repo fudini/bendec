@@ -5,6 +5,8 @@ import {
   EncoderDecoder,
   Config,
   TypeDefinition,
+  Reader,
+  Writer,
 } from './types'
 import {
   genWrapFunction,
@@ -21,9 +23,6 @@ import {
 interface Lookup {
   [typeName: string]: TypeDefinition
 }
-
-type Reader = (index: number, length: number) => [string, number]
-type Writer = (index: number, length: number, path?: string) => [string, number]
 
 interface BufferWrapper {
   setBuffer(buffer: Buffer): any
