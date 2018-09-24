@@ -26,6 +26,7 @@ interface Lookup {
 
 interface BufferWrapper {
   setBuffer(buffer: Buffer): any
+  getBuffer(): Buffer
 }
 
 class Bendec {
