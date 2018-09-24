@@ -1,15 +1,8 @@
 import { performance } from 'perf_hooks'
+import { measure } from '../utils'
 
 type BigInt = number
 declare const BigInt: typeof Number
-
-const measure = (msg, f) => {
-  const now = performance.now()
-  f()
-  const time = performance.now() - now
-  console.log(msg)
-  console.log('total time ms: ', Math.round(time))
-}
 
 function toBigInt(buf: Buffer): any {
   const reversed = Buffer.from(buf)

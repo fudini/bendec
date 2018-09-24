@@ -19,11 +19,9 @@ const genWrap = (obj, write, path = []) => {
     if (_.isObject(v)) {
       const gend = genWrap(v, write, [...path, k]).join('')
       return [
-        `set ${k}(v) { for (let k in v) { this.${k}[k] = v[k] } },\n`,
-        `get ${k}() {\n`,
-        `return {\n`,
+        //`set ${k}(v) { for (let k in v) { this.${k}[k] = v[k] } },\n`,
+        `${k}: {\n`,
         `${gend}\n`,
-        `}\n`,
         `},\n`
       ].join('')
     }
@@ -43,8 +41,9 @@ const genWrapFunction = (readers, writers, lookup, name) => {
   let setBuffer = `setBuffer(b) { buffer = b; return this },\n`
   let all = genWrap(read, write).join('') + setBuffer
 
-  let body = `return { ${all} }` 
-  return new Function('buffer', body)
+  let body = `var buffer = buf\n` + 
+             `return { ${all} }\n`
+  return new Function('buf', body)
 }
 
 export { genWrapFunction }

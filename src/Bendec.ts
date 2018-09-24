@@ -33,8 +33,8 @@ class Bendec {
   private lookup: Lookup = {}
   private writers: { [t: string]: Writer }
   private readers: { [t: string]: Reader }
-  private decoders: Map<string, (o: any) => Buffer> = new Map()
-  private encoders: Map<string, (buffer: Buffer) => any> = new Map()
+  private decoders: Map<string, (buffer: Buffer) => any> = new Map()
+  private encoders: Map<string, (o: any, b?: Buffer) => Buffer> = new Map()
   private wrappers: Map<string, BufferWrapper> = new Map()
 
   constructor(config: Config) {
@@ -78,15 +78,23 @@ class Bendec {
     return this.decoders.get(type)(buffer)
   }
 
-  encode(obj): Buffer {
+  encode(obj: any, buffer?: Buffer): Buffer {
     const type = this.config.getVariant.encode(obj)
-    return this.encoders.get(type)(obj)
+    return this.encoders.get(type)(obj, buffer)
   }
 
+  /**
+   * Wrap a buffer in a Type getter / setter
+   * TODO: typeName is stringly typed
+   */
   wrap(typeName: string, buffer: Buffer): any {
     return this.wrappers.get(typeName).setBuffer(buffer)
   }
 
+  /**
+   * Get size in bytes of a type by name
+   * TODO: stringly typed
+   */
   getSize(typeName: string): number {
     return (<any>this.lookup[typeName]).size
   }

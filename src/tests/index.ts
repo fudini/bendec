@@ -55,6 +55,7 @@ const groupResult = {
 }
 
 const lookup = invertLookup(MsgType)
+
 const getVariant = {
   encode: message => lookup[message.header.msgType],
   decode: buffer => lookup[buffer.readUInt8()]
