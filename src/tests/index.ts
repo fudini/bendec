@@ -124,7 +124,6 @@ test('Bendec write zeroes', t => {
 
 test('Bendec wrapper', t => {
 
-
   let size = bendec.getSize('UserAdd')
   let buffer = Buffer.alloc(size)
 
@@ -161,4 +160,41 @@ test('Bendec wrapper', t => {
   t.end()
 })
 
+test('Bendec wrapper 2', t => {
+
+  let size = bendec.getSize('UserAdd')
+  let buffer = Buffer.alloc(size)
+
+  let userAdd = bendec.wrap2('UserAdd', buffer)
+
+  let user = {
+    firstName: 'genezyp',
+    lastName: 'bazakbal',
+    age: 255,
+    uri: {
+      protocol: 'aabbaabbaa',
+      host: '1122334455',
+      port: 123
+    }
+  }
+
+  userAdd.set_header_msgType(MsgType.USER_ADD)
+  userAdd.set_user_firstName('genezyp')
+  userAdd.set_user_lastName('bazakbal' )
+  userAdd.set_user_age(255)
+  userAdd.set_user_uri_protocol('aabbaabbaa')
+  userAdd.set_user_uri_host('1122334455')
+  userAdd.set_user_uri_port(123)
+
+  let decoded = bendec.decode(buffer)
+
+  t.deepEqual({
+    header: {
+      msgType: MsgType.USER_ADD
+    },
+    user
+  }, decoded)
+
+  t.end()
+})
 

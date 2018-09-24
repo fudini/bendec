@@ -9,6 +9,7 @@ import {
 } from './types'
 import {
   genWrapFunction,
+  genWrapFunction2, // function get/set
   genReadFunction,
   genWriteFunction,
 } from './generators/index'
@@ -36,6 +37,7 @@ class Bendec {
   private decoders: Map<string, (buffer: Buffer) => any> = new Map()
   private encoders: Map<string, (o: any, b?: Buffer) => Buffer> = new Map()
   private wrappers: Map<string, BufferWrapper> = new Map()
+  private wrappers2: Map<string, BufferWrapper> = new Map()
 
   constructor(config: Config) {
 
@@ -70,6 +72,13 @@ class Bendec {
       let wrapInstance = wrapFunc(Buffer.alloc((<any>this.lookup[type.name]).size))
       
       this.wrappers.set(type.name, wrapInstance)
+
+      let wrapFunc2 = <any>genWrapFunction2(this.readers, this.writers, lookup, type.name)
+      // instantiate with empty buffer
+      let wrapInstance2 = wrapFunc2(Buffer.alloc((<any>this.lookup[type.name]).size))
+      
+      this.wrappers2.set(type.name, wrapInstance2)
+
     })
   }
 
@@ -89,6 +98,14 @@ class Bendec {
    */
   wrap(typeName: string, buffer: Buffer): any {
     return this.wrappers.get(typeName).setBuffer(buffer)
+  }
+
+  /**
+   * Wrap a buffer
+   * TODO: typeName is stringly typed
+   */
+  wrap2(typeName: string, buffer: Buffer): any {
+    return this.wrappers2.get(typeName).setBuffer(buffer)
   }
 
   /**
