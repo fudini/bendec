@@ -4,30 +4,24 @@ import { Bendec, invertLookup } from '../'
 import { measure } from './utils'
 import {
   LargeMessageWrap,
+  LargeMessageWrapClass,
   LargeMessageWrap2,
   LargeMessageWrap3,
-  LargeMessageWrap4
+  LargeMessageWrap4,
+  LargeMessageWrap5
 } from './LargeMessageWrap'
 
 const bendec = new Bendec({ types, getVariant })
 
 const COUNT = 1e6
 
-console.log('ENCODE')
+const encodeClassic = () => {
 
-const now = performance.now()
-
-const buffer = Buffer.alloc(bendec.getSize('LargeMessage'))
-
-for (let i = 0; i < COUNT; i ++) {
-  bendec.encode(largeMessage2, buffer)
+  const buffer = Buffer.alloc(bendec.getSize('LargeMessage'))
+  for (let i = 0; i < COUNT; i ++) {
+    bendec.encode(largeMessage2, buffer)
+  }
 }
-
-const time = performance.now() - now
-
-console.log('count:   ', COUNT)
-console.log('Total time ms: ', Math.round(time))
-console.log('msg / s: ', Math.round(COUNT / time * 1e3))
 
 const encodeWrapLoop = wrap => {
 
@@ -108,6 +102,22 @@ const encodeWrap2b = () => {
   encodeWrapLoopFlat(wrap)
 }
 
+const encodeWrap2c = () => {
+
+  let buffer = Buffer.alloc(bendec.getSize('LargeMessage'))
+  let wrap = LargeMessageWrap5(buffer)
+
+  encodeWrapLoopFlat(wrap)
+}
+
+const encodeWrap2d = () => {
+
+  let buffer = Buffer.alloc(bendec.getSize('LargeMessage'))
+  let wrap = LargeMessageWrapClass(buffer)
+
+  encodeWrapLoopFlat(wrap)
+}
+
 
 const encodeWrap3 = () => {
 
@@ -167,8 +177,11 @@ const encodeWrap4 = () => {
   }
 }
 
+measure('ENCODE CLASSIC', encodeClassic)
 measure('ENCODE WRAP getters / setters', encodeWrap1)
 measure('ENCODE WRAP IMPORTED getters / setters', encodeWrap2)
 measure('ENCODE WRAP IMPORTED getters / setters FLAT', encodeWrap2b)
+measure('ENCODE WRAP IMPORTED getters / setters CLASS FLAT', encodeWrap2c)
+measure('ENCODE WRAP IMPORTED getters / setters CLASS', encodeWrap2d)
 measure('ENCODE WRAP IMPORTED functions', encodeWrap3)
 measure('ENCODE WRAP IMPORTED prototype functions', encodeWrap4)

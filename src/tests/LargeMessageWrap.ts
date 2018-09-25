@@ -52,6 +52,49 @@ function LargeMessageWrap(buf) {
   }
 }
 
+function LargeMessageWrapClass(buf) {
+  var buffer = buf
+
+  return new (class Wrap {
+    header: any
+    person1: any
+    person2: any
+    constructor() {
+
+      this.header = new (class Wrap {
+        set msgType(v) { buffer.writeUInt8(v, 0) }
+      })
+
+      this.person1 = new (class Wrap {
+        set a(v) { buffer.writeUInt16LE(v, 1) }
+        set b(v) { buffer.writeUInt32LE(v, 3) }
+        set c(v) { buffer.writeUInt32LE(v, 7) }
+        set d(v) { buffer.writeUInt8(v, 11) }
+      })
+
+      this.person2 = new (class Wrap {
+        set a(v) { buffer.writeUInt16LE(v, 12) }
+        set b(v) { buffer.writeUInt32LE(v, 14) }
+        set c(v) { buffer.writeUInt32LE(v, 18) }
+        set d(v) { buffer.writeUInt8(v, 22) }
+      })
+    }
+
+    set aaa(v) { buffer.writeUInt32LE(v, 23) }
+    set bbb(v) { buffer.writeUInt32LE(v, 27) }
+    set ccc(v) { buffer.writeUInt32LE(v, 31) }
+    set ddd(v) { buffer.writeUInt32LE(v, 35) }
+    set eee(v) { buffer.writeUInt32LE(v, 39) }
+    set fff(v) { buffer.writeUInt8(v, 43) }
+    set ggg(v) { buffer.writeUInt8(v, 44) }
+    set name1(v) { v.copy(buffer, 45) }
+    set name2(v) { v.copy(buffer, 109) }
+    set name3(v) { v.copy(buffer, 173) }
+    set name4(v) { v.copy(buffer, 237) }
+    setBuffer(b) { buffer = b; return this }
+  })
+}
+
 function LargeMessageWrap2(buf) {
   var buffer = buf
   return {
@@ -135,9 +178,44 @@ function LargeMessageWrap4(buf) {
   }
 }
 
+class Wrap {
+  buffer: Buffer
+  constructor(buf) {
+    this.buffer = buf
+  }
+  set msgType(v) { this.buffer.writeUInt8(v, 0) }
+  set a(v) { this.buffer.writeUInt16LE(v, 1) }
+  set b(v) { this.buffer.writeUInt32LE(v, 3) }
+  set c(v) { this.buffer.writeUInt32LE(v, 7) }
+  set d(v) { this.buffer.writeUInt8(v, 11) }
+  set a2(v) { this.buffer.writeUInt16LE(v, 12) }
+  set b2(v) { this.buffer.writeUInt32LE(v, 14) }
+  set c2(v) { this.buffer.writeUInt32LE(v, 18) }
+  set d2(v) { this.buffer.writeUInt8(v, 22) }
+  set aaa(v) { this.buffer.writeUInt32LE(v, 23) }
+  set bbb(v) { this.buffer.writeUInt32LE(v, 27) }
+  set ccc(v) { this.buffer.writeUInt32LE(v, 31) }
+  set ddd(v) { this.buffer.writeUInt32LE(v, 35) }
+  set eee(v) { this.buffer.writeUInt32LE(v, 39) }
+  set fff(v) { this.buffer.writeUInt8(v, 43) }
+  set ggg(v) { this.buffer.writeUInt8(v, 44) }
+  set name1(v) { v.copy(this.buffer, 45) }
+  set name2(v) { v.copy(this.buffer, 109) }
+  set name3(v) { v.copy(this.buffer, 173) }
+  set name4(v) { v.copy(this.buffer, 237) }
+  setBuffer(b) { this.buffer = b; return this }
+}
+
+function LargeMessageWrap5(buf) {
+  return new Wrap(buf)
+}
+
+
 export {
   LargeMessageWrap,
+  LargeMessageWrapClass,
   LargeMessageWrap2,
   LargeMessageWrap3,
-  LargeMessageWrap4
+  LargeMessageWrap4,
+  LargeMessageWrap5
 }
