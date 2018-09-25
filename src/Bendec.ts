@@ -6,6 +6,7 @@ import {
   TypeDefinition,
   Reader,
   Writer,
+  BufferWrapper,
 } from './types'
 import {
   genWrapFunction,
@@ -17,28 +18,23 @@ import {
 import {
   readers,
   writers,
-  getTypeSize
+  getTypeSize,
 } from './utils'
 
 interface Lookup {
   [typeName: string]: TypeDefinition
 }
 
-interface BufferWrapper {
-  setBuffer(buffer: Buffer): any
-  getBuffer(): Buffer
-}
-
-class Bendec {
+class Bendec<T> {
 
   private config: Config
   private lookup: Lookup = {}
   private writers: { [t: string]: Writer }
   private readers: { [t: string]: Reader }
-  private decoders: Map<string, (buffer: Buffer) => any> = new Map()
-  private encoders: Map<string, (o: any, b?: Buffer) => Buffer> = new Map()
-  private wrappers: Map<string, BufferWrapper> = new Map()
-  private wrappers2: Map<string, BufferWrapper> = new Map()
+  private decoders: Map<string, (buffer: Buffer) => T> = new Map()
+  private encoders: Map<string, (o: T, b?: Buffer) => Buffer> = new Map()
+  private wrappers: Map<string, BufferWrapper<T>> = new Map()
+  private wrappers2: Map<string, BufferWrapper<T>> = new Map()
 
   constructor(config: Config) {
 
@@ -83,12 +79,12 @@ class Bendec {
     })
   }
 
-  decode(buffer: Buffer): any {
+  decode(buffer: Buffer): T {
     const type = this.config.getVariant.decode(buffer)
     return this.decoders.get(type)(buffer)
   }
 
-  encode(obj: any, buffer?: Buffer): Buffer {
+  encode(obj: T, buffer?: Buffer): Buffer {
     const type = this.config.getVariant.encode(obj)
     return this.encoders.get(type)(obj, buffer)
   }
@@ -97,7 +93,7 @@ class Bendec {
    * Wrap a buffer in a Type getter / setter
    * TODO: typeName is stringly typed
    */
-  wrap(typeName: string, buffer: Buffer): any {
+  wrap(typeName: string, buffer: Buffer): BufferWrapper<T> {
     return this.wrappers.get(typeName).setBuffer(buffer)
   }
 
@@ -105,7 +101,7 @@ class Bendec {
    * Wrap a buffer
    * TODO: typeName is stringly typed
    */
-  wrap2(typeName: string, buffer: Buffer): any {
+  wrap2(typeName: string, buffer: Buffer): BufferWrapper<T> {
     return this.wrappers2.get(typeName).setBuffer(buffer)
   }
 

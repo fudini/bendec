@@ -40,6 +40,13 @@ export interface Config {
   getVariant: VariantGetter
 }
 
+export interface IBufferWrapper<T> {
+  setBuffer(buffer: Buffer): BufferWrapper<T>
+  getBuffer(): Buffer
+}
+
+export type BufferWrapper<T> = T & IBufferWrapper<T>
+
 export const Errors = {
   TYPE_NOT_FOUND: 'TYPE_NOT_FOUND',
   UNKNOWN_SIZE: 'UNKNOWN_SIZE'

@@ -61,7 +61,7 @@ const getVariant = {
   decode: buffer => lookup[buffer.readUInt8()]
 }
 
-const bendec = new Bendec({ types, getVariant, readers, writers })
+const bendec = new Bendec<any>({ types, getVariant, readers, writers })
 
 test('Bendec test', t => {
 
