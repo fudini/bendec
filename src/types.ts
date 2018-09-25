@@ -40,9 +40,13 @@ export interface Config {
   getVariant: VariantGetter
 }
 
+export type BufferBox<T> = {
+  buffer: Buffer
+}
+
 export interface IBufferWrapper<T> {
   setBuffer(buffer: Buffer): BufferWrapper<T>
-  getBuffer(): Buffer
+  getBuffer(): BufferBox<T>
 }
 
 export type BufferWrapper<T> = T & IBufferWrapper<T>
