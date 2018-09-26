@@ -2,12 +2,35 @@ import test from 'tape'
 import * as _ from 'lodash'
 import { MsgType, types } from './fixtures'
 import { Bendec, invertLookup, asciiReader, asciiWriter } from '../'
+import { BufferWrapper, BufferBox } from '../types'
 
 // lets override readers and writers so we can deal with ascii
 const readers = { 'char[]': asciiReader }
 const writers = { 'char[]': asciiWriter }
 
-const user = {
+interface Uri {
+  protocol: string
+  host: string
+  port: number
+}
+
+interface User {
+  firstName: string
+  lastName: string
+  age: number
+  uri: Uri
+}
+
+interface Header {
+  msgType: number
+}
+
+interface UserAdd {
+  header: Header
+  user: User
+}
+
+const user: User = {
   firstName: 'Genezyp',
   lastName: 'Bazakbal',
   age: 45,
@@ -18,7 +41,7 @@ const user = {
   }
 }
 
-const userAdd = {
+const userAdd: UserAdd = {
   header: {
     msgType: MsgType.USER_ADD,
   },
@@ -127,9 +150,9 @@ test('Bendec wrapper', t => {
   let size = bendec.getSize('UserAdd')
   let buffer = Buffer.alloc(size)
 
-  let userAdd = bendec.wrap('UserAdd', buffer)
+  let userAdd: BufferWrapper<UserAdd> = bendec.wrap('UserAdd', buffer)
 
-  let user = {
+  let user: User = {
     firstName: 'genezyp',
     lastName: 'bazakbal',
     age: 255,
@@ -147,6 +170,8 @@ test('Bendec wrapper', t => {
   userAdd.user.uri.protocol = 'aabbaabbaa'
   userAdd.user.uri.host = '1122334455'
   userAdd.user.uri.port = 123
+
+  let bufferBox = userAdd.getBuffer()
 
   let decoded = bendec.decode(buffer)
 

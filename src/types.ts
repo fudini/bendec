@@ -42,6 +42,7 @@ export interface Config {
 
 export type BufferBox<T> = {
   buffer: Buffer
+  __phantom?: T
 }
 
 export interface IBufferWrapper<T> {

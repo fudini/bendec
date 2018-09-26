@@ -34,7 +34,7 @@ const genWrapFunction2 = (readers, writers, lookup, name) => {
   let [write] = genReadFields(writers, lookup)(name)
 
   let setBuffer = `setBuffer(b) { buffer = b; return this },\n`
-  let getBuffer = `getBuffer(b) { buffer },\n`
+  let getBuffer = `getBuffer() { return { buffer } },\n`
   let all = genWrap2(read, write).join('') + setBuffer + getBuffer
 
   let body = `var buffer = buf\n` + 
