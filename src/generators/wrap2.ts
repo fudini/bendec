@@ -1,6 +1,12 @@
 import * as _ from 'lodash'
 import { genReadFields } from './read'
 
+/**
+ * Wrap 2 uses methods for getting and setting
+ *
+ * They are faster but not as much faster to be worth it
+ *
+ */
 const genWrap2 = (obj, write, path = []) => {
 
   return _.map(obj, (v, k) => {

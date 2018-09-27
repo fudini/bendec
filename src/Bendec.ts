@@ -33,6 +33,8 @@ class Bendec<T> {
   private readers: { [t: string]: Reader }
   private decoders: Map<string, (buffer: Buffer) => T> = new Map()
   private encoders: Map<string, (o: T, b?: Buffer) => Buffer> = new Map()
+  private wrapperFactories: Map<string, (b: Buffer) => BufferWrapper<T>> = new Map()
+
   private wrappers: Map<string, BufferWrapper<T>> = new Map()
   private wrappers2: Map<string, BufferWrapper<T>> = new Map()
 
@@ -65,6 +67,9 @@ class Bendec<T> {
       this.encoders.set(type.name, encodeFunc)
 
       let wrapFunc = <any>genWrapFunction(this.readers, this.writers, lookup, type.name)
+
+      this.wrapperFactories.set(type.name, wrapFunc)
+
       // instantiate with empty buffer
       let wrapInstance = wrapFunc(Buffer.alloc((<any>this.lookup[type.name]).size))
       
@@ -79,18 +84,39 @@ class Bendec<T> {
     })
   }
 
+  /**
+   * Decode the Buffer into an object
+   */
   decode(buffer: Buffer): T {
     const type = this.config.getVariant.decode(buffer)
     return this.decoders.get(type)(buffer)
   }
 
+  /**
+   * Encode object into Buffer
+   */
   encode(obj: T, buffer?: Buffer): Buffer {
-    const type = this.config.getVariant.encode(obj)
-    return this.encoders.get(type)(obj, buffer)
+    const typeName = this.config.getVariant.encode(obj)
+    return this.encoders.get(typeName)(obj, buffer)
+  }
+
+  /**
+   * Encode object into Buffer as specified type
+   * This method won't use a 'getVariant' function to determine
+   * what type to encode as
+   */
+  encodeAs(obj: T, typeName: string, buffer?: Buffer): Buffer {
+    return this.encoders.get(typeName)(obj, buffer)
   }
 
   /**
    * Wrap a buffer in a Type getter / setter
+   *
+   * WARNING: It will reuse a cached wrapper in the bendec instance
+   * therefore you can't have 2 or more of these at the same time
+   *
+   * To create a new instance use method getWrapper
+   *
    * TODO: typeName is stringly typed
    */
   wrap(typeName: string, buffer: Buffer): BufferWrapper<T> {
@@ -98,11 +124,22 @@ class Bendec<T> {
   }
 
   /**
-   * Wrap a buffer
-   * TODO: typeName is stringly typed
+   * Wrap a buffer in a Type getter / setter based on functions
+   *
+   * WARNING: works similar to wrap (wrapper is reused)
    */
   wrap2(typeName: string, buffer: Buffer): BufferWrapper<T> {
     return this.wrappers2.get(typeName).setBuffer(buffer)
+  }
+
+  /**
+   * Returns a function that will create a new instance of BufferWrapper
+   *
+   * TODO: typeName is stringly typed
+   */
+  getWrapper(typeName: string): BufferWrapper<T> {
+    let buffer = Buffer.alloc(this.getSize(typeName))
+    return this.wrapperFactories.get(typeName)(buffer)
   }
 
   /**
