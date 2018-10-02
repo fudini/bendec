@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import { Errors } from '../types'
 import { resolveType } from '../utils'
 
-const genReadField = (readers, lookup) => (field, index = 0): [any, number] => {
+const genReadField = (readers, lookup, sizes = false) => (field, index = 0): [any, number] => {
 
   const key = field.type + (field.length ? '[]' : '')
   var reader = readers[key]
@@ -12,13 +12,12 @@ const genReadField = (readers, lookup) => (field, index = 0): [any, number] => {
 
   if (field.length) {
 
-    let fieldsMapped = []
-
-    _.range(0, field.length).forEach(i => {
-      let [func, newIndex] = genReadField(readers, lookup)({type: field.type}, index)
-      index = newIndex
-      fieldsMapped.push(func)
-    })
+    let fieldsMapped = _.range(0, field.length)
+      .map(i => {
+        let [func, newIndex] = genReadField(readers, lookup, sizes)({type: field.type}, index)
+        index = newIndex
+        return func
+      })
 
     return [fieldsMapped, index]
   }
@@ -33,13 +32,13 @@ const genReadField = (readers, lookup) => (field, index = 0): [any, number] => {
 
   // probably another custom type
   if (lookup[field.type]) {
-    return genReadFields(readers, lookup)(field.type, index)
+    return genReadFields(readers, lookup, sizes)(field.type, index)
   }
 
   throw `${Errors.TYPE_NOT_FOUND}:${field.type}`
 }
 
-const genReadFields = (readers, lookup) => (type, index = 0) => {
+const genReadFields = (readers, lookup, sizes = false) => (type, index = 0) => {
 
   const typeDef = lookup[type]
 
@@ -54,17 +53,21 @@ const genReadFields = (readers, lookup) => (type, index = 0) => {
   var obj = {}
 
   typeDef.fields.forEach(field => {
-    let [func, newIndex] = genReadField(readers, lookup)(field, index) 
+    let [func, newIndex] = genReadField(readers, lookup, sizes)(field, index) 
+    if (sizes) {
+      obj[field.name] = [func, index, newIndex]
+    } else {
+      obj[field.name] = func
+    }
     index = newIndex
-    obj[field.name] = func
   })
 
   return [obj, index]
 }
 
-const genReadFunction = (readers, lookup, name) => {
+const genReadFunction = (readers, lookup, name, sizes = false) => {
 
-  let [intermediate] = genReadFields(readers, lookup)(name)
+  let [intermediate] = genReadFields(readers, lookup, sizes)(name)
   let stringified = JSON.stringify(intermediate, null, 2).replace(/\"/g, '')
   return new Function('buffer', `return ${stringified}`)
 }
