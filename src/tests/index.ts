@@ -1,7 +1,14 @@
 import test from 'tape'
 import * as _ from 'lodash'
 import { MsgType, types } from './fixtures'
-import { Bendec, invertLookup, asciiReader, asciiWriter } from '../'
+import {
+  Bendec,
+  invertLookup,
+  fastReaders,
+  fastWriters,
+  asciiReader,
+  asciiWriter,
+} from '../'
 import { BufferWrapper, BufferBox } from '../types'
 
 // lets override readers and writers so we can deal with ascii
@@ -85,6 +92,16 @@ const getVariant = {
 }
 
 const bendec = new Bendec<any>({ types, getVariant, readers, writers })
+
+const allFastReaders = { ...fastReaders, ...readers }
+const allFastWriters = { ...fastWriters, ...writers }
+
+const bendec2 = new Bendec<any>({
+  types,
+  getVariant,
+  readers: allFastReaders,
+  writers: allFastWriters
+})
 
 test('Bendec test', t => {
 
@@ -222,4 +239,25 @@ test('Bendec wrapper 2', t => {
 
   t.end()
 })
+
+test('Bendec fast readers / writers test', t => {
+
+  const encodedUser = bendec2.encode(userAdd)
+  const decodedUser = bendec2.decode(encodedUser)
+
+  t.equal(encodedUser.length, 78, 'UserAdd buffer length')
+  t.deepEqual(userAdd, decodedUser, 'UserAdd encode / decode')
+
+  const encodedGroup = bendec2.encode(group)
+
+  const groupLength = 394
+  t.equal(encodedGroup.length, groupLength, 'Group buffer length')
+
+  const decodedGroup = bendec2.decode(encodedGroup)
+  t.deepEqual(decodedGroup, groupResult, 'Group encode / decode')
+
+  t.end()
+})
+
+
 

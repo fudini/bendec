@@ -1,6 +1,6 @@
 import { performance } from 'perf_hooks'
 import { types, largeMessage, largeMessage2, getVariant } from './fixtures'
-import { Bendec, invertLookup } from '../'
+import { Bendec, invertLookup, fastWriters, fastReaders } from '../'
 import { measure } from './utils'
 import {
   LargeMessageWrap,
@@ -12,14 +12,28 @@ import {
 } from './LargeMessageWrap'
 
 const bendec = new Bendec({ types, getVariant })
+const bendec2 = new Bendec({
+  types,
+  getVariant,
+  readers: fastReaders,
+  writers: fastWriters
+})
 
-const COUNT = 1e6
+const COUNT = 1e7
 
 const encodeClassic = () => {
 
   const buffer = Buffer.alloc(bendec.getSize('LargeMessage'))
   for (let i = 0; i < COUNT; i ++) {
     bendec.encode(largeMessage2, buffer)
+  }
+}
+
+const encodeClassicFast = () => {
+
+  const buffer = Buffer.alloc(bendec2.getSize('LargeMessage'))
+  for (let i = 0; i < COUNT; i ++) {
+    bendec2.encode(largeMessage2, buffer)
   }
 }
 
@@ -178,10 +192,12 @@ const encodeWrap4 = () => {
 }
 
 measure('ENCODE CLASSIC', encodeClassic)
-measure('ENCODE WRAP getters / setters', encodeWrap1)
-measure('ENCODE WRAP IMPORTED getters / setters', encodeWrap2)
-measure('ENCODE WRAP IMPORTED getters / setters FLAT', encodeWrap2b)
-measure('ENCODE WRAP IMPORTED getters / setters CLASS FLAT', encodeWrap2c)
-measure('ENCODE WRAP IMPORTED getters / setters CLASS', encodeWrap2d)
-measure('ENCODE WRAP IMPORTED functions', encodeWrap3)
-measure('ENCODE WRAP IMPORTED prototype functions', encodeWrap4)
+measure('ENCODE CLASSIC FAST', encodeClassicFast)
+
+//measure('ENCODE WRAP getters / setters', encodeWrap1)
+//measure('ENCODE WRAP IMPORTED getters / setters', encodeWrap2)
+//measure('ENCODE WRAP IMPORTED getters / setters FLAT', encodeWrap2b)
+//measure('ENCODE WRAP IMPORTED getters / setters CLASS FLAT', encodeWrap2c)
+//measure('ENCODE WRAP IMPORTED getters / setters CLASS', encodeWrap2d)
+//measure('ENCODE WRAP IMPORTED functions', encodeWrap3)
+//measure('ENCODE WRAP IMPORTED prototype functions', encodeWrap4)

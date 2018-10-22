@@ -17,22 +17,52 @@ const invertLookup = (variants: Variants): VariantsLookup => {
  * Default readers
  */
 const readers = {
-  bool: (index, length) => [`!!buffer.readUInt8(${index})`, index + 1],
-  u8: (index, length) => [`buffer.readUInt8(${index})`, index + 1],
-  u16: (index, length) => [`buffer.readUInt16LE(${index})`, index + 2],
-  u32: (index, length) => [`buffer.readUInt32LE(${index})`, index + 4],
-  'char[]': (index, length) => [`buffer.slice(${index}, ${index + length})`, index + length]
+  bool: (index, length): [string, number] => [`!!buffer.readUInt8(${index})`, index + 1],
+  u8: (index, length): [string, number] => [`buffer.readUInt8(${index})`, index + 1],
+  u16: (index, length): [string, number] => [`buffer.readUInt16LE(${index})`, index + 2],
+  u32: (index, length): [string, number] => [`buffer.readUInt32LE(${index})`, index + 4],
+  'char[]': (index, length): [string, number] => [`buffer.slice(${index}, ${index + length})`, index + length]
 }
 
 /**
  * Default writers
  */
 const writers = {
-  bool: (index, length, path = 'v') => [`!!buffer.writeUInt8(${path}, ${index})`, index + 1],
-  u8: (index, length, path = 'v') => [`buffer.writeUInt8(${path}, ${index})`, index + 1],
-  u16: (index, length, path = 'v') => [`buffer.writeUInt16LE(${path}, ${index})`, index + 2],
-  u32: (index, length, path = 'v') => [`buffer.writeUInt32LE(${path}, ${index})`, index + 4],
-  'char[]': (index, length, path = 'v') => [`${path}.copy(buffer, ${index})`, index + length]
+  bool: (index, length, path = 'v'): [string, number] => [`buffer.writeUInt8(${path}, ${index})`, index + 1],
+  u8: (index, length, path = 'v'): [string, number] => [`buffer.writeUInt8(${path}, ${index})`, index + 1],
+  u16: (index, length, path = 'v'): [string, number] => [`buffer.writeUInt16LE(${path}, ${index})`, index + 2],
+  u32: (index, length, path = 'v'): [string, number] => [`buffer.writeUInt32LE(${path}, ${index})`, index + 4],
+  'char[]': (index, length, path = 'v'): [string, number] => [`${path}.copy(buffer, ${index})`, index + length]
+}
+
+/**
+ * Fast readers
+ */
+const fastReaders = {
+  bool: (index, length): [string, number] => [`!!buffer[${index}]`, index + 1],
+  u8: (index, length): [string, number] => [`buffer[${index}]`, index + 1],
+  u16: (index, length): [string, number] => [`buffer[${index}] + buffer[${index + 1}] * 2 ** 8`, index + 2],
+  u32: (index, length): [string, number] => [`buffer[${index}] + buffer[${index + 1}] * 2 ** 8 + buffer[${index + 2}] * 2 ** 16 + buffer[${index + 3}] * 2 ** 24`, index + 4],
+  'char[]': (index, length): [string, number] => [`buffer.slice(${index}, ${index + length})`, index + length]
+}
+
+/**
+ * Fast writers
+ */
+const fastWriters = {
+  bool: (index, length, path = 'v'): [string, number] => [`buffer[${index}] = ~~${path}`, index + 1],
+  u8: (index, length, path = 'v'): [string, number] => [`buffer[${index}] = ${path}`, index + 1],
+  u16: (index, length, path = 'v'): [string, number] => [`
+    buffer[${index}] = ${path}
+    buffer[${index + 1}] = (${path} >>> 8)
+  `, index + 2],
+  u32: (index, length, path = 'v'): [string, number] => [`
+    buffer[${index}] = ${path}
+    buffer[${index + 1}] = (${path} >>> 8)
+    buffer[${index + 2}] = (${path} >>> 16)
+    buffer[${index + 3}] = (${path} >>> 24)
+  `, index + 4],
+  'char[]': (index, length, path = 'v'): [string, number] => [`${path}.copy(buffer, ${index})`, index + length]
 }
 
 const asciiReader = (index, length): [string, number] => {
@@ -93,6 +123,8 @@ export {
   invertLookup,
   readers,
   writers,
+  fastReaders,
+  fastWriters,
   asciiReader,
   asciiWriter,
   fromAscii,
