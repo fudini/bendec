@@ -8,6 +8,7 @@ import {
   Writer,
   BufferWrapper,
 } from './types'
+
 import {
   genWrapFunction,
   genWrapFunction2, // function get/set
