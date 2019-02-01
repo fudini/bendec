@@ -9,7 +9,7 @@ import {
   asciiReader,
   asciiWriter,
 } from '../'
-import { BufferWrapper, BufferBox } from '../types'
+import { BufferWrapper } from '../types'
 
 // lets override readers and writers so we can deal with ascii
 const readers = { 'char[]': asciiReader }
@@ -188,7 +188,7 @@ test('Bendec wrapper', t => {
   userAdd.user.uri.host = '1122334455'
   userAdd.user.uri.port = 123
 
-  let bufferBox = userAdd.getBuffer()
+  let typedBuffer = userAdd.getBuffer()
 
   let decoded = bendec.decode(buffer)
 
