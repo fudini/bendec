@@ -190,7 +190,7 @@ test('Bendec wrapper', t => {
 
   let typedBuffer = userAdd.getBuffer()
 
-  let decoded = bendec.decode(buffer)
+  let decoded = bendec.decode(typedBuffer)
 
   t.deepEqual({
     header: {
@@ -198,6 +198,28 @@ test('Bendec wrapper', t => {
     },
     user
   }, decoded)
+
+  t.end()
+})
+
+test('Bendec wrapper slice', t => {
+
+  let size = bendec.getSize('UserAdd')
+  let buffer = Buffer.alloc(size)
+
+  let userAdd: BufferWrapper<UserAdd> = bendec.wrap('UserAdd', buffer)
+
+  userAdd.user.uri.protocol = 'https'
+  userAdd.user.uri.host = '127.0.0.1'
+  userAdd.user.uri.port = 666
+
+  let bufferSlice: Buffer = (<any>userAdd.user.uri).getBuffer()
+
+  t.deepEqual(
+    [...bufferSlice],
+    [...bendec.encodeAs(user.uri, 'Uri')],
+    'Uri slice read / encode'
+  )
 
   t.end()
 })
