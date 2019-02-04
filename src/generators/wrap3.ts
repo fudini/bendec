@@ -30,7 +30,7 @@ const genWrap = (read, write, path = []) => {
         `this.${k} = new (class ${k} {\n`,
           `${constructContent}\n`,
           `${gend}\n`,
-          `getBuffer() { return buffer.slice(${index}, ${nextIndex} - 1) }`,
+          `getBuffer() { return buffer.slice(${index}, ${nextIndex}) }`,
         `})\n`
       ].join(''))
 
