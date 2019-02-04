@@ -190,7 +190,7 @@ test('Bendec wrapper', t => {
 
   let typedBuffer = userAdd.getBuffer()
 
-  let decoded = bendec.decode(buffer)
+  let decoded = bendec.decode(typedBuffer)
 
   t.deepEqual({
     header: {

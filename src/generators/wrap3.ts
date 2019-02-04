@@ -30,7 +30,7 @@ const genWrap = (read, write, path = []) => {
         `this.${k} = new (class ${k} {\n`,
           `${constructContent}\n`,
           `${gend}\n`,
-          `getBuffer() { return { buffer: buffer.slice(${index}, ${nextIndex - 1}) }}`,
+          `getBuffer() { return buffer.slice(${index}, ${nextIndex} - 1) }`,
         `})\n`
       ].join(''))
 
@@ -52,7 +52,7 @@ const genWrapFunction = (readers, writers, lookup, name) => {
   let [write] = genReadFields(writers, lookup)(name)
 
   let setBuffer = `setBuffer(b) { buffer = b; return this }\n`
-  let getBuffer = `getBuffer() { return { buffer } }\n`
+  let getBuffer = `getBuffer() { return buffer }\n`
   let [content, construct] = genWrap(read, write)
     
   let constructWrap = `constructor() {\n` + 
