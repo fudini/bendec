@@ -68,6 +68,7 @@ class Bendec<T> {
       this.encoders.set(type.name, encodeFunc)
 
       let wrapFunc = <any>genWrapFunction(this.readers, this.writers, lookup, type.name)
+      //console.log(wrapFunc.toString())
 
       this.wrapperFactories.set(type.name, wrapFunc)
 

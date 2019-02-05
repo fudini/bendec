@@ -27,14 +27,18 @@ const genWrap = (read, write, path = []) => {
         : ``
 
       construct.push([
-        `this.${k} = new (class ${k} {\n`,
+        `this._${k} = new (class ${k} {\n`,
           `${constructContent}\n`,
           `${gend}\n`,
           `getBuffer() { return buffer.slice(${index}, ${nextIndex}) }`,
         `})\n`
       ].join(''))
 
-      return ''
+      //let writeStatement = _.get(write, [...path, k])
+      // set the whole object
+      let w = `set ${k}(v) { Object.keys(v).forEach(k => this..}\n`
+      let r = `get ${k}() { return this._${k} }\n`
+      return w + r
     }
 
     let writeStatement = _.get(write, [...path, k])
@@ -54,6 +58,7 @@ const genWrapFunction = (readers, writers, lookup, name) => {
   let setBuffer = `setBuffer(b) { buffer = b; return this }\n`
   let getBuffer = `getBuffer() { return buffer }\n`
   let [content, construct] = genWrap(read, write)
+  //console.log(content)
     
   let constructWrap = `constructor() {\n` + 
     `${construct.join('\n')}\n` +
