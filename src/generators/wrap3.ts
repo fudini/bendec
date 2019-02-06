@@ -35,8 +35,8 @@ const genWrap = (read, write, path = []) => {
       ].join(''))
 
       //let writeStatement = _.get(write, [...path, k])
-      // set the whole object
-      let w = `set ${k}(v) { Object.keys(v).forEach(k => this..}\n`
+      // set the whole object by enumerating properties one by one
+      let w = `set ${k}(v) { Object.keys(v).forEach(p => this.${k}[p] = v[p]) }\n`
       let r = `get ${k}() { return this._${k} }\n`
       return w + r
     }

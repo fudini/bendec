@@ -281,5 +281,45 @@ test('Bendec fast readers / writers test', t => {
   t.end()
 })
 
+test('Bendec wrapper object set', t => {
 
+  let size = bendec.getSize('UserAdd')
+  let buffer = Buffer.alloc(size)
 
+  let userAdd: BufferWrapper<UserAdd> = bendec.wrap('UserAdd', buffer)
+
+  let user: User = {
+    firstName: 'genezyp',
+    lastName: 'bazakbal',
+    age: 255,
+    uri: {
+      protocol: 'aabbaabbaa',
+      host: '1122334455',
+      port: 123
+    }
+  }
+
+  userAdd.header.msgType = MsgType.USER_ADD
+  userAdd.user.firstName = 'genezyp'
+  userAdd.user.lastName = 'bazakbal' 
+  userAdd.user.age = 255
+
+  userAdd.user.uri = {
+    protocol: 'aabbaabbaa',
+    host: '1122334455',
+    port: 123
+  }
+
+  let typedBuffer = userAdd.getBuffer()
+
+  let decoded = bendec.decode(typedBuffer)
+
+  t.deepEqual({
+    header: {
+      msgType: MsgType.USER_ADD
+    },
+    user
+  }, decoded)
+
+  t.end()
+})
