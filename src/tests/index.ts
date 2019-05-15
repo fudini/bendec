@@ -281,5 +281,4 @@ test('Bendec fast readers / writers test', t => {
   t.end()
 })
 
-
-
+require('./typeGenerator')
