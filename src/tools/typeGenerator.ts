@@ -1,15 +1,17 @@
 import * as fs from 'fs'
 import { TypeDefinition } from '../'
 
-const getMembers = fields => {
+type TypeMapping = { [k: string]: string }
 
+export const defaultMapping: TypeMapping = {
+  'char[]': 'Buffer',
+}
+
+const getMembers = (fields, typeMap) => {
   return fields.map(field => {
+    const key = field.type + (field.length ? '[]' : '')
+    const theType = typeMap[key] || key
 
-    // TODO: make this configurable
-    const theType = (field.type == 'char' && field.length > 0)
-      ? 'Buffer'
-      : field.type
-    
     return `  ${field.name}: ${theType}`
   })
 }
@@ -17,22 +19,18 @@ const getMembers = fields => {
 /**
  * Generate TypeScript interfaces from Bender types definitions
  */
-export const generate = (types: any[], fileName: string) => {
+export const generate = (types: any[], fileName: string, typeMapping?: TypeMapping) => {
+  const typeMap = { ...defaultMapping, ...typeMapping }
 
   const declarations = types.map(benderTypeDef => {
-
     const typeName = benderTypeDef.name
 
-    // these are some hacks
-    // TODO: annotate proper types for typescript
+    if (typeMap[typeName]) {
+      return `export type ${typeName} = ${typeMap[typeName]}`
+    }
+
     if (benderTypeDef.size) {
-      if (benderTypeDef.size == 8) {
-        // needs big int
-        return `export type ${typeName} = number[]`
-      }
-      else {
-        return `export type ${typeName} = number`
-      }
+      return `export type ${typeName} = number`
     }
 
     if (benderTypeDef.alias) {
@@ -40,7 +38,7 @@ export const generate = (types: any[], fileName: string) => {
     }
 
     const members = benderTypeDef.fields
-      ? getMembers(benderTypeDef.fields)
+      ? getMembers(benderTypeDef.fields, typeMap)
       : []
 
     const membersString = members.join('\n')
