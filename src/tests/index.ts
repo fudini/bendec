@@ -1,6 +1,6 @@
 import test from 'tape'
 import * as _ from 'lodash'
-import { MsgType, types } from './fixtures'
+import { MsgType, types, enums, unions } from './fixtures'
 import {
   Bendec,
   invertLookup,
@@ -102,6 +102,8 @@ const bendec2 = new Bendec<any>({
   readers: allFastReaders,
   writers: allFastWriters
 })
+
+// process.exit()
 
 test('Bendec test', t => {
 
@@ -277,6 +279,31 @@ test('Bendec fast readers / writers test', t => {
 
   const decodedGroup = bendec2.decode(encodedGroup)
   t.deepEqual(decodedGroup, groupResult, 'Group encode / decode')
+
+  t.end()
+})
+
+test('Bendec enums', t => {
+
+  const bendec3 = new Bendec<any>({ types: enums, getVariant, readers, writers })
+  const size = bendec3.getSize('Foo')
+  t.equals(size, 1, 'underlying type size')
+  const buffer = bendec3.encodeAs({ int: 1, foo: 2 }, 'Bar')
+  t.deepEqual([...buffer], [1, 2])
+  t.end()
+})
+
+test('Bendec unions', t => {
+
+  const bendec4 = new Bendec<any>({ types: unions, getVariant, readers, writers })
+
+  const sizeZebra = bendec4.getSize('Zebra')
+  const sizeToucan = bendec4.getSize('Toucan')
+  const sizeAnimal = bendec4.getSize('Animal')
+
+  t.equals(sizeZebra, 2)
+  t.equals(sizeToucan, 3)
+  t.equals(sizeAnimal, sizeToucan, 'the biggest member is the size of the union')
 
   t.end()
 })

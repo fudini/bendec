@@ -1,4 +1,5 @@
-import { invertLookup } from '../'
+import { invertLookup, EnumVariant } from '../'
+import { TypeDefinition } from '../types'
 
 const MsgType = {
   HEADER: 0,
@@ -8,7 +9,7 @@ const MsgType = {
   LARGE_MESSAGE: 100
 }
 
-const types = [
+const types: TypeDefinition[] = [
   {name: 'u8', size: 1},
   {name: 'u16', size: 2},
   {name: 'u32', size: 4},
@@ -171,6 +172,60 @@ const types = [
   }
 ]
 
+const enums: TypeDefinition[] = [
+  {name: 'u8', size: 1},
+{
+  // Enum definition
+  name: 'Foo',
+  underlying: 'u8',
+  variants: [
+    ['variant1', 1],
+    ['variant2', 2],
+    ['variant3', 3],
+  ] as EnumVariant[]
+}, {
+  // Enum field
+  name: 'Bar',
+  fields: [{
+    name: 'int',
+    type: 'u8'
+  }, {
+    name: 'foo',
+    type: 'Foo'
+  }]
+}]
+
+const unions: TypeDefinition[] = [
+  {name: 'u8', size: 1},
+  {name: 'u16', size: 2},
+{
+  name: 'AnimalKind',
+  underlying: 'u8',
+  variants: [['Zebra', 1], ['Toucan', 2]]
+}, {
+  name: 'Zebra',
+  fields: [{
+    name: 'kind',
+    type: 'AnimalKind'
+  }, {
+    name: 'legs',
+    type: 'u8'
+  }]
+}, {
+  name: 'Toucan',
+  fields: [{
+    name: 'kind',
+    type: 'AnimalKind'
+  }, {
+    name: 'wingspan',
+    type: 'u16'
+  }]
+}, {
+  name: 'Animal',
+  members: ['Zebra', 'Toucan'],
+  discriminator: ['kind']
+}]
+
 const largeMessage = {
   header: {
     msgType: 100
@@ -221,5 +276,7 @@ export {
   largeMessage,
   largeMessage2,
   largeMessageEncoded,
-  getVariant
+  getVariant,
+  enums,
+  unions,
 }

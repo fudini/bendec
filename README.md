@@ -2,10 +2,12 @@
 
 ### Binary encoder / decoder featuring fixed-size arrays
 
+Supports: Primitives, Structs, Enums, Unions
+
 TODO:
 
 * ~~TypeScript definitions generator~~
-* Enum type
+* ~~Enum type~~
 * Better syntax than JSON to define structs (Rust?)
 * Add validate function that will check the correctness  
   of the object you're trying to encode

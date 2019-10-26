@@ -1,97 +1,51 @@
+import { readFileSync } from 'fs'
+import path from 'path'
 import test from 'tape'
-
+import { trim, isEmpty, negate } from 'lodash'
 import { generateString } from '../tools/typeGenerator'
-import { types } from './fixtures'
+import { types, enums, unions } from './fixtures'
+import { generateString as generateStringRust } from '../tools/rsGenerator'
 
-test('fixtures without namespace', t => {
-  const result = generateString(types, { namespace: null })
-  t.equals(result, `
-export type u8 = number
-
-export type u16 = number
-
-export type u32 = number
-
-export type char = u8
-
-export type Age = u8
-
-export interface Header {
-  msgType: u8
+const clean = (content: string): string => {
+  return content.split('\n').map(trim).filter(negate(isEmpty)).join('\n')
 }
 
-export interface Uri {
-  protocol: Buffer
-  host: Buffer
-  port: u16
+const getFixture = (filePath: string): string => {
+  const filePath2 = path.join(__dirname.replace('dist', 'src'), filePath)
+  return readFileSync(filePath2, 'utf8')
 }
 
-export interface User {
-  firstName: Buffer
-  lastName: Buffer
-  uri: Uri
-  age: Age
-}
+// test('fixtures without namespace', t => {
+//   const cleanedGenerated = clean(generateString(types, { namespace: null }))
+//   const cleanedFixture = clean(getFixture('./generated/fixtures.ts'))
+//   t.equals(cleanedGenerated, cleanedFixture)
+//   t.end()
+// })
 
-export interface UserExtra {
-  firstName: Buffer
-  lastName: Buffer
-  uri: Uri
-  age: Age
-  uris: Uri[]
-}
+// test('custom type mapping', t => {
+//   const types = [{name: 'u64', size: 8}]
+//   const typeMapping = {'u64': 'bigint'}
+//   const without = generateString(types, { namespace: null })
+//   const withMapping = generateString(types, { typeMapping, namespace: null })
 
-export interface UserAdd {
-  header: Header
-  user: User
-}
+//   t.equals(without, `export type u64 = number`.trim())
+//   t.equals(withMapping, `export type u64 = bigint`.trim())
 
-export type CustomerAdd = UserAdd
+//   t.end()
+// })
 
-export interface Group {
-  header: Header
-  ints: u8[]
-  users: User[]
-}
+// test('unions and enums', t => {
+//   const cleanedGenerated = clean(generateString(unions))
+//   const cleanedFixture = clean(getFixture('./generated/unionsEnums.ts'))
+//   t.equals(cleanedGenerated, cleanedFixture)
+//   t.end()
+// })
 
-export type Price = u32
+test('rust fixtures', t => {
+  const generated = generateStringRust(types)
 
-export interface Person {
-  a: u16
-  b: u32
-  c: u32
-  d: u8
-}
-
-export interface LargeMessage {
-  header: Header
-  person1: Person
-  person2: Person
-  aaa: u32
-  bbb: Price
-  ccc: u32
-  ddd: u32
-  eee: u32
-  fff: u8
-  ggg: u8
-  name1: Buffer
-  name2: Buffer
-  name3: Buffer
-  name4: Buffer
-}
-  `.trim())
-
-  t.end()
-})
-
-test('custom type mapping', t => {
-  const types = [{name: 'u64', size: 8}]
-  const typeMapping = {'u64': 'bigint'}
-  const without = generateString(types, { namespace: null })
-  const withMapping = generateString(types, { typeMapping, namespace: null })
-
-  t.equals(without, `export type u64 = number`.trim())
-  t.equals(withMapping, `export type u64 = bigint`.trim())
-
+  console.log(generated)
+  const g = generateStringRust(unions)
+  console.log(g)
   t.end()
 })

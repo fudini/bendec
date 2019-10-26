@@ -1,5 +1,14 @@
 import * as _ from 'lodash'
-import { Errors } from './types'
+import { Errors, TypeDefinition, TypeDefinitionStrict } from './types'
+import {
+  Kind,
+  Primitive, PrimitiveStrict,
+  Alias, AliasStrict,
+  Struct, StructStrict,
+  Enum, EnumStrict,
+  Union, UnionStrict,
+  Lookup
+} from './types'
 
 interface Variants {
   [key: string]: number
@@ -11,6 +20,34 @@ interface VariantsLookup {
 
 const invertLookup = (variants: Variants): VariantsLookup => {
   return _.mapValues(_.invert(variants), _.flow(_.camelCase, _.upperFirst))
+}
+
+// convert external type definition to the internal one
+const toStrict = (typeDef: TypeDefinition): TypeDefinitionStrict => {
+  if ((<Primitive>typeDef).size !== undefined) {
+    return { ...typeDef, kind: Kind.Primitive } as PrimitiveStrict
+  }
+
+  if ((<Alias>typeDef).alias !== undefined) {
+    return { ...typeDef, kind: Kind.Alias } as AliasStrict
+  }
+
+  if ((<Struct>typeDef).fields !== undefined) {
+    return { ...typeDef, kind: Kind.Struct } as StructStrict
+  }
+
+  if ((<Enum>typeDef).variants !== undefined) {
+    return { ...typeDef, kind: Kind.Enum } as EnumStrict
+  }
+
+  if ((<Union>typeDef).members !== undefined) {
+    return { ...typeDef, kind: Kind.Union } as UnionStrict
+  }
+}
+
+// Convert from loose API TypeDefinition to string internal representation
+const normalizeTypes = (types: TypeDefinition[]): TypeDefinitionStrict[] => {
+  return types.map(toStrict)
 }
 
 /**
@@ -75,16 +112,22 @@ const asciiWriter = (index, length, path = 'v'): [string, number] => {
 const toAscii = (buffer: Buffer) => buffer.toString('ascii').replace(/\u0000+$/, '')
 const fromAscii = (ascii: string) => Buffer.from(ascii)
 
-const getTypeSize = lookup => type => {
+const getTypeSize = lookup => (type: string) => {
 
   const t = resolveType(lookup, type)
   const typeDef = lookup[t]
 
-  if(typeDef.size) {
+  // this is union so get the biggest of its variants
+  if(typeDef.kind === Kind.Union) {
+      return _.max(typeDef.members.map(getTypeSize(lookup)))
+  }
+
+  // primitive
+  if(typeDef.kind === Kind.Primitive) {
     return typeDef.size
   }
 
-  if(typeDef.fields) {
+  if(typeDef.kind === Kind.Struct) {
     return _.sum(_.map(typeDef.fields, field => {
       let size = getTypeSize(lookup)(field.type)
       if(field.length) {
@@ -98,7 +141,7 @@ const getTypeSize = lookup => type => {
 }
 
 // recursively resolve the name type
-const resolveType = (lookup, type) => {
+const resolveType = (lookup: Lookup, type: string) => {
 
   const lookedUp = lookup[type]
 
@@ -106,11 +149,11 @@ const resolveType = (lookup, type) => {
     throw `${Errors.TYPE_NOT_FOUND}:${type}`
   }
 
-  if(lookedUp.fields) {
-    return type
+  if(lookedUp.kind === Kind.Enum) {
+    return resolveType(lookup, lookedUp.underlying)
   }
 
-  if(lookedUp.alias) {
+  if(lookedUp.kind === Kind.Alias) {
     return resolveType(lookup, lookedUp.alias)
   }
 
@@ -128,5 +171,6 @@ export {
   asciiReader,
   asciiWriter,
   fromAscii,
-  toAscii
+  toAscii,
+  normalizeTypes,
 }

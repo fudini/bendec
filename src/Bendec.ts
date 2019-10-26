@@ -1,9 +1,8 @@
 import * as _ from 'lodash'
 import {
-  Primitive,
-  Alias,
-  Config,
-  TypeDefinition,
+  Struct,
+  Config, ConfigStrict,
+  Lookup,
   Reader,
   Writer,
   BufferWrapper,
@@ -14,21 +13,18 @@ import {
   genWrapFunction2, // function get/set
   genReadFunction,
   genWriteFunction,
-} from './generators/index'
+} from './readersWriters/index'
 
 import {
   readers,
   writers,
   getTypeSize,
+  normalizeTypes,
 } from './utils'
-
-interface Lookup {
-  [typeName: string]: TypeDefinition
-}
 
 class Bendec<T> {
 
-  private config: Config
+  private config: ConfigStrict
   private lookup: Lookup = {}
   private writers: { [t: string]: Writer }
   private readers: { [t: string]: Reader }
@@ -41,11 +37,11 @@ class Bendec<T> {
 
   constructor(config: Config) {
 
-    this.config = config
-    this.writers = Object.assign({}, writers, config.writers)
-    this.readers = Object.assign({}, readers, config.readers)
+    this.config = { ...config, types: normalizeTypes(config.types) }
+    this.writers = Object.assign({}, writers, this.config.writers)
+    this.readers = Object.assign({}, readers, this.config.readers)
 
-    const lookup = _.keyBy(config.types, i => i.name)
+    const lookup = _.keyBy(this.config.types, i => i.name)
 
     // precalculate sizes
     this.lookup = _.mapValues(lookup, (def) => {
@@ -55,34 +51,32 @@ class Bendec<T> {
     })
 
     // compile all types from config
-    config.types.forEach(type => {
+    // We're only interested in custom structs
+    // So Our TypeDefinition type Union has 'kind' parameter specified
+    this.config.types
+      .filter(type => (<Struct>type).fields !== undefined)
+      .forEach(type => {
 
-      // Don't encode primitives and aliases
-      if ((<Primitive>type).size || (<Alias>type).alias) {
-        return
-      }
+        let decodeFunc = <any>genReadFunction(this.readers, lookup, type.name)
+        let encodeFunc = <any>genWriteFunction(this.writers, this.lookup, type.name)
+        this.decoders.set(type.name, decodeFunc)
+        this.encoders.set(type.name, encodeFunc)
 
-      let decodeFunc = <any>genReadFunction(this.readers, lookup, type.name)
-      let encodeFunc = <any>genWriteFunction(this.writers, this.lookup, type.name)
-      this.decoders.set(type.name, decodeFunc)
-      this.encoders.set(type.name, encodeFunc)
+        let wrapFunc = <any>genWrapFunction(this.readers, this.writers, lookup, type.name)
 
-      let wrapFunc = <any>genWrapFunction(this.readers, this.writers, lookup, type.name)
+        this.wrapperFactories.set(type.name, wrapFunc)
 
-      this.wrapperFactories.set(type.name, wrapFunc)
+        // instantiate with empty buffer
+        let wrapInstance = wrapFunc(Buffer.alloc((<any>this.lookup[type.name]).size))
+        
+        this.wrappers.set(type.name, wrapInstance)
 
-      // instantiate with empty buffer
-      let wrapInstance = wrapFunc(Buffer.alloc((<any>this.lookup[type.name]).size))
-      
-      this.wrappers.set(type.name, wrapInstance)
-
-      let wrapFunc2 = <any>genWrapFunction2(this.readers, this.writers, lookup, type.name)
-      // instantiate with empty buffer
-      let wrapInstance2 = wrapFunc2(Buffer.alloc((<any>this.lookup[type.name]).size))
-      
-      this.wrappers2.set(type.name, wrapInstance2)
-
-    })
+        let wrapFunc2 = <any>genWrapFunction2(this.readers, this.writers, lookup, type.name)
+        // instantiate with empty buffer
+        let wrapInstance2 = wrapFunc2(Buffer.alloc((<any>this.lookup[type.name]).size))
+        
+        this.wrappers2.set(type.name, wrapInstance2)
+      })
   }
 
   /**
@@ -108,6 +102,10 @@ class Bendec<T> {
    */
   encodeAs(obj: T, typeName: string, buffer?: Buffer): Buffer {
     return this.encoders.get(typeName)(obj, buffer)
+  }
+
+  decodeAs(buffer: Buffer, typeName: string): T {
+    return this.decoders.get(typeName)(buffer)
   }
 
   /**
