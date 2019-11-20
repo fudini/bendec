@@ -103,8 +103,6 @@ const bendec2 = new Bendec<any>({
   writers: allFastWriters
 })
 
-// process.exit()
-
 test('Bendec test', t => {
 
   const encodedUser = bendec.encode(userAdd)

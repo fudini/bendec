@@ -45,7 +45,9 @@ test('rust fixtures', t => {
   const generated = generateStringRust(types)
 
   console.log(generated)
-  const g = generateStringRust(unions)
+  const g = generateStringRust(unions, {
+    attribute: ''
+  })
   console.log(g)
   t.end()
 })
