@@ -224,6 +224,39 @@ const unions: TypeDefinition[] = [
   name: 'Animal',
   members: ['Zebra', 'Toucan'],
   discriminator: ['kind']
+}, {
+  name: 'AnimalKind2',
+  underlying: 'u8',
+  variants: [['Zebra2', 1], ['Toucan2', 2]]
+}, {
+  name: 'Header',
+  fields: [{
+    name: 'animal_kind',
+    type: 'AnimalKind2'
+  }]
+}, {
+  name: 'Zebra2',
+  fields: [{
+    name: 'header',
+    type: 'Header'
+  }, {
+    name: 'legs',
+    type: 'u8'
+  }]
+}, {
+  name: 'Toucan2',
+  fields: [{
+    name: 'header',
+    type: 'Header'
+  }, {
+    name: 'wingspan',
+    type: 'u16'
+  }]
+}, {
+  // union with nested discriminator
+  name: 'Animal2',
+  members: ['Zebra2', 'Toucan2'],
+  discriminator: ['header', 'animal_kind']
 }]
 
 const largeMessage = {
