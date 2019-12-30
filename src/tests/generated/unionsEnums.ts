@@ -19,6 +19,28 @@ namespace messages {
   }
   
   export type Animal = Zebra | Toucan
+
+  export enum AnimalKind2 {
+    Zebra2 = 1,
+    Toucan2 = 2,
+  }
+
+  export interface Header {
+    animalKind: AnimalKind2
+  }
+  
+  export interface Zebra2 {
+    header: Header
+    legs: u8
+  }
+  
+  export interface Toucan2 {
+    header: Header
+    wingspan: u16
+  }
+  
+  export type Animal2 = Zebra2 | Toucan2
+
 }
   
 export = messages

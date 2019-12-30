@@ -231,7 +231,7 @@ const unions: TypeDefinition[] = [
 }, {
   name: 'Header',
   fields: [{
-    name: 'animal_kind',
+    name: 'animalKind',
     type: 'AnimalKind2'
   }]
 }, {
@@ -256,7 +256,7 @@ const unions: TypeDefinition[] = [
   // union with nested discriminator
   name: 'Animal2',
   members: ['Zebra2', 'Toucan2'],
-  discriminator: ['header', 'animal_kind']
+  discriminator: ['header', 'animalKind']
 }]
 
 const largeMessage = {

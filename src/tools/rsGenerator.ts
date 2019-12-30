@@ -77,13 +77,14 @@ ${unionMembers}
     return `${discTypeDef.name}::${member} => self.${snakeCase(member)}.serialize(serializer),`
   }).map(indent(8)).join('\n')
 
+  const discPath = discriminator.map(snakeCase).join('.')
   // we need to generate serde for union as it can't be derived
   const unionSerde = `impl Serialize for ${name} {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where S: Serializer,
   {
     unsafe {
-      match &self.${snakeCase(members[0])}.${discriminator.join('.')} {
+      match &self.${snakeCase(members[0])}.${discPath} {
 ${serdeMembers} 
       }
     }
