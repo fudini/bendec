@@ -140,6 +140,9 @@ export const generateString = (
         }
 
         const discTypeField = (<StructStrict>currentTypeDef).fields.find(({ name }) => name === pathSection)
+        if (discTypeField === undefined) {
+          throw new Error(`no field '${pathSection}' in struct '${currentTypeDef.name}'`)
+        }
         return <StructStrict>types.find(({ name }) => name === discTypeField.type)
       }, memberType as TypeDefinitionStrict)
 
