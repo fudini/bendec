@@ -5,6 +5,8 @@ import { trim, isEmpty, negate } from 'lodash'
 import { generateString } from '../tools/typeGenerator'
 import { types, enums, unions } from './fixtures'
 import { generateString as generateStringRust } from '../tools/rsGenerator'
+import { generateString as generateStringCpp } from '../tools/cppGenerator'
+
 
 const clean = (content: string): string => {
   return content.split('\n').map(trim).filter(negate(isEmpty)).join('\n')
@@ -55,3 +57,16 @@ test('rust unions and enums', t => {
   t.end()
 })
 
+test('cpp fixtures', t => {
+  const cleanedGenerated = clean(generateStringCpp(types))
+  const cleanedFixture = clean(getFixture('./generated/cpp/fixtures.hpp'))
+  t.equals(cleanedGenerated, cleanedFixture)
+  t.end()
+})
+
+test('cpp unions and enums', t => {
+  const cleanedGenerated = clean(generateStringCpp(unions))
+  const cleanedFixture = clean(getFixture('./generated/cpp/unions_enums.hpp'))
+  t.equals(cleanedGenerated, cleanedFixture)
+  t.end()
+})
