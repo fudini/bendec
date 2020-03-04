@@ -8,7 +8,7 @@ big_array! { BigArray; }
 
 
 #[repr(u8)]
-#[derive(Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Copy, Clone, Serialize_repr, Deserialize_repr)]
 pub enum AnimalKind {
   Zebra = 1,
   Toucan = 2,
@@ -52,7 +52,7 @@ impl Serialize for Animal {
 
 
 #[repr(u8)]
-#[derive(Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Copy, Clone, Serialize_repr, Deserialize_repr)]
 pub enum AnimalKind2 {
   Zebra2 = 1,
   Toucan2 = 2,

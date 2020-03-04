@@ -51,7 +51,7 @@ const getEnum = (
   const variantsFields = variants.map(([key, value]) => `  ${key} = ${value},`).join('\n')
   return `${attribute}
 #[repr(${underlying})]
-#[derive(Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Copy, Clone, Serialize_repr, Deserialize_repr)]
 pub enum ${name} {
 ${variantsFields}
 }`
