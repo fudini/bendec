@@ -8,7 +8,7 @@ import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
 import { Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
 
-type TypeMapping = { [k: string]: (size: number) => string }
+type TypeMapping = { [k: string]: (size?: number) => string }
 
 type Options = {
   typeMapping?: TypeMapping
@@ -46,7 +46,7 @@ const getMembers = (fields: Field[], typeMap: TypeMapping) => {
 
 const getEnum = (
   { name, underlying, variants }: EnumStrict,
-  attribute: string
+  attribute: string = ''
 ) => {
   const variantsFields = variants.map(([key, value]) => `  ${key} = ${value},`).join('\n')
   return `${attribute}
@@ -60,7 +60,7 @@ ${variantsFields}
 const getUnion = (
   { name, discriminator, members }: UnionStrict,
   discTypeDef: TypeDefinitionStrict,
-  attribute: string
+  attribute: string = ''
 ) => {
   
   const unionMembers = members.map(member => {
@@ -105,14 +105,17 @@ export const generateString = (
   const ignoredTypes = ['char']
 
   const types: TypeDefinitionStrict[] = normalizeTypes(typesDuck)
-  const { typeMapping } = { ...defaultOptions, ...options }
+  options = { ...defaultOptions, ...options }
+
+  const { typeMapping } = options 
   const typeMap: TypeMapping = { ...defaultMapping, ...typeMapping }
 
   const definitions = types.map(typeDef => {
     const typeName = typeDef.name
 
     if (typeMap[typeName]) {
-      return `pub type ${typeName} = ${typeMap[typeName]}`
+      console.log('TYPENAME:', typeName)
+      return `pub type ${typeName} = ${typeMap[typeName]()}`
     }
 
     if (ignoredTypes.includes(typeName)) {
