@@ -114,8 +114,7 @@ export const generateString = (
     const typeName = typeDef.name
 
     if (typeMap[typeName]) {
-      console.log('TYPENAME:', typeName)
-      return `pub type ${typeName} = ${typeMap[typeName]()}`
+      return `pub type ${typeName} = ${typeMap[typeName]()};`
     }
 
     if (ignoredTypes.includes(typeName)) {
