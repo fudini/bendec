@@ -1,25 +1,28 @@
 export enum Kind {
-  Primitive,
-  Alias,
-  Struct,
-  Enum,
-  Union,
+  Primitive = 1,
+  Alias = 2,
+  Struct = 3,
+  Enum = 4,
+  Union = 5,
 }
 
 export interface Primitive {
   kind?: Kind.Primitive
   name: string
+  desc?: string
   size: number
 }
 
 export interface Alias {
   kind?: Kind.Alias
   name: string
+  desc?: string
   alias: string
 }
 
 export interface Field {
   name: string
+  desc?: string
   type: string
   // if length is specified it's an array
   length?: number
@@ -28,6 +31,7 @@ export interface Field {
 export interface Struct {
   kind?: Kind.Struct
   name: string
+  desc?: string
   fields: Field[]
 }
 
@@ -37,7 +41,9 @@ export type EnumVariant = [string, number]
 export interface Enum {
   kind?: Kind.Enum
   name: string
+  desc?: string
   underlying: string
+  offset?: number
   variants: EnumVariant[]
 }
 
@@ -50,6 +56,7 @@ export interface Enum {
 export interface Union {
   kind?: Kind.Union
   name: string
+  desc?: string
   discriminator: string[]
   members: string[]
 }
@@ -72,23 +79,17 @@ export type TypeDefinitionStrict = PrimitiveStrict | AliasStrict | StructStrict 
 export type Reader = (index: number, length: number) => [string, number]
 export type Writer = (index: number, length: number, path?: string) => [string, number]
 
-interface VariantGetter {
+export interface VariantGetter {
   encode(msg: any): string
   decode(buf: Buffer): string
 }
 
 export interface Config {
-  types: TypeDefinition[]
+  types?: TypeDefinition[]
+  namespace?: string
   readers?: { [t: string]: Reader }
   writers?: { [t: string]: Writer }
-  getVariant: VariantGetter
-}
-
-export interface ConfigStrict {
-  types: TypeDefinitionStrict[]
-  readers?: { [t: string]: Reader }
-  writers?: { [t: string]: Writer }
-  getVariant: VariantGetter
+  getVariant?: VariantGetter
 }
 
 export interface TypedBuffer<T> extends Buffer {

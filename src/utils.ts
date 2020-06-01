@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import { has, sum, map, mapValues, max, invert, flow, camelCase, upperFirst } from 'lodash'
 import { Errors, TypeDefinition, TypeDefinitionStrict } from './types'
 import {
   Kind,
@@ -19,35 +19,77 @@ interface VariantsLookup {
 }
 
 const invertLookup = (variants: Variants): VariantsLookup => {
-  return _.mapValues(_.invert(variants), _.flow(_.camelCase, _.upperFirst))
+  return mapValues(invert(variants), flow(camelCase, upperFirst))
+}
+
+const hasNamespace = (name: string): boolean => {
+  return name.indexOf('.') != -1
+}
+
+const maybeAppendNamespace = (lookup: Lookup) => (name: string, ns?: string): string => {
+  // our name already has some namespace appended so we probably want to keep it
+  if (hasNamespace(name)) {
+    return name
+  }
+  // this type has already been defined so we want to keep it as-is
+  if (has(lookup, name)) {
+    return name
+  }
+
+  return ns == undefined ? name : [ns, name].join('.')
 }
 
 // convert external type definition to the internal one
-const toStrict = (typeDef: TypeDefinition): TypeDefinitionStrict => {
+const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): TypeDefinitionStrict => {
+
+  // append namespace if defined
+  const appendNamespace = maybeAppendNamespace(lookup)
+
+  typeDef.name = appendNamespace(typeDef.name, ns)
+
   if ((<Primitive>typeDef).size !== undefined) {
     return { ...typeDef, kind: Kind.Primitive } as PrimitiveStrict
   }
 
   if ((<Alias>typeDef).alias !== undefined) {
+    (<Alias>typeDef).alias = appendNamespace((<Alias>typeDef).alias, ns)
     return { ...typeDef, kind: Kind.Alias } as AliasStrict
   }
 
   if ((<Struct>typeDef).fields !== undefined) {
+    (<Struct>typeDef).fields.forEach(field => {
+      field.type = appendNamespace(field.type, ns)
+    })
     return { ...typeDef, kind: Kind.Struct } as StructStrict
   }
 
   if ((<Enum>typeDef).variants !== undefined) {
-    return { ...typeDef, kind: Kind.Enum } as EnumStrict
+    const def = <Enum>typeDef
+    const offset = def.offset == undefined ? 0 : def.offset
+    def.underlying = appendNamespace(def.underlying, ns)
+    // Adjust the offset for this enum
+    const variants = def.variants.map(([name, value]) => {
+      return [name, value + offset]
+    })
+
+    return { ...typeDef, variants, kind: Kind.Enum } as EnumStrict
   }
 
   if ((<Union>typeDef).members !== undefined) {
+    (<Union>typeDef).members = (<Union>typeDef).members.map(member => {
+      return appendNamespace(member, ns)
+    })
     return { ...typeDef, kind: Kind.Union } as UnionStrict
   }
 }
 
 // Convert from loose API TypeDefinition to string internal representation
-const normalizeTypes = (types: TypeDefinition[]): TypeDefinitionStrict[] => {
-  return types.map(toStrict)
+const normalizeTypes = (
+  types: TypeDefinition[],
+  lookup: Lookup = {},
+  ns?: string
+): TypeDefinitionStrict[] => {
+  return types.map(toStrict(lookup, ns))
 }
 
 /**
@@ -119,7 +161,7 @@ const getTypeSize = lookup => (type: string) => {
 
   // this is union so get the biggest of its variants
   if(typeDef.kind === Kind.Union) {
-      return _.max(typeDef.members.map(getTypeSize(lookup)))
+      return max(typeDef.members.map(getTypeSize(lookup)))
   }
 
   // primitive
@@ -128,7 +170,7 @@ const getTypeSize = lookup => (type: string) => {
   }
 
   if(typeDef.kind === Kind.Struct) {
-    return _.sum(_.map(typeDef.fields, field => {
+    return sum(map(typeDef.fields, field => {
       let size = getTypeSize(lookup)(field.type)
       if(field.length) {
         return size * field.length
@@ -160,6 +202,7 @@ const resolveType = (lookup: Lookup, type: string) => {
   return type
 }
 
+const appendNamespace = maybeAppendNamespace({})
 export {
   getTypeSize,
   resolveType,
@@ -173,4 +216,5 @@ export {
   fromAscii,
   toAscii,
   normalizeTypes,
+  appendNamespace
 }

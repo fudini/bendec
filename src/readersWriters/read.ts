@@ -75,6 +75,9 @@ const genReadFields = (readers, lookup: Lookup, sizes = false) => (type, index =
 
     return [obj, index]
   }
+
+  throw new Error(`Type has not been resolved ${typeDef.name}. Are you missing a reader?`)
+
 }
 
 const genReadFunction = (readers, lookup: Lookup, name: string, sizes = false) => {

@@ -17,9 +17,11 @@ const types: TypeDefinition[] = [
   {name: 'Age', alias: 'u8'},
   {
     name: 'Header',
+    desc: 'struct description',
     fields: [{
       name: 'msgType',
-      type: 'u8'
+      desc: 'field description',
+      type: 'u8',
     }]
   }, {
     name: 'Uri',
@@ -201,6 +203,7 @@ const unions: TypeDefinition[] = [
 {
   name: 'AnimalKind',
   underlying: 'u8',
+  offset: 0x1000,
   variants: [['Zebra', 1], ['Toucan', 2]]
 }, {
   name: 'Zebra',

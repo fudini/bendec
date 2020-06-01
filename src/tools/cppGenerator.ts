@@ -6,6 +6,7 @@ import * as fs from 'fs'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
 import { Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
+import { hexPad } from './utils'
 
 type TypeMapping = { [k: string]: (size: number) => string }
 
@@ -52,7 +53,7 @@ const getEnum = (
 ) => {
   let separator = ''
   const variantsFields = variants.map(([key, value]) => {
-    let out = `    ${separator}${key} = ${value}`;
+    let out = `    ${separator}${key} = ${hexPad(value)}`;
     separator = ',';
     return `${out}`
   }).join('\n')

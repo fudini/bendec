@@ -105,18 +105,18 @@ const bendec2 = new Bendec<any>({
 
 test('Bendec test', t => {
 
-  const encodedUser = bendec.encode(userAdd)
-  const decodedUser = bendec.decode(encodedUser)
+  const encodedUser = bendec.encodeAs(userAdd, 'UserAdd')
+  const decodedUser = bendec.decodeAs(encodedUser, 'UserAdd')
 
   t.equal(encodedUser.length, 78, 'UserAdd buffer length')
   t.deepEqual(userAdd, decodedUser, 'UserAdd encode / decode')
 
-  const encodedGroup = bendec.encode(group)
+  const encodedGroup = bendec.encodeAs(group, 'Group')
 
   const groupLength = 394
   t.equal(encodedGroup.length, groupLength, 'Group buffer length')
 
-  const decodedGroup = bendec.decode(encodedGroup)
+  const decodedGroup = bendec.decodeAs(encodedGroup, 'Group')
   t.deepEqual(decodedGroup, groupResult, 'Group encode / decode')
 
   t.end()
@@ -155,8 +155,8 @@ test('Bendec write zeroes', t => {
     user: partialUserDecoded
   }
 
-  const encoded = bendec.encode(partialUserAdd)
-  const decoded = bendec.decode(encoded)
+  const encoded = bendec.encodeAs(partialUserAdd, 'UserAdd')
+  const decoded = bendec.decodeAs(encoded, 'UserAdd')
 
   t.deepEqual(partialUserAddDecoded, decoded, 'Object with empty property')
   t.end()
@@ -190,7 +190,7 @@ test('Bendec wrapper', t => {
 
   let typedBuffer = userAdd.getBuffer()
 
-  let decoded = bendec.decode(typedBuffer)
+  let decoded = bendec.decodeAs(typedBuffer, 'UserAdd')
 
   t.deepEqual({
     header: {
@@ -250,7 +250,7 @@ test('Bendec wrapper 2', t => {
   userAdd.set_user_uri_host('1122334455')
   userAdd.set_user_uri_port(123)
 
-  let decoded = bendec.decode(buffer)
+  let decoded = bendec.decodeAs(buffer, 'UserAdd')
 
   t.deepEqual({
     header: {
@@ -264,18 +264,18 @@ test('Bendec wrapper 2', t => {
 
 test('Bendec fast readers / writers test', t => {
 
-  const encodedUser = bendec2.encode(userAdd)
-  const decodedUser = bendec2.decode(encodedUser)
+  const encodedUser = bendec2.encodeAs(userAdd, 'UserAdd')
+  const decodedUser = bendec2.decodeAs(encodedUser, 'UserAdd')
 
   t.equal(encodedUser.length, 78, 'UserAdd buffer length')
   t.deepEqual(userAdd, decodedUser, 'UserAdd encode / decode')
 
-  const encodedGroup = bendec2.encode(group)
+  const encodedGroup = bendec2.encodeAs(group, 'Group')
 
   const groupLength = 394
   t.equal(encodedGroup.length, groupLength, 'Group buffer length')
 
-  const decodedGroup = bendec2.decode(encodedGroup)
+  const decodedGroup = bendec2.decodeAs(encodedGroup, 'Group')
   t.deepEqual(decodedGroup, groupResult, 'Group encode / decode')
 
   t.end()
@@ -307,3 +307,4 @@ test('Bendec unions', t => {
 })
 
 require('./typeGenerator')
+require('./imports')

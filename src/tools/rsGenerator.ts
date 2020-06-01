@@ -1,22 +1,24 @@
 /**
  * Rust code generator
  */
-
 import * as fs from 'fs'
-import { range, snakeCase } from 'lodash'
+import { range, snakeCase, get } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
 import { Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
+import { hexPad } from './utils'
 
 type TypeMapping = { [k: string]: (size?: number) => string }
 
 type Options = {
   typeMapping?: TypeMapping
-  attribute?: string
+  extras?: string[]
+  extraDerives?: { [typeName: string]: string[] }
 }
 
 export const defaultOptions = {
-  attribute: '',
+  extras: [],
+  extraDerives: {},
 }
 
 export const defaultMapping: TypeMapping = {
@@ -27,10 +29,26 @@ const indent = (i: number) => (str: string) => {
   return '                    '.substr(-i) + str
 }
 
+// convert dot syntax into double colon (::)
+const toRustNS = (type: string): string => {
+  return type.split('.').join('::')
+}
+
+// return comment block with description
+const doc = (desc?: string): string => {
+  if (desc !== undefined) {
+    return `/// ${desc}\n`
+  }
+
+  return ''
+}
+
 const getMembers = (fields: Field[], typeMap: TypeMapping) => {
   return fields.map(field => {
-    const key = field.type + (field.length ? '[]' : '')
-    const rustType = field.length ? `[${field.type}; ${field.length}]` : field.type
+    // expand the namespace . in to ::
+    const fieldType = toRustNS(field.type)
+    const key = fieldType + (field.length ? '[]' : '')
+    const rustType = field.length ? `[${fieldType}; ${field.length}]` : fieldType
     const theType = (typeMap[key] !== undefined)
       ? typeMap[key](field.length)
       : rustType
@@ -40,34 +58,35 @@ const getMembers = (fields: Field[], typeMap: TypeMapping) => {
     if (field.length > 32) {
       return '  #[serde(with = "BigArray")]\n' + theField
     }
-    return theField
+    return doc(field.desc) + theField
   })
 }
 
 const getEnum = (
-  { name, underlying, variants }: EnumStrict,
-  attribute: string = ''
+  { name, underlying, variants, desc }: EnumStrict
 ) => {
-  const variantsFields = variants.map(([key, value]) => `  ${key} = ${value},`).join('\n')
-  return `${attribute}
+  const variantsFields = variants
+    .map(([key, value]) => `  ${key} = ${hexPad(value)},`)
+    .join('\n')
+
+  return `${doc(desc)}
 #[repr(${underlying})]
-#[derive(Debug, Copy, Clone, Serialize_repr, Deserialize_repr)]
+#[derive(Debug, Copy, Clone, PartialEq, Serialize_repr, Deserialize_repr)]
 pub enum ${name} {
 ${variantsFields}
 }`
 }
 
 const getUnion = (
-  { name, discriminator, members }: UnionStrict,
-  discTypeDef: TypeDefinitionStrict,
-  attribute: string = ''
+  { name, discriminator, members, desc }: UnionStrict,
+  discTypeDef: TypeDefinitionStrict
 ) => {
   
   const unionMembers = members.map(member => {
     return `  pub ${snakeCase(member)}: ${member},`
   }).join('\n')
 
-  const union = `${attribute}
+  const union = `${doc(desc)}
 #[repr(C, packed)]
 pub union ${name} {
 ${unionMembers}
@@ -95,7 +114,7 @@ ${serdeMembers}
 }
 
 /**
- * Generate TypeScript interfaces from Bendec types definitions
+ * Generate Rust types from Bendec types definitions
  */
 export const generateString = (
   typesDuck: TypeDefinition[],
@@ -107,7 +126,7 @@ export const generateString = (
   const types: TypeDefinitionStrict[] = normalizeTypes(typesDuck)
   options = { ...defaultOptions, ...options }
 
-  const { typeMapping } = options 
+  const { typeMapping, extraDerives = [] } = options 
   const typeMap: TypeMapping = { ...defaultMapping, ...typeMapping }
 
   const definitions = types.map(typeDef => {
@@ -126,7 +145,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Alias) {
-      return `pub type ${typeName} = ${typeDef.alias};`
+      return `pub type ${typeName} = ${toRustNS(typeDef.alias)};`
     }
 
     if (typeDef.kind === Kind.Union) {
@@ -148,11 +167,11 @@ export const generateString = (
         return <StructStrict>types.find(({ name }) => name === discTypeField.type)
       }, memberType as TypeDefinitionStrict)
 
-      return getUnion(typeDef, discTypeDef, options.attribute)
+      return getUnion(typeDef, discTypeDef)
     }
 
     if (typeDef.kind === Kind.Enum) {
-      return getEnum(typeDef, options.attribute)
+      return getEnum(typeDef)
     }
 
     if (typeDef.kind === Kind.Struct) {
@@ -161,10 +180,14 @@ export const generateString = (
         : []
 
       const membersString = members.join('\n')
+      
+      const derives = ['Serialize', 'Deserialize']
+      const extraDerives2 = get(extraDerives, typeName, [])
+      const derivesString = [...derives, ...extraDerives2].join(', ')
 
-      return `${options.attribute}
+      return `${doc(typeDef.desc)}
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(${derivesString})]
 pub struct ${typeName} {
 ${membersString}
 }`
@@ -172,10 +195,13 @@ ${membersString}
   })
 
   const result = definitions.join('\n\n')
+  const extrasString = options.extras.join('\n')
   return `/** GENERATED BY BENDEC TYPE GENERATOR */
-use serde::{Serializer, Serialize, Deserialize};
-use serde_repr::{Serialize_repr, Deserialize_repr};
+#[allow(unused_imports)]
+use serde::{Deserialize, Serialize, Serializer};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 big_array! { BigArray; }
+${extrasString}
   ${result}
 `
 }

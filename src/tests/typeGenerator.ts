@@ -17,21 +17,14 @@ const getFixture = (filePath: string): string => {
   return readFileSync(filePath2, 'utf8')
 }
 
- test('fixtures without namespace', t => {
-   const cleanedGenerated = clean(generateString(types, { namespace: null }))
-   const cleanedFixture = clean(getFixture('./generated/fixtures.ts'))
-   t.equals(cleanedGenerated, cleanedFixture)
-   t.end()
- })
-
  test('custom type mapping', t => {
    const types = [{name: 'u64', size: 8}]
    const typeMapping = {'u64': 'bigint'}
-   const without = generateString(types, { namespace: null })
-   const withMapping = generateString(types, { typeMapping, namespace: null })
+   const without = generateString(types, { header: false })
+   const withMapping = generateString(types, { typeMapping, header: false })
 
-   t.equals(without, `export type u64 = number`.trim())
-   t.equals(withMapping, `export type u64 = bigint`.trim())
+   t.equals(clean(without), `export type u64 = number`)
+   t.equals(clean(withMapping), `export type u64 = bigint`)
 
    t.end()
  })
@@ -51,7 +44,14 @@ test('rust fixtures', t => {
 })
 
 test('rust unions and enums', t => {
-  const cleanedGenerated = clean(generateStringRust(unions))
+  const options = {
+    // extra imports that you wish to add to the generated file
+    extras: ['pub use super::shared::*;'],
+    extraDerives: {
+      'Zebra': ['Copy', 'Clone']         
+    }
+  }
+  const cleanedGenerated = clean(generateStringRust(unions, options))
   const cleanedFixture = clean(getFixture('./generated/rust/unions_enums.rs'))
   t.equals(cleanedGenerated, cleanedFixture)
   t.end()

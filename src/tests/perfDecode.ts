@@ -11,7 +11,7 @@ console.log('DECODE')
 const now = performance.now()
 
 for (let i = 0; i < COUNT; i ++) {
-  bendec.decode(largeMessageEncoded)
+  bendec.decodeAs(largeMessageEncoded, 'LargeMessage')
 }
 
 const time = performance.now() - now
@@ -27,7 +27,7 @@ console.log('DECODE FAST')
 const now2 = performance.now()
 
 for (let i = 0; i < COUNT; i ++) {
-  bendec.decode(largeMessageEncoded)
+  bendec.decodeAs(largeMessageEncoded, 'LargeMessage')
 }
 
 const time2 = performance.now() - now2

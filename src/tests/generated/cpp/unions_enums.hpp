@@ -2,8 +2,8 @@
 // primitive built-in: uint8_t
 // primitive built-in: uint16_t
 enum class AnimalKind: uint8_t {
-    Zebra = 1
-        ,Toucan = 2
+    Zebra = 0x1001
+        ,Toucan = 0x1002
 };
 struct Zebra {
     AnimalKind kind;
@@ -20,8 +20,8 @@ union Animal {
     Toucan uToucan;
 };
 enum class AnimalKind2: uint8_t {
-    Zebra2 = 1
-        ,Toucan2 = 2
+    Zebra2 = 0x0001
+        ,Toucan2 = 0x0002
 };
 struct Header {
     AnimalKind2 animalKind;
