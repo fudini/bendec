@@ -4,11 +4,12 @@
 
 Supports: Primitives, Structs, Enums, Unions
 
+Generators: Rust, TypeScript, C++
+
 TODO:
 
 * ~~TypeScript definitions generator~~
 * ~~Enum type~~
-* Better syntax than JSON to define structs (Rust?)
 * Add validate function that will check the correctness  
   of the object you're trying to encode
 * ~~Wrapper for types with getters and setters~~
