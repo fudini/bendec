@@ -79,6 +79,9 @@ export type TypeDefinitionStrict = PrimitiveStrict | AliasStrict | StructStrict 
 export type Reader = (index: number, length: number) => [string, number]
 export type Writer = (index: number, length: number, path?: string) => [string, number]
 
+export type Readers = { [t: string]: Reader }
+export type Writers = { [t: string]: Writer }
+
 export interface VariantGetter {
   encode(msg: any): string
   decode(buf: Buffer): string
@@ -87,8 +90,8 @@ export interface VariantGetter {
 export interface Config {
   types?: TypeDefinition[]
   namespace?: string
-  readers?: { [t: string]: Reader }
-  writers?: { [t: string]: Writer }
+  readers?: Readers, 
+  writers?: Writers, 
   getVariant?: VariantGetter
 }
 

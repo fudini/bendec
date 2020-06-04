@@ -1,11 +1,11 @@
-import { keyBy, mapValues, mapKeys } from 'lodash'
+import { keyBy, mapKeys } from 'lodash'
 import {
   Kind,
-  Struct,
+  UnionStrict,
   Config,
   Lookup,
-  Reader,
-  Writer,
+  Readers,
+  Writers,
   BufferWrapper,
   TypeDefinition,
   TypeDefinitionStrict,
@@ -17,6 +17,8 @@ import {
   genWrapFunction2, // function get/set
   genReadFunction,
   genWriteFunction,
+  genReadFields,
+  genVariantGetter,
 } from './readersWriters/index'
 
 import {
@@ -42,10 +44,10 @@ const defaultConfig: Config = {
 }
 
 class Bendec<T> {
-  private getVariant: VariantGetter = emptyVariantGetter
+  private getVariant: Map<string, VariantGetter> = new Map([['default', emptyVariantGetter]])
   private lookup: Lookup = {}
-  private writers: { [t: string]: Writer } = {}
-  private readers: { [t: string]: Reader } = {}
+  private writers: Writers = {}
+  private readers: Readers = {}
   private decoders: Map<string, (buffer: Buffer) => T> = new Map()
   private encoders: Map<string, (o: T, b?: Buffer) => Buffer> = new Map()
   private wrapperFactories: Map<string, (b: Buffer) => BufferWrapper<T>> = new Map()
@@ -72,7 +74,7 @@ class Bendec<T> {
     this.addTypes(types, namespace)
 
     if (getVariant != undefined) {
-      this.getVariant = getVariant
+      this.getVariant.set('default', getVariant)
     }
   }
 
@@ -119,13 +121,25 @@ class Bendec<T> {
         
         this.wrappers2.set(type.name, wrapInstance2)
       })
+
+    // for union types we generate the getVariant function
+    types.filter((type): type is UnionStrict => type.kind == Kind.Union)
+      .forEach(type => {
+        if (type.members.length > 0) {
+          // we need to get any variant of this union and get the reader of its discriminator
+          const variantGetter = genVariantGetter(type, this.readers, this.lookup)
+          this.getVariant.set(type.name, variantGetter)
+        } else {
+          throw new Error(`Union without variants: ${type.name}`)
+        }
+      })
   }
 
   /**
    * Decode the Buffer into an object - DEPRECATED - use decodeAs
    */
   decode(buffer: Buffer): T {
-    const type = this.getVariant.decode(buffer)
+    const type = this.getVariant.get('default').decode(buffer)
     return this.decoders.get(type)(buffer)
   }
 
@@ -133,7 +147,7 @@ class Bendec<T> {
    * Encode object into Buffer - DEPRECATED - use encodeAs
    */
   encode(obj: T, buffer?: Buffer): Buffer {
-    const typeName = this.getVariant.encode(obj)
+    const typeName = this.getVariant.get('default').encode(obj)
     return this.encoders.get(typeName)(obj, buffer)
   }
 
@@ -143,6 +157,9 @@ class Bendec<T> {
    * what type to encode as
    */
   encodeAs(obj: T, typeName: string, buffer?: Buffer): Buffer {
+    if (this.getVariant.has(typeName)) {
+      typeName = this.getVariant.get(typeName).encode(obj)
+    }
     return this.encoders.get(typeName)(obj, buffer)
   }
 
@@ -152,6 +169,9 @@ class Bendec<T> {
    * what type to decode from 
    */
   decodeAs(buffer: Buffer, typeName: string): T {
+    if (this.getVariant.has(typeName)) {
+      typeName = this.getVariant.get(typeName).decode(buffer)
+    }
     return this.decoders.get(typeName)(buffer)
   }
 

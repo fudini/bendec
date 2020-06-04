@@ -10,6 +10,7 @@ import {
   asciiWriter,
 } from '../'
 import { BufferWrapper } from '../types'
+import { Zebra, Zebra2, AnimalKind, AnimalKind2 } from './generated/unionsEnums'
 
 // lets override readers and writers so we can deal with ascii
 const readers = { 'char[]': asciiReader }
@@ -291,18 +292,62 @@ test('Bendec enums', t => {
   t.end()
 })
 
-test('Bendec unions', t => {
+test('Bendec union size', t => {
 
-  const bendec4 = new Bendec<any>({ types: unions, getVariant, readers, writers })
+  const b = new Bendec<any>({ types: unions, readers, writers })
 
-  const sizeZebra = bendec4.getSize('Zebra')
-  const sizeToucan = bendec4.getSize('Toucan')
-  const sizeAnimal = bendec4.getSize('Animal')
+  const sizeZebra = b.getSize('Zebra')
+  const sizeToucan = b.getSize('Toucan')
+  const sizeAnimal = b.getSize('Animal')
 
-  t.equals(sizeZebra, 2)
-  t.equals(sizeToucan, 3)
+  t.equals(sizeZebra, 3)
+  t.equals(sizeToucan, 4)
   t.equals(sizeAnimal, sizeToucan, 'the biggest member is the size of the union')
 
+  t.end()
+})
+
+test('Bendec union encodeAs / decodeAs simple path', t => {
+
+  const b = new Bendec<any>({ types: unions, readers, writers })
+
+  const zebra: Zebra = {
+    kind: AnimalKind.Zebra,
+    legs: 4
+  }
+
+  const encodedZebra = b.encodeAs(zebra, 'Zebra')
+  const decodedAnimal = b.decodeAs(encodedZebra, 'Animal')
+
+  t.deepEqual(zebra, decodedAnimal)
+
+  const encodedAnimal = b.encodeAs(zebra, 'Animal')
+  const decodedZebra = b.decodeAs(encodedZebra, 'Animal')
+
+  t.deepEqual(decodedAnimal, decodedZebra)
+  t.end()
+})
+
+test('Bendec union encodeAs / decodeAs nested path', t => {
+
+  const b = new Bendec<any>({ types: unions, readers, writers })
+
+  const zebra: Zebra2 = {
+    header: {
+      animalKind: AnimalKind2.Zebra2,
+    },
+    legs: 4
+  }
+
+  const encodedZebra = b.encodeAs(zebra, 'Zebra2')
+  const decodedAnimal = b.decodeAs(encodedZebra, 'Animal2')
+
+  t.deepEqual(zebra, decodedAnimal)
+
+  const encodedAnimal = b.encodeAs(zebra, 'Animal2')
+  const decodedZebra = b.decodeAs(encodedZebra, 'Animal2')
+
+  t.deepEqual(decodedAnimal, decodedZebra)
   t.end()
 })
 

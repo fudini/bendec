@@ -202,7 +202,7 @@ const unions: TypeDefinition[] = [
   {name: 'u16', size: 2},
 {
   name: 'AnimalKind',
-  underlying: 'u8',
+  underlying: 'u16',
   offset: 0x1000,
   variants: [['Zebra', 1], ['Toucan', 2]]
 }, {

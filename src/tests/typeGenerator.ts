@@ -17,24 +17,24 @@ const getFixture = (filePath: string): string => {
   return readFileSync(filePath2, 'utf8')
 }
 
- test('custom type mapping', t => {
-   const types = [{name: 'u64', size: 8}]
-   const typeMapping = {'u64': 'bigint'}
-   const without = generateString(types, { header: false })
-   const withMapping = generateString(types, { typeMapping, header: false })
+test('custom type mapping', t => {
+  const types = [{name: 'u64', size: 8}]
+  const typeMapping = {'u64': 'bigint'}
+  const without = generateString(types, { header: false })
+  const withMapping = generateString(types, { typeMapping, header: false })
 
-   t.equals(clean(without), `export type u64 = number`)
-   t.equals(clean(withMapping), `export type u64 = bigint`)
+  t.equals(clean(without), `export type u64 = number`)
+  t.equals(clean(withMapping), `export type u64 = bigint`)
 
-   t.end()
- })
+  t.end()
+})
 
- test('unions and enums', t => {
-   const cleanedGenerated = clean(generateString(unions))
-   const cleanedFixture = clean(getFixture('./generated/unionsEnums.ts'))
-   t.equals(cleanedGenerated, cleanedFixture)
-   t.end()
- })
+test('unions and enums', t => {
+  const cleanedGenerated = clean(generateString(unions))
+  const cleanedFixture = clean(getFixture('./generated/unionsEnums.ts'))
+  t.equals(cleanedGenerated, cleanedFixture)
+  t.end()
+})
 
 test('rust fixtures', t => {
   const cleanedGenerated = clean(generateStringRust(types))

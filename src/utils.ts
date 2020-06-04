@@ -83,7 +83,39 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
   }
 }
 
+// Returns the typeName of the discriminator (based on one of the variants)
+// TODO: This function could be used to check if every variant has 
+// valid discriminator defined in union
+const findDiscType = (typeName: string, disc: string[], lookup: Lookup): string => {
+
+  const typeDef = lookup[typeName]
+
+  // we're last and enum so all good - return
+  if (typeDef.kind === Kind.Enum && disc.length == 0) {
+    return typeDef.name
+  }
+
+  // we're struct with fields so find a field with the next name
+  if (typeDef.kind === Kind.Struct) {
+    const [fieldName, ...discRest] = disc
+    const field = typeDef.fields.find(({ name }) => name === fieldName)
+    if (field === undefined) {
+      throw new Error(`The discriminant error. Field ${fieldName} does not exist on ${typeDef.name}`)
+    }
+    // we found the field so keep recursing with the remaining path
+    return findDiscType(field.type, discRest, lookup)
+  }
+
+  throw new Error(`Path to discriminator is not OK, field ${typeDef.name}`)
+}
+
+// Return an object with enum value as a key and enum variant name as a value
+const getEnumLookup = (enumDef: EnumStrict): { [n: number]: string } => {
+  return enumDef.variants.reduce((r, [v, k]) => ({ ...r, [k]: v }), {})
+}
+
 // Convert from loose API TypeDefinition to string internal representation
+// and append the namespace if defined
 const normalizeTypes = (
   types: TypeDefinition[],
   lookup: Lookup = {},
@@ -154,6 +186,7 @@ const asciiWriter = (index, length, path = 'v'): [string, number] => {
 const toAscii = (buffer: Buffer) => buffer.toString('ascii').replace(/\u0000+$/, '')
 const fromAscii = (ascii: string) => Buffer.from(ascii)
 
+/// return the size of a given type
 const getTypeSize = lookup => (type: string) => {
 
   const t = resolveType(lookup, type)
@@ -161,7 +194,7 @@ const getTypeSize = lookup => (type: string) => {
 
   // this is union so get the biggest of its variants
   if(typeDef.kind === Kind.Union) {
-      return max(typeDef.members.map(getTypeSize(lookup)))
+    return max(typeDef.members.map(getTypeSize(lookup)))
   }
 
   // primitive
@@ -216,5 +249,7 @@ export {
   fromAscii,
   toAscii,
   normalizeTypes,
-  appendNamespace
+  appendNamespace,
+  findDiscType,
+  getEnumLookup,
 }

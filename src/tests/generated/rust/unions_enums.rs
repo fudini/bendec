@@ -9,7 +9,7 @@ pub use super::shared::*;
 // primitive built-in: u16
 
 
-#[repr(u8)]
+#[repr(u16)]
 #[derive(Debug, Copy, Clone, PartialEq, Serialize_repr, Deserialize_repr)]
 pub enum AnimalKind {
   Zebra = 0x1001,
