@@ -114,3 +114,6 @@ export const Errors = {
 export interface Lookup {
   [typeName: string]: TypeDefinitionStrict
 }
+
+export type Decoder<T> = (buffer: Buffer) => T
+export type Encoder<T> = (o: T, b?: Buffer) => Buffer
