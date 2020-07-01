@@ -43,7 +43,7 @@ export interface Enum {
   name: string
   desc?: string
   underlying: string
-  offset?: number
+  offset?: number | string // string because in json we can't use hex values
   variants: EnumVariant[]
 }
 

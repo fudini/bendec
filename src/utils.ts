@@ -65,7 +65,7 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
 
   if ((<Enum>typeDef).variants !== undefined) {
     const def = <Enum>typeDef
-    const offset = def.offset == undefined ? 0 : def.offset
+    const offset = def.offset == undefined ? 0 : parseInt(def.offset as string)
     def.underlying = appendNamespace(def.underlying, ns)
     // Adjust the offset for this enum
     const variants = def.variants.map(([name, value]) => {
