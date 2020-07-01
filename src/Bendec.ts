@@ -9,7 +9,9 @@ import {
   BufferWrapper,
   TypeDefinition,
   TypeDefinitionStrict,
-  VariantGetter
+  VariantGetter,
+  Encoder,
+  Decoder,
 } from './types'
 
 import {
@@ -43,13 +45,20 @@ const defaultConfig: Config = {
   writers: {},
 }
 
+// To throw better errors when type hasn't been found
+const assertExists = <T>(d: T | undefined, typeName: string) => {
+  if (d === undefined) {
+    throw new Error(`Type not found: '${typeName}'`)
+  }
+}
+
 class Bendec<T> {
   private getVariant: Map<string, VariantGetter> = new Map([['default', emptyVariantGetter]])
   private lookup: Lookup = {}
   private writers: Writers = {}
   private readers: Readers = {}
-  private decoders: Map<string, (buffer: Buffer) => T> = new Map()
-  private encoders: Map<string, (o: T, b?: Buffer) => Buffer> = new Map()
+  private decoders: Map<string, Decoder<T>> = new Map()
+  private encoders: Map<string, Encoder<T>> = new Map()
   private wrapperFactories: Map<string, (b: Buffer) => BufferWrapper<T>> = new Map()
 
   private wrappers: Map<string, BufferWrapper<T>> = new Map()
@@ -139,8 +148,8 @@ class Bendec<T> {
    * Decode the Buffer into an object - DEPRECATED - use decodeAs
    */
   decode(buffer: Buffer): T {
-    const type = this.getVariant.get('default').decode(buffer)
-    return this.decoders.get(type)(buffer)
+    const typeName = this.getVariant.get('default').decode(buffer)
+    return this.getDecoder(typeName)(buffer)
   }
 
   /**
@@ -148,7 +157,7 @@ class Bendec<T> {
    */
   encode(obj: T, buffer?: Buffer): Buffer {
     const typeName = this.getVariant.get('default').encode(obj)
-    return this.encoders.get(typeName)(obj, buffer)
+    return this.getEncoder(typeName)(obj, buffer)
   }
 
   /**
@@ -160,7 +169,7 @@ class Bendec<T> {
     if (this.getVariant.has(typeName)) {
       typeName = this.getVariant.get(typeName).encode(obj)
     }
-    return this.encoders.get(typeName)(obj, buffer)
+    return this.getEncoder(typeName)(obj, buffer)
   }
 
   /**
@@ -172,7 +181,19 @@ class Bendec<T> {
     if (this.getVariant.has(typeName)) {
       typeName = this.getVariant.get(typeName).decode(buffer)
     }
-    return this.decoders.get(typeName)(buffer)
+    return this.getDecoder(typeName)(buffer)
+  }
+
+  getDecoder(typeName: string): Decoder<T> {
+    const decoder = this.decoders.get(typeName)
+    assertExists(decoder, typeName)
+    return decoder
+  }
+
+  getEncoder(typeName: string): Encoder<T> {
+    const encoder = this.encoders.get(typeName)
+    assertExists(encoder, typeName)
+    return encoder
   }
 
   /**

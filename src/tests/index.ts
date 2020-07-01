@@ -351,5 +351,17 @@ test('Bendec union encodeAs / decodeAs nested path', t => {
   t.end()
 })
 
+test('Bendec show error in case of missing types', t => {
+
+  const b = new Bendec<any>({ types: unions, readers, writers })
+
+  const typeName = 'NonExistingType'
+
+  t.throws(() => b.decodeAs(Buffer.from([]), typeName), typeName)
+  t.throws(() => b.encodeAs({}, typeName), typeName)
+
+  t.end()
+})
+
 require('./typeGenerator')
 require('./imports')
