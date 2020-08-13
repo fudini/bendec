@@ -52,6 +52,15 @@ impl Serialize for Animal {
   }
 }
 
+impl Animal {
+  pub fn deserialize_json(disc: AnimalKind, data: &str) -> Result<Self, serde_json::Error> {
+    use serde_json::from_str;
+    match disc {
+      AnimalKind::Zebra => from_str(data).map(|v| Animal { zebra: v }),
+      AnimalKind::Toucan => from_str(data).map(|v| Animal { toucan: v }),
+    }
+  }
+}
 
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Serialize_repr, Deserialize_repr)]
@@ -67,14 +76,12 @@ pub struct Header {
   pub animal_kind: AnimalKind2,
 }
 
-
 #[repr(C, packed)]
 #[derive(Serialize, Deserialize)]
 pub struct Zebra2 {
   pub header: Header,
   pub legs: u8,
 }
-
 
 #[repr(C, packed)]
 #[derive(Serialize, Deserialize)]
@@ -99,6 +106,16 @@ impl Serialize for Animal2 {
         AnimalKind2::Zebra2 => self.zebra_2.serialize(serializer),
         AnimalKind2::Toucan2 => self.toucan_2.serialize(serializer), 
       }
+    }
+  }
+}
+
+impl Animal2 {
+  pub fn deserialize_json(disc: AnimalKind2, data: &str) -> Result<Self, serde_json::Error> {
+    use serde_json::from_str;
+    match disc {
+      AnimalKind2::Zebra2 => from_str(data).map(|v| Animal2 { zebra_2: v }),
+      AnimalKind2::Toucan2 => from_str(data).map(|v| Animal2 { toucan_2: v }),
     }
   }
 }

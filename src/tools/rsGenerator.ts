@@ -98,7 +98,7 @@ ${unionMembers}
 
   const discPath = discriminator.map(snakeCase).join('.')
   // we need to generate serde for union as it can't be derived
-  const unionSerde = `impl Serialize for ${name} {
+  const unionSerdeSerialize = `impl Serialize for ${name} {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where S: Serializer,
   {
@@ -110,7 +110,20 @@ ${serdeMembers}
   }
 }`
 
-  return [union, unionSerde].join('\n\n')
+  const unionDeserializeMembers = members.map(member => {
+    return `${discTypeDef.name}::${member} => from_str(data).map(|v| ${name} { ${snakeCase(member)}: v }),`
+  }).map(indent(6)).join('\n')
+
+  const unionDeserializeJson = `impl ${name} {
+  pub fn deserialize_json(disc: ${discTypeDef.name}, data: &str) -> Result<Self, serde_json::Error> {
+    use serde_json::from_str;
+    match disc {
+${unionDeserializeMembers}
+    }
+  }
+}`
+
+  return [union, unionSerdeSerialize, unionDeserializeJson].join('\n\n')
 }
 
 /**
