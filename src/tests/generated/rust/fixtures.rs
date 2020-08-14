@@ -2,38 +2,36 @@
 #[allow(unused_imports)]
 use serde::{Deserialize, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-big_array! { BigArray; }
-  // primitive built-in: u8
+big_array! { BigArray; 64, }
 
+// primitive built-in: u8
 // primitive built-in: u16
-
 // primitive built-in: u32
-
 // ignored: char
 
 pub type Age = u8;
 
-
 /// struct description
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct Header {
   /// field description
   pub msg_type: u8,
 }
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct Uri {
   pub protocol: [u8; 10],
   pub host: [u8; 32],
   pub port: u16,
 }
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct User {
   pub first_name: [u8; 16],
   pub last_name: [u8; 16],
@@ -41,9 +39,9 @@ pub struct User {
   pub age: Age,
 }
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct UserExtra {
   pub first_name: [u8; 16],
   pub last_name: [u8; 16],
@@ -52,9 +50,9 @@ pub struct UserExtra {
   pub uris: [Uri; 4],
 }
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct UserAdd {
   pub header: Header,
   pub user: User,
@@ -62,9 +60,9 @@ pub struct UserAdd {
 
 pub type CustomerAdd = UserAdd;
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct Group {
   pub header: Header,
   pub ints: [u8; 8],
@@ -73,9 +71,9 @@ pub struct Group {
 
 pub type Price = u32;
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct Person {
   pub a: u16,
   pub b: u32,
@@ -83,9 +81,9 @@ pub struct Person {
   pub d: u8,
 }
 
-
 #[repr(C, packed)]
 #[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct LargeMessage {
   pub header: Header,
   pub person_1: Person,
