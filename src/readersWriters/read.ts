@@ -4,19 +4,19 @@ import { resolveType } from '../utils'
 
 const genReadField = (readers, lookup: Lookup, sizes = false) => {
 
-  return (field: Field, index = 0): [any, number] => {
+  return (typeName: string, length = 0, index = 0): [any, number] => {
 
-    const key = field.type + (field.length ? '[]' : '')
+    const key = typeName + (length ? '[]' : '')
     let reader = readers[key]
     if (reader) {
-      return reader(index, field.length)
+      return reader(index, length)
     }
 
-    if (field.length) {
+    if (length > 0) {
 
-      let fieldsMapped = _.range(0, field.length)
+      let fieldsMapped = _.range(0, length)
         .map(i => {
-          let [func, newIndex] = genReadField(readers, lookup, sizes)({name: field.name, type: field.type}, index)
+          let [func, newIndex] = genReadField(readers, lookup, sizes)(typeName, 0, index)
           index = newIndex
           return func
         })
@@ -24,33 +24,26 @@ const genReadField = (readers, lookup: Lookup, sizes = false) => {
       return [fieldsMapped, index]
     }
 
-    const resolvedType = resolveType(lookup, field.type)
+    const resolvedType = resolveType(lookup, typeName)
     const typeDef = lookup[resolvedType]
     reader = readers[resolvedType]
 
     // if it has its own reader use it
     if (reader) {
-      return reader(index, field.length)
+      return reader(index, length)
     }
     
     // resolve array
     if (typeDef.kind === Kind.Array) {
-      let fieldsMapped = _.range(0, typeDef.length)
-        .map(i => {
-          let [func, newIndex] = genReadField(readers, lookup, sizes)({name: typeDef.name, type: typeDef.type}, index)
-          index = newIndex
-          return func
-        })
-
-      return [fieldsMapped, index]
+      return genReadField(readers, lookup, sizes)(typeDef.type, typeDef.length, index)
     }
 
     // probably another custom type
-    if (lookup[field.type]) {
-      return genReadFields(readers, lookup, sizes)(field.type, index)
+    if (lookup[typeName]) {
+      return genReadFields(readers, lookup, sizes)(typeName, index)
     }
 
-    throw `${Errors.TYPE_NOT_FOUND}:${field.type}`
+    throw `${Errors.TYPE_NOT_FOUND}:${typeName}`
   }
 }
 
@@ -81,7 +74,7 @@ const genReadFields = (readers, lookup: Lookup, sizes = false) => {
     if (typeDef.kind === Kind.Struct) {
       var obj = {}
       typeDef.fields.forEach(field => {
-        let [func, newIndex] = genReadField(readers, lookup, sizes)(field, index) 
+        let [func, newIndex] = genReadField(readers, lookup, sizes)(field.type, field.length, index) 
         if (sizes) {
           obj[field.name] = [func, index, newIndex]
         } else {
@@ -101,7 +94,6 @@ const genReadFunction = (readers, lookup: Lookup, name: string, sizes = false) =
 
   let [intermediate] = genReadFields(readers, lookup, sizes)(name)
   let stringified = JSON.stringify(intermediate, null, 2).replace(/\"/g, '')
-  console.log(stringified)
   return new Function('buffer', `return ${stringified}`)
 }
 

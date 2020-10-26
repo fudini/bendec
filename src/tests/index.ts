@@ -393,13 +393,10 @@ test('Arrays and array alias', t => {
   }
 
   const encoded = b.encodeAs(foo, 'Foo')
-  console.log(encoded)
   const decoded = b.decodeAs(encoded, 'Foo')
-  JSON.stringify(decoded)
-
-  //t.deepEqual(encoded, decoded)
+  t.deepEqual(foo, decoded)
   t.end()
 })
 
-//require('./typeGenerator')
+require('./typeGenerator')
 //require('./imports')

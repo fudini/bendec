@@ -1,8 +1,8 @@
 import * as _ from 'lodash'
-import { Kind } from '../types'
+import { Kind, Lookup, Errors } from '../types'
 import { resolveType } from '../utils'
 
-const genWriteFields = (writers, lookup) => {
+const genWriteFields = (writers, lookup: Lookup) => {
   
   const genWriteField = (buffer, typeName, index = 0, length = 0, path = 'data', indent = '') => {
 
@@ -44,16 +44,20 @@ const genWriteFields = (writers, lookup) => {
       return genWriteField(buffer, typeDef.type, index, typeDef.length, path, indent + '  ')
     }
 
-    let newIndex = index
-    buffer.push(`${indent}if (${path} !== undefined) {`)
+    if (typeDef.kind === Kind.Struct) {
+      let newIndex = index
+      buffer.push(`${indent}if (${path} !== undefined) {`)
 
-    typeDef.fields.forEach(field => {
-      let [b, i] = genWriteField(buffer, field.type, newIndex, field.length, path + '.' + field.name, indent + '  ')
-      newIndex = i
-    })
+      typeDef.fields.forEach(field => {
+        let [b, i] = genWriteField(buffer, field.type, newIndex, field.length, path + '.' + field.name, indent + '  ')
+        newIndex = i
+      })
 
-    buffer.push(`${indent}}`)
-    return [buffer, newIndex]
+      buffer.push(`${indent}}`)
+      return [buffer, newIndex]
+    }
+
+    throw `${Errors.TYPE_NOT_FOUND}:${typeName}`
   }
 
   return genWriteField
@@ -63,7 +67,6 @@ const genWriteFunction = (writers, lookup, typeName) => {
 
   let [intermediate] = genWriteFields(writers, lookup)([], typeName)
   let stringified = intermediate.join('\n')
-  //console.log(stringified)
   let size = lookup[typeName].size
   return new Function('data', `buffer = Buffer.alloc(${size})`, `${stringified}
 return buffer    
