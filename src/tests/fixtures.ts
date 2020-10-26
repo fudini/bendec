@@ -1,6 +1,7 @@
 import { invertLookup, EnumVariant } from '../'
 import { Kind, TypeDefinition } from '../types'
 
+// TODO: Split this file
 const MsgType = {
   HEADER: 0,
   USER_ADD: 1,
