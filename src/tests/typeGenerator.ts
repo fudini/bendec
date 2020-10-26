@@ -28,7 +28,7 @@ test('TypeScript - custom type mapping', t => {
   t.end()
 })
 
-test('TypeSCript - unions and enums', t => {
+test('TypeScript - unions and enums', t => {
   const cleanedGenerated = clean(generateString(unions))
   const cleanedFixture = clean(getFixture('./generated/ts/unionsEnums.ts'))
   t.equals(cleanedGenerated, cleanedFixture)
@@ -36,7 +36,6 @@ test('TypeSCript - unions and enums', t => {
 })
 
 test('TypeScript arrays', t => {
-  //console.log(generateString(arrays))
   const cleanedGenerated = clean(generateString(arrays))
   const cleanedFixture = clean(getFixture('./generated/ts/arrays.ts'))
   t.equals(cleanedGenerated, cleanedFixture)
