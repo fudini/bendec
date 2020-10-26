@@ -242,6 +242,10 @@ pub struct ${typeName} {
 ${membersString}
 }`
     }
+
+    if (typeDef.kind === Kind.Array) {
+      return `pub type ${typeName} = [${toRustNS(typeDef.type)}; ${typeDef.length}];`
+    }
   })
 
   const result = definitions.join('\n\n')

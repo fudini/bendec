@@ -1,6 +1,6 @@
 import test from 'tape'
 import * as _ from 'lodash'
-import { MsgType, types, enums, unions } from './fixtures'
+import { MsgType, types, enums, unions, arrays } from './fixtures'
 import {
   Bendec,
   invertLookup,
@@ -10,7 +10,7 @@ import {
   asciiWriter,
 } from '../'
 import { BufferWrapper } from '../types'
-import { Zebra, Zebra2, AnimalKind, AnimalKind2 } from './generated/unionsEnums'
+import { Zebra, Zebra2, AnimalKind, AnimalKind2 } from './generated/ts/unionsEnums'
 
 // lets override readers and writers so we can deal with ascii
 const readers = { 'char[]': asciiReader }
@@ -363,5 +363,40 @@ test('Bendec show error in case of missing types', t => {
   t.end()
 })
 
+type Test = {
+  one: number,
+  two: number
+}
+
+type Foo = {
+  id1: Test[],
+  id2: Test[],
+}
+
+test('Arrays and array alias', t => {
+
+  const b = new Bendec<any>({ types: arrays, readers, writers })
+
+  const foo = {
+    id1: [
+      { one: 1, two: 2 },
+      { one: 3, two: 4 },
+      { one: 5, two: 6 }
+    ],
+    id2: [
+      { one: 7, two: 8 },
+      { one: 9, two: 10 },
+      { one: 11, two: 12 }
+    ],
+    id3: 'abc',
+    id4: 'def',
+  }
+
+  const encoded = b.encodeAs(foo, 'Foo')
+  const decoded = b.decodeAs(encoded, 'Foo')
+  t.deepEqual(foo, decoded)
+  t.end()
+})
+
 require('./typeGenerator')
-require('./imports')
+//require('./imports')
