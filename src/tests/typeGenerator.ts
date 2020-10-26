@@ -31,7 +31,7 @@ test('custom type mapping', t => {
 
 test('unions and enums', t => {
   const cleanedGenerated = clean(generateString(unions))
-  const cleanedFixture = clean(getFixture('./generated/unionsEnums.ts'))
+  const cleanedFixture = clean(getFixture('./generated/ts/unionsEnums.ts'))
   t.equals(cleanedGenerated, cleanedFixture)
   t.end()
 })

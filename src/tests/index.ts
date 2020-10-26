@@ -10,7 +10,7 @@ import {
   asciiWriter,
 } from '../'
 import { BufferWrapper } from '../types'
-import { Zebra, Zebra2, AnimalKind, AnimalKind2 } from './generated/unionsEnums'
+import { Zebra, Zebra2, AnimalKind, AnimalKind2 } from './generated/ts/unionsEnums'
 
 // lets override readers and writers so we can deal with ascii
 const readers = { 'char[]': asciiReader }
