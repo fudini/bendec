@@ -64,7 +64,6 @@ const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [str
       ? typeMap[key](field.length)
       : rustType
 
-    const type = lookup[field.type]
 
     const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
 
@@ -73,7 +72,11 @@ const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [str
       return pushBigArray(field.length) + generatedField
     }
 
-    if (type.kind === Kind.Array && type.length > 32) {
+    const type = lookup[field.type]
+
+    if (type === undefined) {
+      console.log(`Field type not found ${field.type}`)
+    } else if (type.kind === Kind.Array && type.length > 32) {
       hasBigArray = true
       return pushBigArray(type.length) + generatedField
     }
