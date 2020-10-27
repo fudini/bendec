@@ -2,10 +2,10 @@
  * Rust code generator
  */
 import * as fs from 'fs'
-import { range, snakeCase, get } from 'lodash'
+import { range, snakeCase, get, keyBy } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
-import { Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
+import { Lookup, Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
 import { hexPad } from './utils'
 
 type TypeMapping = { [k: string]: (size?: number) => string }
@@ -45,29 +45,40 @@ const doc = (desc?: string): string => {
   return ''
 }
 
-const getMembers = (fields: Field[], typeMap: TypeMapping): [string[], boolean] => {
+const pushBigArray = (length: number): string => {
+  if (globalBigArraySizes.indexOf(length) == -1) {
+    globalBigArraySizes.push(length)
+  }
+  return '  #[serde(with = "BigArray")]\n'
+}
+
+const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [string[], boolean] => {
   let hasBigArray = false
 
   let fieldsArr = fields.map(field => {
     // expand the namespace . in to ::
-    const fieldType = toRustNS(field.type)
-    const key = fieldType + (field.length ? '[]' : '')
-    const rustType = field.length ? `[${fieldType}; ${field.length}]` : fieldType
-    const theType = (typeMap[key] !== undefined)
+    const fieldTypeName = toRustNS(field.type)
+    const key = fieldTypeName + (field.length ? '[]' : '')
+    const rustType = field.length ? `[${fieldTypeName}; ${field.length}]` : fieldTypeName
+    const finalRustType = (typeMap[key] !== undefined)
       ? typeMap[key](field.length)
       : rustType
 
-    const theField =  `  pub ${snakeCase(field.name)}: ${theType},`
+    const type = lookup[field.type]
+
+    const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
 
     if (field.length > 32) {
       hasBigArray = true
-      // TODO: global
-      if (globalBigArraySizes.indexOf(field.length) == -1) {
-        globalBigArraySizes.push(field.length)
-      }
-      return '  #[serde(with = "BigArray")]\n' + theField
+      return pushBigArray(field.length) + generatedField
     }
-    return doc(field.desc) + theField
+
+    if (type.kind === Kind.Array && type.length > 32) {
+      hasBigArray = true
+      return pushBigArray(type.length) + generatedField
+    }
+
+    return doc(field.desc) + generatedField
   })
 
   return [fieldsArr, hasBigArray]
@@ -169,6 +180,7 @@ export const generateString = (
   const ignoredTypes = ['char']
 
   const types: TypeDefinitionStrict[] = normalizeTypes(typesDuck)
+  const lookup = keyBy(types, i => i.name)
   options = { ...defaultOptions, ...options }
 
   const { typeMapping, extraDerives = [] } = options 
@@ -221,7 +233,7 @@ export const generateString = (
 
     if (typeDef.kind === Kind.Struct) {
       const [members, hasBigArray] = typeDef.fields
-        ? getMembers(typeDef.fields, typeMap)
+        ? getMembers(lookup, typeDef.fields, typeMap)
         : [[], false]
 
       const membersString = members.join('\n')

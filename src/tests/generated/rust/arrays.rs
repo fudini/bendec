@@ -2,9 +2,11 @@
 #[allow(unused_imports)]
 use serde::{Deserialize, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+big_array! { BigArray; 128, }
 // primitive built-in: u8
 // ignored: char
 pub type Char3 = [char; 3];
+pub type BigArray = [char; 128];
 
 #[repr(C, packed)]
 #[derive(Default, Serialize, Deserialize)]
@@ -18,11 +20,13 @@ pub type Test3 = [Test; 3];
 pub type Ident = Test3;
 
 #[repr(C, packed)]
-#[derive(Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields, default)]
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Foo {
   pub id_1: Ident,
   pub id_2: Test3,
   pub id_3: Char3,
   pub id_4: [u8; 3],
+  #[serde(with = "BigArray")]
+  pub id_5: BigArray,
 }

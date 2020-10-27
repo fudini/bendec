@@ -2,6 +2,7 @@
 export type u8 = number
 export type char = u8
 export type Char3 = Buffer
+export type BigArray = Buffer
 
 export interface Test {
   one: u8
@@ -16,5 +17,6 @@ export interface Foo {
   id2: Test3
   id3: Char3
   id4: Buffer
+  id5: BigArray
 }
 

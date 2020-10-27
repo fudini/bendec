@@ -313,6 +313,11 @@ const arrays: TypeDefinition[] = [{
   type: 'char',
   length: 3
 }, {
+  kind: Kind.Array,
+  name: 'BigArray',
+  type: 'char',
+  length: 128
+}, {
   kind: Kind.Struct,
   name: 'Test',
   fields: [{
@@ -347,6 +352,9 @@ const arrays: TypeDefinition[] = [{
     name: 'id4', // old way of specifying field length
     type: 'char',
     length: 3
+  }, {
+    name: 'id5',
+    type: 'BigArray'
   }]
 }]
 
