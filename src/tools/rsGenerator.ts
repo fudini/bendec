@@ -2,7 +2,7 @@
  * Rust code generator
  */
 import * as fs from 'fs'
-import { range, snakeCase, get, keyBy } from 'lodash'
+import { range, snakeCase, get, keyBy, flatten } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
 import { Lookup, Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
@@ -11,6 +11,8 @@ import { hexPad } from './utils'
 type TypeMapping = { [k: string]: (size?: number) => string }
 
 type Options = {
+  // These types are just here for lookup so we can resolve shared types
+  lookupTypes?: TypeDefinition[][],
   typeMapping?: TypeMapping
   extras?: string[]
   extraDerives?: { [typeName: string]: string[] }
@@ -19,6 +21,7 @@ type Options = {
 let globalBigArraySizes = []
 
 export const defaultOptions = {
+  lookupTypes: [[]],
   extras: [],
   extraDerives: {},
 }
@@ -63,7 +66,6 @@ const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [str
     const finalRustType = (typeMap[key] !== undefined)
       ? typeMap[key](field.length)
       : rustType
-
 
     const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
 
@@ -183,7 +185,9 @@ export const generateString = (
   const ignoredTypes = ['char']
 
   const types: TypeDefinitionStrict[] = normalizeTypes(typesDuck)
-  const lookup = keyBy(types, i => i.name)
+  const lookupTypes = normalizeTypes(flatten(options.lookupTypes))
+  const lookup = keyBy(types.concat(lookupTypes), i => i.name)
+
   options = { ...defaultOptions, ...options }
 
   const { typeMapping, extraDerives = [] } = options 
@@ -282,7 +286,7 @@ ${extrasString}
 /**
  * Generate Rust types from Bendec types definitions
  */
-export const generate = (types: any[], fileName: string, options?: Options) => {
+export const generate = (types: TypeDefinition[], fileName: string, options?: Options) => {
   const moduleWrapped = generateString(types, options)
 
   fs.writeFileSync(fileName, moduleWrapped)
