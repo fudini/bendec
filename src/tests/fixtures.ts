@@ -1,6 +1,7 @@
 import { invertLookup, EnumVariant } from '../'
-import { TypeDefinition } from '../types'
+import { Kind, TypeDefinition } from '../types'
 
+// TODO: Split this file
 const MsgType = {
   HEADER: 0,
   USER_ADD: 1,
@@ -203,7 +204,7 @@ const unions: TypeDefinition[] = [
 {
   name: 'AnimalKind',
   underlying: 'u16',
-  offset: 0x1000,
+  offset: "0x1000",
   variants: [['Zebra', 1], ['Toucan', 2]]
 }, {
   name: 'Zebra',
@@ -298,6 +299,57 @@ const largeMessage2 = Object.assign({}, largeMessage, {
   name4: Buffer.from('oiuoiuoiuoiuoiuoiuoiuoiuoiu', 'ascii')
 })
 
+const arrays: TypeDefinition[] = [{
+  kind: Kind.Primitive,
+  name: 'u8',
+  size: 1
+}, {
+  kind: Kind.Alias,
+  name: 'char',
+  alias: 'u8'
+}, {
+  kind: Kind.Array,
+  name: 'Char3',
+  type: 'char',
+  length: 3
+}, {
+  kind: Kind.Struct,
+  name: 'Test',
+  fields: [{
+    name: 'one',
+    type: 'u8'
+  }, {
+    name: 'two',
+    type: 'u8'
+  }],
+}, {
+  kind: Kind.Array,
+  name: 'Test3',
+  type: 'Test',
+  length: 3
+}, {
+  kind: Kind.Alias,
+  name: 'Ident',
+  alias: 'Test3'
+}, {
+  kind: Kind.Struct,
+  name: 'Foo',
+  fields: [{
+    name: 'id1', // alias to array of structs
+    type: 'Ident'
+  }, {
+    name: 'id2',
+    type: 'Test3', // array of structs
+  }, {
+    name: 'id3',
+    type: 'Char3', // array of chars
+  }, {
+    name: 'id4', // old way of specifying field length
+    type: 'char',
+    length: 3
+  }]
+}]
+
 const largeMessageEncoded = Buffer.from([100,1,0,1,0,0,0,123,0,0,0,1,1,0,1,0,0,0,123,0,0,0,1,160,134,1,0,70,97,188,0,100,0,0,0,1,0,0,0,2,0,0,0,3,4,104,101,108,108,111,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,113,119,101,114,113,119,101,114,113,119,101,114,113,119,101,114,113,119,101,114,113,119,101,114,113,101,119,114,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,97,115,100,102,97,115,100,102,97,115,100,102,97,115,100,102,97,115,100,102,97,100,115,102,97,115,100,102,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,111,105,117,111,105,117,111,105,117,111,105,117,111,105,117,111,105,117,111,105,117,111,105,117,111,105,117,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 
 const lookup = invertLookup(MsgType)
@@ -315,4 +367,5 @@ export {
   getVariant,
   enums,
   unions,
+  arrays,
 }

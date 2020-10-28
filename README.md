@@ -2,7 +2,7 @@
 
 ### Binary encoder / decoder featuring fixed-size arrays
 
-Supports: Primitives, Structs, Enums, Unions
+Supports: Primitives, Structs, Enums, Unions, Arrays, Aliases
 
 Generators: Rust, TypeScript, C++
 

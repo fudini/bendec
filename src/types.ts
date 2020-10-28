@@ -4,6 +4,7 @@ export enum Kind {
   Struct = 3,
   Enum = 4,
   Union = 5,
+  Array = 6,
 }
 
 export interface Primitive {
@@ -18,6 +19,14 @@ export interface Alias {
   name: string
   desc?: string
   alias: string
+}
+
+export interface ArrayType {
+  kind?: Kind.Array
+  name: string
+  desc?: string
+  type: string
+  length: number
 }
 
 export interface Field {
@@ -43,7 +52,7 @@ export interface Enum {
   name: string
   desc?: string
   underlying: string
-  offset?: number
+  offset?: number | string // string because in json we can't use hex values
   variants: EnumVariant[]
 }
 
@@ -61,7 +70,7 @@ export interface Union {
   members: string[]
 }
 
-export type TypeDefinition = Primitive | Alias | Struct | Enum | Union
+export type TypeDefinition = Primitive | Alias | Struct | Enum | Union | ArrayType
 
 type KindRequired<T extends { kind?: Kind }> = Pick<T, Exclude<keyof T, 'kind'>> & {
   kind: T['kind']
@@ -72,9 +81,15 @@ export type AliasStrict = KindRequired<Alias>
 export type StructStrict = KindRequired<Struct>
 export type EnumStrict = KindRequired<Enum>
 export type UnionStrict = KindRequired<Union>
+export type ArrayTypeStrict = KindRequired<ArrayType>
 
 /* This type is for internal use after conversion from TypeDefinition */
-export type TypeDefinitionStrict = PrimitiveStrict | AliasStrict | StructStrict | EnumStrict | UnionStrict
+export type TypeDefinitionStrict = PrimitiveStrict
+  | AliasStrict
+  | ArrayType
+  | StructStrict
+  | EnumStrict
+  | UnionStrict
 
 export type Reader = (index: number, length: number) => [string, number]
 export type Writer = (index: number, length: number, path?: string) => [string, number]
@@ -114,3 +129,6 @@ export const Errors = {
 export interface Lookup {
   [typeName: string]: TypeDefinitionStrict
 }
+
+export type Decoder<T> = (buffer: Buffer) => T
+export type Encoder<T> = (o: T, b?: Buffer) => Buffer

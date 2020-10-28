@@ -7,16 +7,12 @@ import {
   Struct, StructStrict,
   Enum, EnumStrict,
   Union, UnionStrict,
+  ArrayType, ArrayTypeStrict,
   Lookup
 } from './types'
 
-interface Variants {
-  [key: string]: number
-}
-
-interface VariantsLookup {
-  [key: number]: string
-}
+type Variants = Record<string, number>
+type VariantsLookup = Record<number, string>
 
 const invertLookup = (variants: Variants): VariantsLookup => {
   return mapValues(invert(variants), flow(camelCase, upperFirst))
@@ -51,6 +47,10 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
     return { ...typeDef, kind: Kind.Primitive } as PrimitiveStrict
   }
 
+  if ((<ArrayType>typeDef).type !== undefined && (<ArrayType>typeDef).length !== undefined) {
+    return { ...typeDef, kind: Kind.Array } as ArrayType
+  }
+
   if ((<Alias>typeDef).alias !== undefined) {
     (<Alias>typeDef).alias = appendNamespace((<Alias>typeDef).alias, ns)
     return { ...typeDef, kind: Kind.Alias } as AliasStrict
@@ -65,7 +65,7 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
 
   if ((<Enum>typeDef).variants !== undefined) {
     const def = <Enum>typeDef
-    const offset = def.offset == undefined ? 0 : def.offset
+    const offset = def.offset == undefined ? 0 : parseInt(def.offset as string)
     def.underlying = appendNamespace(def.underlying, ns)
     // Adjust the offset for this enum
     const variants = def.variants.map(([name, value]) => {
@@ -81,6 +81,8 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
     })
     return { ...typeDef, kind: Kind.Union } as UnionStrict
   }
+
+  throw new Error(`Unrecognized type definition: ${JSON.stringify(typeDef)}`)
 }
 
 // Returns the typeName of the discriminator (based on one of the variants)
@@ -191,6 +193,10 @@ const getTypeSize = lookup => (type: string) => {
 
   const t = resolveType(lookup, type)
   const typeDef = lookup[t]
+
+  if(typeDef.kind === Kind.Array) {
+    return typeDef.length * getTypeSize(lookup)(typeDef.type)
+  }
 
   // this is union so get the biggest of its variants
   if(typeDef.kind === Kind.Union) {

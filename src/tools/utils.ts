@@ -2,6 +2,3 @@
 export const hexPad = (n: number): string => {
   return "0x" + ("0000" + n.toString(16)).substr(-4)
 }
-
-
-
