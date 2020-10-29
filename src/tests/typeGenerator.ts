@@ -84,3 +84,9 @@ test('CPP unions and enums', t => {
   t.end()
 })
 
+test('CPP arrays', t => {
+  const cleanedGenerated = clean(generateStringCpp(arrays))
+  const cleanedFixture = clean(getFixture('./generated/cpp/arrays.hpp'))
+  t.equals(cleanedGenerated, cleanedFixture)
+  t.end()
+})

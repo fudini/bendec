@@ -159,6 +159,11 @@ ${membersString}
     friend std::ostream &operator << (std::ostream &, const ${typeName} &);
 } __attribute__ ((packed));`
     }
+
+    if (typeDef.kind === Kind.Array) {
+      return `using ${typeName} = ${typeDef.type}[${typeDef.length}];`
+    }
+
   })
 
   const result = definitions.join('\n\n')
