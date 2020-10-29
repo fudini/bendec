@@ -22,6 +22,10 @@ export const defaultMapping: TypeMapping = {
   'char[]': 'Buffer',
 }
 
+const resolveCustomType = (typeMap, key): string => {
+  return typeMap[key] === undefined ? key : typeMap[key]
+}
+
 const indent = (i: number) => (str: string) => {
   return '                    '.substr(-i) + str
 }
@@ -29,9 +33,8 @@ const indent = (i: number) => (str: string) => {
 const getMembers = (fields: Field[], typeMap: TypeMapping) => {
   return fields.map(field => {
     const key = field.type + (field.length ? '[]' : '')
-    const theType = typeMap[key] || key
-
-    return `  ${field.name}: ${theType}`
+    const finalTypeName = typeMap[key] || key
+    return `  ${field.name}: ${finalTypeName}`
   })
 }
 
@@ -97,6 +100,12 @@ export const generateString = (typesDuck: TypeDefinition[], options: Options = d
 ${membersString}
 }`
     }
+
+    if (typeDef.kind === Kind.Array) {
+      const key = typeDef.type + '[]'
+      const finalTypeName = typeMap[key] || key
+      return `export type ${typeDef.name} = ${finalTypeName}`
+    }
   })
 
   const result = definitions.join('\n\n')
@@ -111,7 +120,7 @@ ${result}
 /**
  * Generate TypeScript interfaces from Bender types definitions
  */
-export const generate = (types: any[], fileName: string, options?: Options) => {
+export const generate = (types: TypeDefinition[], fileName: string, options?: Options) => {
   const moduleWrapped = generateString(types, options)
 
   fs.writeFileSync(fileName, moduleWrapped)

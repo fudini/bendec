@@ -2,12 +2,11 @@
 #[allow(unused_imports)]
 use serde::{Deserialize, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-big_array! { BigArray; }
+
 pub use super::shared::*;
-  // primitive built-in: u8
 
+// primitive built-in: u8
 // primitive built-in: u16
-
 
 #[repr(u16)]
 #[derive(Debug, Copy, Clone, PartialEq, Serialize_repr, Deserialize_repr)]
@@ -15,23 +14,27 @@ pub enum AnimalKind {
   Zebra = 0x1001,
   Toucan = 0x1002,
 }
-
+impl Default for AnimalKind {
+  fn default() -> Self {
+    Self::Zebra
+  }
+}
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize, Copy, Clone)]
+#[derive(Default, Serialize, Deserialize, Copy, Clone)]
+#[serde(deny_unknown_fields, default)]
 pub struct Zebra {
   pub kind: AnimalKind,
   pub legs: u8,
 }
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct Toucan {
   pub kind: AnimalKind,
   pub wingspan: u16,
 }
-
 
 #[repr(C, packed)]
 pub union Animal {
@@ -46,12 +49,30 @@ impl Serialize for Animal {
     unsafe {
       match &self.zebra.kind {
         AnimalKind::Zebra => self.zebra.serialize(serializer),
-        AnimalKind::Toucan => self.toucan.serialize(serializer), 
+        AnimalKind::Toucan => self.toucan.serialize(serializer),
       }
     }
   }
 }
 
+impl Animal {
+  pub fn deserialize_json(disc: AnimalKind, data: &str) -> Result<Self, serde_json::Error> {
+    use serde_json::from_str;
+    match disc {
+      AnimalKind::Zebra => from_str(data).map(|v| Animal { zebra: v }),
+      AnimalKind::Toucan => from_str(data).map(|v| Animal { toucan: v }),
+    }
+  }
+}
+
+impl Animal {
+  pub fn size_of(disc: AnimalKind) -> usize {
+    match disc {
+      AnimalKind::Zebra => std::mem::size_of::<Zebra>(),
+      AnimalKind::Toucan => std::mem::size_of::<Toucan>(),
+    }
+  }
+}
 
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Serialize_repr, Deserialize_repr)]
@@ -59,30 +80,34 @@ pub enum AnimalKind2 {
   Zebra2 = 0x0001,
   Toucan2 = 0x0002,
 }
-
+impl Default for AnimalKind2 {
+  fn default() -> Self {
+    Self::Zebra2
+  }
+}
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct Header {
   pub animal_kind: AnimalKind2,
 }
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct Zebra2 {
   pub header: Header,
   pub legs: u8,
 }
 
-
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct Toucan2 {
   pub header: Header,
   pub wingspan: u16,
 }
-
 
 #[repr(C, packed)]
 pub union Animal2 {
@@ -97,8 +122,27 @@ impl Serialize for Animal2 {
     unsafe {
       match &self.zebra_2.header.animal_kind {
         AnimalKind2::Zebra2 => self.zebra_2.serialize(serializer),
-        AnimalKind2::Toucan2 => self.toucan_2.serialize(serializer), 
+        AnimalKind2::Toucan2 => self.toucan_2.serialize(serializer),
       }
+    }
+  }
+}
+
+impl Animal2 {
+  pub fn deserialize_json(disc: AnimalKind2, data: &str) -> Result<Self, serde_json::Error> {
+    use serde_json::from_str;
+    match disc {
+      AnimalKind2::Zebra2 => from_str(data).map(|v| Animal2 { zebra_2: v }),
+      AnimalKind2::Toucan2 => from_str(data).map(|v| Animal2 { toucan_2: v }),
+    }
+  }
+}
+
+impl Animal2 {
+  pub fn size_of(disc: AnimalKind2) -> usize {
+    match disc {
+      AnimalKind2::Zebra2 => std::mem::size_of::<Zebra2>(),
+      AnimalKind2::Toucan2 => std::mem::size_of::<Toucan2>(),
     }
   }
 }

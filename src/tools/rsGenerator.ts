@@ -2,21 +2,26 @@
  * Rust code generator
  */
 import * as fs from 'fs'
-import { range, snakeCase, get } from 'lodash'
+import { range, snakeCase, get, keyBy, flatten } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
-import { Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
+import { Lookup, Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
 import { hexPad } from './utils'
 
 type TypeMapping = { [k: string]: (size?: number) => string }
 
 type Options = {
+  // These types are just here for lookup so we can resolve shared types
+  lookupTypes?: TypeDefinition[][],
   typeMapping?: TypeMapping
   extras?: string[]
   extraDerives?: { [typeName: string]: string[] }
 }
 
+let globalBigArraySizes = []
+
 export const defaultOptions = {
+  lookupTypes: [[]],
   extras: [],
   extraDerives: {},
 }
@@ -43,23 +48,45 @@ const doc = (desc?: string): string => {
   return ''
 }
 
-const getMembers = (fields: Field[], typeMap: TypeMapping) => {
-  return fields.map(field => {
+const pushBigArray = (length: number): string => {
+  if (globalBigArraySizes.indexOf(length) == -1) {
+    globalBigArraySizes.push(length)
+  }
+  return '  #[serde(with = "BigArray")]\n'
+}
+
+const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [string[], boolean] => {
+  let hasBigArray = false
+
+  let fieldsArr = fields.map(field => {
     // expand the namespace . in to ::
-    const fieldType = toRustNS(field.type)
-    const key = fieldType + (field.length ? '[]' : '')
-    const rustType = field.length ? `[${fieldType}; ${field.length}]` : fieldType
-    const theType = (typeMap[key] !== undefined)
+    const fieldTypeName = toRustNS(field.type)
+    const key = fieldTypeName + (field.length ? '[]' : '')
+    const rustType = field.length ? `[${fieldTypeName}; ${field.length}]` : fieldTypeName
+    const finalRustType = (typeMap[key] !== undefined)
       ? typeMap[key](field.length)
       : rustType
 
-    const theField =  `  pub ${snakeCase(field.name)}: ${theType},`
+    const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
 
     if (field.length > 32) {
-      return '  #[serde(with = "BigArray")]\n' + theField
+      hasBigArray = true
+      return pushBigArray(field.length) + generatedField
     }
-    return doc(field.desc) + theField
+
+    const type = lookup[field.type]
+
+    if (type === undefined) {
+      console.log(`Field type not found ${field.type}`)
+    } else if (type.kind === Kind.Array && type.length > 32) {
+      hasBigArray = true
+      return pushBigArray(type.length) + generatedField
+    }
+
+    return doc(field.desc) + generatedField
   })
+
+  return [fieldsArr, hasBigArray]
 }
 
 const getEnum = (
@@ -69,12 +96,20 @@ const getEnum = (
     .map(([key, value]) => `  ${key} = ${hexPad(value)},`)
     .join('\n')
 
-  return `${doc(desc)}
+  const enumBody =  `${doc(desc)}
 #[repr(${underlying})]
 #[derive(Debug, Copy, Clone, PartialEq, Serialize_repr, Deserialize_repr)]
 pub enum ${name} {
 ${variantsFields}
 }`
+
+  const [firstVariantName] = variants[0]
+  const implDefault = `impl Default for ${name} {
+  fn default() -> Self {
+    Self::${firstVariantName}
+  }
+}`
+  return [enumBody, implDefault].join('\n')
 }
 
 const getUnion = (
@@ -98,7 +133,7 @@ ${unionMembers}
 
   const discPath = discriminator.map(snakeCase).join('.')
   // we need to generate serde for union as it can't be derived
-  const unionSerde = `impl Serialize for ${name} {
+  const unionSerdeSerialize = `impl Serialize for ${name} {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where S: Serializer,
   {
@@ -110,7 +145,32 @@ ${serdeMembers}
   }
 }`
 
-  return [union, unionSerde].join('\n\n')
+  const unionDeserializeMembers = members.map(member => {
+    return `${discTypeDef.name}::${member} => from_str(data).map(|v| ${name} { ${snakeCase(member)}: v }),`
+  }).map(indent(6)).join('\n')
+
+  const unionDeserializeJson = `impl ${name} {
+  pub fn deserialize_json(disc: ${discTypeDef.name}, data: &str) -> Result<Self, serde_json::Error> {
+    use serde_json::from_str;
+    match disc {
+${unionDeserializeMembers}
+    }
+  }
+}`
+
+  const unionGetSizeMembers = members.map(member => {
+    return `${discTypeDef.name}::${member} => std::mem::size_of::<${member}>(),`
+  }).map(indent(6)).join('\n')
+
+  const unionGetSize = `impl ${name} {
+  pub fn size_of(disc: ${discTypeDef.name}) -> usize {
+    match disc {
+${unionGetSizeMembers}
+    }
+  }
+}`
+
+  return [union, unionSerdeSerialize, unionDeserializeJson, unionGetSize].join('\n\n')
 }
 
 /**
@@ -121,9 +181,13 @@ export const generateString = (
   options: Options = defaultOptions
 ) => {
 
+  globalBigArraySizes = []
   const ignoredTypes = ['char']
 
   const types: TypeDefinitionStrict[] = normalizeTypes(typesDuck)
+  const lookupTypes = normalizeTypes(flatten(options.lookupTypes))
+  const lookup = keyBy(types.concat(lookupTypes), i => i.name)
+
   options = { ...defaultOptions, ...options }
 
   const { typeMapping, extraDerives = [] } = options 
@@ -175,32 +239,45 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Struct) {
-      const members = typeDef.fields
-        ? getMembers(typeDef.fields, typeMap)
-        : []
+      const [members, hasBigArray] = typeDef.fields
+        ? getMembers(lookup, typeDef.fields, typeMap)
+        : [[], false]
 
       const membersString = members.join('\n')
       
       const derives = ['Serialize', 'Deserialize']
+      const defaultDerive = hasBigArray ? [] : ['Default']
       const extraDerives2 = get(extraDerives, typeName, [])
-      const derivesString = [...derives, ...extraDerives2].join(', ')
+      const derivesString = [...defaultDerive, ...derives, ...extraDerives2].join(', ')
+      const serde = hasBigArray
+        ? '#[serde(deny_unknown_fields)]'
+        : '#[serde(deny_unknown_fields, default)]'
 
       return `${doc(typeDef.desc)}
 #[repr(C, packed)]
 #[derive(${derivesString})]
+${serde}
 pub struct ${typeName} {
 ${membersString}
 }`
+    }
+
+    if (typeDef.kind === Kind.Array) {
+      return `pub type ${typeName} = [${toRustNS(typeDef.type)}; ${typeDef.length}];`
     }
   })
 
   const result = definitions.join('\n\n')
   const extrasString = options.extras.join('\n')
+  const bigArraySizesString = globalBigArraySizes.length > 0
+    ? `big_array! { BigArray; ${globalBigArraySizes.join(',')}, }`
+    : ''
+
   return `/** GENERATED BY BENDEC TYPE GENERATOR */
 #[allow(unused_imports)]
 use serde::{Deserialize, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-big_array! { BigArray; }
+${bigArraySizesString}
 ${extrasString}
   ${result}
 `
@@ -209,7 +286,7 @@ ${extrasString}
 /**
  * Generate Rust types from Bendec types definitions
  */
-export const generate = (types: any[], fileName: string, options?: Options) => {
+export const generate = (types: TypeDefinition[], fileName: string, options?: Options) => {
   const moduleWrapped = generateString(types, options)
 
   fs.writeFileSync(fileName, moduleWrapped)
