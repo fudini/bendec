@@ -63,7 +63,7 @@ test('Rust - unions and enums', t => {
   t.end()
 })
 
-test('Rust - fixtures', t => {
+test('Rust - arrays', t => {
   const cleanedGenerated = clean(generateStringRust(arrays))
   const cleanedFixture = clean(getFixture('./generated/rust/arrays.rs'))
   t.equals(cleanedGenerated, cleanedFixture)

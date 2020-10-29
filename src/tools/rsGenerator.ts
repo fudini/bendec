@@ -2,15 +2,17 @@
  * Rust code generator
  */
 import * as fs from 'fs'
-import { range, snakeCase, get } from 'lodash'
+import { range, snakeCase, get, keyBy, flatten } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
-import { Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
+import { Lookup, Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
 import { hexPad } from './utils'
 
 type TypeMapping = { [k: string]: (size?: number) => string }
 
 type Options = {
+  // These types are just here for lookup so we can resolve shared types
+  lookupTypes?: TypeDefinition[][],
   typeMapping?: TypeMapping
   extras?: string[]
   extraDerives?: { [typeName: string]: string[] }
@@ -19,6 +21,7 @@ type Options = {
 let globalBigArraySizes = []
 
 export const defaultOptions = {
+  lookupTypes: [[]],
   extras: [],
   extraDerives: {},
 }
@@ -45,29 +48,42 @@ const doc = (desc?: string): string => {
   return ''
 }
 
-const getMembers = (fields: Field[], typeMap: TypeMapping): [string[], boolean] => {
+const pushBigArray = (length: number): string => {
+  if (globalBigArraySizes.indexOf(length) == -1) {
+    globalBigArraySizes.push(length)
+  }
+  return '  #[serde(with = "BigArray")]\n'
+}
+
+const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [string[], boolean] => {
   let hasBigArray = false
 
   let fieldsArr = fields.map(field => {
     // expand the namespace . in to ::
-    const fieldType = toRustNS(field.type)
-    const key = fieldType + (field.length ? '[]' : '')
-    const rustType = field.length ? `[${fieldType}; ${field.length}]` : fieldType
-    const theType = (typeMap[key] !== undefined)
+    const fieldTypeName = toRustNS(field.type)
+    const key = fieldTypeName + (field.length ? '[]' : '')
+    const rustType = field.length ? `[${fieldTypeName}; ${field.length}]` : fieldTypeName
+    const finalRustType = (typeMap[key] !== undefined)
       ? typeMap[key](field.length)
       : rustType
 
-    const theField =  `  pub ${snakeCase(field.name)}: ${theType},`
+    const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
 
     if (field.length > 32) {
       hasBigArray = true
-      // TODO: global
-      if (globalBigArraySizes.indexOf(field.length) == -1) {
-        globalBigArraySizes.push(field.length)
-      }
-      return '  #[serde(with = "BigArray")]\n' + theField
+      return pushBigArray(field.length) + generatedField
     }
-    return doc(field.desc) + theField
+
+    const type = lookup[field.type]
+
+    if (type === undefined) {
+      console.log(`Field type not found ${field.type}`)
+    } else if (type.kind === Kind.Array && type.length > 32) {
+      hasBigArray = true
+      return pushBigArray(type.length) + generatedField
+    }
+
+    return doc(field.desc) + generatedField
   })
 
   return [fieldsArr, hasBigArray]
@@ -169,6 +185,9 @@ export const generateString = (
   const ignoredTypes = ['char']
 
   const types: TypeDefinitionStrict[] = normalizeTypes(typesDuck)
+  const lookupTypes = normalizeTypes(flatten(options.lookupTypes))
+  const lookup = keyBy(types.concat(lookupTypes), i => i.name)
+
   options = { ...defaultOptions, ...options }
 
   const { typeMapping, extraDerives = [] } = options 
@@ -221,7 +240,7 @@ export const generateString = (
 
     if (typeDef.kind === Kind.Struct) {
       const [members, hasBigArray] = typeDef.fields
-        ? getMembers(typeDef.fields, typeMap)
+        ? getMembers(lookup, typeDef.fields, typeMap)
         : [[], false]
 
       const membersString = members.join('\n')
@@ -267,7 +286,7 @@ ${extrasString}
 /**
  * Generate Rust types from Bendec types definitions
  */
-export const generate = (types: any[], fileName: string, options?: Options) => {
+export const generate = (types: TypeDefinition[], fileName: string, options?: Options) => {
   const moduleWrapped = generateString(types, options)
 
   fs.writeFileSync(fileName, moduleWrapped)

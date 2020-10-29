@@ -120,7 +120,7 @@ ${result}
 /**
  * Generate TypeScript interfaces from Bender types definitions
  */
-export const generate = (types: any[], fileName: string, options?: Options) => {
+export const generate = (types: TypeDefinition[], fileName: string, options?: Options) => {
   const moduleWrapped = generateString(types, options)
 
   fs.writeFileSync(fileName, moduleWrapped)
