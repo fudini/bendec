@@ -19,6 +19,7 @@ const cppTypeMap: { [k: string]: string } = {
   ['i16']: 'int16_t',
   ['i32']: 'int32_t',
   ['i64']: 'int64_t',
+  ['f64']: 'double',
 }
 
 type Options = {
@@ -161,7 +162,9 @@ ${membersString}
     }
 
     if (typeDef.kind === Kind.Array) {
-      return `using ${typeName} = ${typeDef.type}[${typeDef.length}];`
+      const cppType = getCppType(typeDef.type)
+
+      return `using ${typeName} = ${cppType}[${typeDef.length}];`
     }
 
   })
