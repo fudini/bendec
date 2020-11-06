@@ -402,7 +402,12 @@ test('Arrays and array alias', t => {
 test('Order of definitions', t => {
   
   const b = new Bendec<any>({ types: [], readers, writers })
-  b.addTypes(unordered)
+  try {
+    b.addTypes(unordered)
+    t.pass('unordered type definitions work')
+  } catch(e) {
+    t.fail(e)
+  }
 
   t.end()
 })
