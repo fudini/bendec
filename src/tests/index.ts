@@ -1,6 +1,6 @@
 import test from 'tape'
 import * as _ from 'lodash'
-import { MsgType, types, enums, unions, arrays } from './fixtures'
+import { MsgType, types, enums, unions, arrays, unordered } from './fixtures'
 import {
   Bendec,
   invertLookup,
@@ -396,6 +396,14 @@ test('Arrays and array alias', t => {
   const encoded = b.encodeAs(foo, 'Foo')
   const decoded = b.decodeAs(encoded, 'Foo')
   t.deepEqual(foo, decoded)
+  t.end()
+})
+
+test('Order of definitions', t => {
+  
+  const b = new Bendec<any>({ types: [], readers, writers })
+  b.addTypes(unordered)
+
   t.end()
 })
 
