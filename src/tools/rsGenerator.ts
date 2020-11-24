@@ -28,17 +28,18 @@ export type NewtypeInCrate = { kind: NewtypeKind.InCrate, module: string }
 // Union of new type kinds
 export type NewtypeDef = NewtypePublic | NewtypeGenerated | NewtypeInCrate
 
-// Metadata for the type will contain extra derives / newtype annotations
+// Metadata for the type will contain newtype annotations
 export type TypeMeta = {
   newtype?: NewtypeDef,
-  derives?: string[],
 }
 
+// Options to the type generator
 export type Options = {
   // These types are just here for lookup so we can resolve shared types
   lookupTypes?: TypeDefinition[][],
   typeMapping?: TypeMapping
   extras?: string[]
+  // TODO: extra derives should be moved to the options.meta property
   extraDerives?: { [typeName: string]: string[] }
   meta?: { [typeName: string]: TypeMeta }
 }
