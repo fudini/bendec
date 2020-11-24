@@ -3,8 +3,15 @@ import path from 'path'
 import test from 'tape'
 import { trim, isEmpty, negate } from 'lodash'
 import { generateString } from '../tools/typeGenerator'
-import { types, enums, unions, arrays } from './fixtures'
-import { generateString as generateStringRust } from '../tools/rsGenerator'
+import { types, enums, unions, arrays, newtypes } from './fixtures'
+import {
+  generateString as generateStringRust,
+  NewtypeKind,
+  NewtypePublic,
+  NewtypeGenerated,
+  NewtypeInCrate,
+  Options,
+} from '../tools/rsGenerator'
 import { generateString as generateStringCpp } from '../tools/cppGenerator'
 
 const clean = (content: string): string => {
@@ -66,6 +73,31 @@ test('Rust - unions and enums', t => {
 test('Rust - arrays', t => {
   const cleanedGenerated = clean(generateStringRust(arrays))
   const cleanedFixture = clean(getFixture('./generated/rust/arrays.rs'))
+  t.equals(cleanedGenerated, cleanedFixture)
+  t.end()
+})
+
+test('Rust - newtypes', t => {
+
+  const options: Options = {
+    meta: {
+      "Public": {
+        newtype: { kind: NewtypeKind.Public }
+      },
+      "Generated": {
+        newtype: { kind: NewtypeKind.Generated }
+      },
+      "InCrate": {
+        newtype: {
+          kind: NewtypeKind.InCrate,
+          module: 'crate::foo::bar',
+        }
+      },
+    } 
+  }
+
+  const cleanedGenerated = clean(generateStringRust(newtypes, options))
+  const cleanedFixture = clean(getFixture('./generated/rust/newtypes.rs'))
   t.equals(cleanedGenerated, cleanedFixture)
   t.end()
 })
