@@ -5,17 +5,43 @@ import * as fs from 'fs'
 import { range, snakeCase, get, keyBy, flatten } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
-import { Lookup, Kind, StructStrict, EnumStrict, UnionStrict } from '../types'
+import { Lookup, Kind, StructStrict, AliasStrict, EnumStrict, UnionStrict } from '../types'
 import { hexPad } from './utils'
 
 type TypeMapping = { [k: string]: (size?: number) => string }
 
-type Options = {
+export enum NewtypeKind {
+  Public = 'Public',
+  Generated = 'Generated',
+  InCrate = 'InCrate',
+}
+
+// Inner type is going to be public which is just a glorified alias
+export type NewtypePublic = { kind: NewtypeKind.Public }
+
+// Constructor for newtype will be generated
+export type NewtypeGenerated = { kind: NewtypeKind.Generated }
+
+// Constructor will have to be defined in the specified module
+export type NewtypeInCrate = { kind: NewtypeKind.InCrate, module: string }
+
+// Union of new type kinds
+export type NewtypeDef = NewtypePublic | NewtypeGenerated | NewtypeInCrate
+
+// Metadata for the type will contain newtype annotations
+export type TypeMeta = {
+  newtype?: NewtypeDef,
+}
+
+// Options to the type generator
+export type Options = {
   // These types are just here for lookup so we can resolve shared types
   lookupTypes?: TypeDefinition[][],
   typeMapping?: TypeMapping
   extras?: string[]
+  // TODO: extra derives should be moved to the options.meta property
   extraDerives?: { [typeName: string]: string[] }
+  meta?: { [typeName: string]: TypeMeta }
 }
 
 let globalBigArraySizes = []
@@ -24,6 +50,7 @@ export const defaultOptions = {
   lookupTypes: [[]],
   extras: [],
   extraDerives: {},
+  meta: {}
 }
 
 export const defaultMapping: TypeMapping = {
@@ -173,6 +200,36 @@ ${unionGetSizeMembers}
   return [union, unionSerdeSerialize, unionDeserializeJson, unionGetSize].join('\n\n')
 }
 
+// Generate code for alias
+const getAlias = (
+  { name, alias }: AliasStrict,
+  meta: TypeMeta
+): string => {
+ 
+  let newtype = meta[name]?.newtype;
+  let rustAlias = toRustNS(alias);
+
+  if (newtype === undefined) {
+    return `pub type ${name} = ${rustAlias};`
+  }
+
+  // If we have a newtype annotation we need to generate code for newtype instead
+  switch (newtype.kind) {
+    case NewtypeKind.Public:
+      return `pub struct ${name}(pub ${rustAlias});\n`
+    case NewtypeKind.Generated:
+      return `pub struct ${name}(${rustAlias});
+
+impl ${name} {
+  pub fn new(v: ${rustAlias}) -> Self {
+    Self(v)
+  }
+}\n`
+    case NewtypeKind.InCrate:
+      return `pub struct ${name}(pub(in ${newtype.module}) ${rustAlias});\n`
+  }
+}
+
 /**
  * Generate Rust types from Bendec types definitions
  */
@@ -190,7 +247,7 @@ export const generateString = (
 
   options = { ...defaultOptions, ...options }
 
-  const { typeMapping, extraDerives = [] } = options 
+  const { typeMapping, extraDerives = [], meta } = options 
   const typeMap: TypeMapping = { ...defaultMapping, ...typeMapping }
 
   const definitions = types.map(typeDef => {
@@ -209,7 +266,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Alias) {
-      return `pub type ${typeName} = ${toRustNS(typeDef.alias)};`
+      return getAlias(typeDef, meta)
     }
 
     if (typeDef.kind === Kind.Union) {

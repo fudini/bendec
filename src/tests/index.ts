@@ -400,4 +400,4 @@ test('Arrays and array alias', t => {
 })
 
 require('./typeGenerator')
-//require('./imports')
+require('./imports')
