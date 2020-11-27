@@ -6,43 +6,15 @@ import { range, snakeCase, get, keyBy, flatten } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
 import { Lookup, Kind, StructStrict, AliasStrict, EnumStrict, UnionStrict } from '../types'
+export * from './rust/types'
+
+import {
+  TypeName, TypeMapping, NewtypeKind, NewtypePublic, NewtypeGenerated,
+  NewtypeInCrate, NewtypeDef, TypeMeta, Options
+} from './rust/types'
+import { getUnion } from './rust/gen/union'
 import { hexPad } from './utils'
-
-type TypeMapping = { [k: string]: (size?: number) => string }
-
-export enum NewtypeKind {
-  Public = 'Public',
-  Generated = 'Generated',
-  InCrate = 'InCrate',
-}
-
-// Inner type is going to be public which is just a glorified alias
-export type NewtypePublic = { kind: NewtypeKind.Public }
-
-// Constructor for newtype will be generated
-export type NewtypeGenerated = { kind: NewtypeKind.Generated }
-
-// Constructor will have to be defined in the specified module
-export type NewtypeInCrate = { kind: NewtypeKind.InCrate, module: string }
-
-// Union of new type kinds
-export type NewtypeDef = NewtypePublic | NewtypeGenerated | NewtypeInCrate
-
-// Metadata for the type will contain newtype annotations
-export type TypeMeta = {
-  newtype?: NewtypeDef,
-}
-
-// Options to the type generator
-export type Options = {
-  // These types are just here for lookup so we can resolve shared types
-  lookupTypes?: TypeDefinition[][],
-  typeMapping?: TypeMapping
-  extras?: string[]
-  // TODO: extra derives should be moved to the options.meta property
-  extraDerives?: { [typeName: string]: string[] }
-  meta?: { [typeName: string]: TypeMeta }
-}
+import { doc, indent, createDerives, toRustNS } from './rust/utils'
 
 let globalBigArraySizes = []
 
@@ -55,24 +27,6 @@ export const defaultOptions = {
 
 export const defaultMapping: TypeMapping = {
   'char[]': size => `[u8; ${size}]`,
-}
-
-const indent = (i: number) => (str: string) => {
-  return '                    '.substr(-i) + str
-}
-
-// convert dot syntax into double colon (::)
-const toRustNS = (type: string): string => {
-  return type.split('.').join('::')
-}
-
-// return comment block with description
-const doc = (desc?: string): string => {
-  if (desc !== undefined) {
-    return `/// ${desc}\n`
-  }
-
-  return ''
 }
 
 const pushBigArray = (length: number): string => {
@@ -139,69 +93,8 @@ ${variantsFields}
   return [enumBody, implDefault].join('\n')
 }
 
-const getUnion = (
-  { name, discriminator, members, desc }: UnionStrict,
-  discTypeDef: TypeDefinitionStrict
-) => {
-  
-  const unionMembers = members.map(member => {
-    return `  pub ${snakeCase(member)}: ${member},`
-  }).join('\n')
-
-  const union = `${doc(desc)}
-#[repr(C, packed)]
-pub union ${name} {
-${unionMembers}
-}`
-
-  const serdeMembers = members.map(member => {
-    return `${discTypeDef.name}::${member} => self.${snakeCase(member)}.serialize(serializer),`
-  }).map(indent(8)).join('\n')
-
-  const discPath = discriminator.map(snakeCase).join('.')
-  // we need to generate serde for union as it can't be derived
-  const unionSerdeSerialize = `impl Serialize for ${name} {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where S: Serializer,
-  {
-    unsafe {
-      match &self.${snakeCase(members[0])}.${discPath} {
-${serdeMembers} 
-      }
-    }
-  }
-}`
-
-  const unionDeserializeMembers = members.map(member => {
-    return `${discTypeDef.name}::${member} => from_str(data).map(|v| ${name} { ${snakeCase(member)}: v }),`
-  }).map(indent(6)).join('\n')
-
-  const unionDeserializeJson = `impl ${name} {
-  pub fn deserialize_json(disc: ${discTypeDef.name}, data: &str) -> Result<Self, serde_json::Error> {
-    use serde_json::from_str;
-    match disc {
-${unionDeserializeMembers}
-    }
-  }
-}`
-
-  const unionGetSizeMembers = members.map(member => {
-    return `${discTypeDef.name}::${member} => std::mem::size_of::<${member}>(),`
-  }).map(indent(6)).join('\n')
-
-  const unionGetSize = `impl ${name} {
-  pub fn size_of(disc: ${discTypeDef.name}) -> usize {
-    match disc {
-${unionGetSizeMembers}
-    }
-  }
-}`
-
-  return [union, unionSerdeSerialize, unionDeserializeJson, unionGetSize].join('\n\n')
-}
-
 // Returns a deref code for newtype impl Deref
-const createNewtypeDeref = (
+const getNewtypeDeref = (
   typeName: string,
   rustAlias: string
 ): string => {
@@ -239,7 +132,11 @@ impl ${name} {
 }
 
 // Generate code for alias
-const getAlias = (aliasStrict: AliasStrict, meta: TypeMeta): string => {
+const getAlias = (
+  aliasStrict: AliasStrict,
+  meta: TypeMeta,
+  extraDerivesArray: string[]
+): string => {
  
   let { name, alias } = aliasStrict
   let newtype = meta[name]?.newtype;
@@ -249,10 +146,12 @@ const getAlias = (aliasStrict: AliasStrict, meta: TypeMeta): string => {
     return `pub type ${name} = ${rustAlias};`
   }
 
+  let derivesString = createDerives(extraDerivesArray)
   let newtypeCode = getNewtypeBody(aliasStrict, newtype)
-  let newtypeDerefCode = createNewtypeDeref(name, rustAlias)
+  let newtypeDerefCode = getNewtypeDeref(name, rustAlias)
 
-  return `${newtypeCode}
+  return `${derivesString}
+${newtypeCode}
 ${newtypeDerefCode}`
 }
 
@@ -279,6 +178,8 @@ export const generateString = (
   const definitions = types.map(typeDef => {
     const typeName = typeDef.name
 
+    const extraDerivesArray = get(extraDerives, typeName, [])
+
     if (typeMap[typeName]) {
       return `pub type ${typeName} = ${typeMap[typeName]()};`
     }
@@ -292,29 +193,11 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Alias) {
-      return getAlias(typeDef, meta)
+      return getAlias(typeDef, meta, extraDerivesArray)
     }
 
     if (typeDef.kind === Kind.Union) {
-      // determine the type of the discriminator from one of union members
-      // TODO: validate if all members have discriminator
-      const memberName = typeDef.members[0]
-      const memberType = <StructStrict>types.find(({ name }) => name === memberName)
-
-      const discTypeDef = typeDef.discriminator.reduce((currentTypeDef, pathSection) => {
-        
-        if (currentTypeDef.kind !== Kind.Struct) {
-          throw new Error(`The path to union discriminator can only contain Structs, ${currentTypeDef.name} is not a Struct`)
-        }
-
-        const discTypeField = (<StructStrict>currentTypeDef).fields.find(({ name }) => name === pathSection)
-        if (discTypeField === undefined) {
-          throw new Error(`no field '${pathSection}' in struct '${currentTypeDef.name}'`)
-        }
-        return <StructStrict>types.find(({ name }) => name === discTypeField.type)
-      }, memberType as TypeDefinitionStrict)
-
-      return getUnion(typeDef, discTypeDef)
+      return getUnion(typeDef, types)
     }
 
     if (typeDef.kind === Kind.Enum) {
@@ -330,16 +213,19 @@ export const generateString = (
       
       const derives = ['Serialize', 'Deserialize']
       const defaultDerive = hasBigArray ? [] : ['Default']
-      const extraDerives2 = get(extraDerives, typeName, [])
-      const derivesString = [...defaultDerive, ...derives, ...extraDerives2].join(', ')
-      const serde = hasBigArray
+      const derivesString = createDerives([
+        ...defaultDerive,
+        ...derives,
+        ...extraDerivesArray
+      ])
+      const serdeString = hasBigArray
         ? '#[serde(deny_unknown_fields)]'
         : '#[serde(deny_unknown_fields, default)]'
 
       return `${doc(typeDef.desc)}
 #[repr(C, packed)]
-#[derive(${derivesString})]
-${serde}
+${derivesString}
+${serdeString}
 pub struct ${typeName} {
 ${membersString}
 }`

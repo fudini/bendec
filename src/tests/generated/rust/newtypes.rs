@@ -12,6 +12,7 @@ impl std::ops::Deref for Public {
   }
 }
 
+#[derive(Foo, Bar)]
 pub struct Generated(u8);
 
 impl Generated {

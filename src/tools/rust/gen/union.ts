@@ -1,0 +1,95 @@
+import { snakeCase } from 'lodash'
+import { TypeDefinition, TypeDefinitionStrict, Field } from '../../../'
+import { Lookup, Kind, StructStrict, AliasStrict, EnumStrict, UnionStrict } from '../../../types'
+import { doc, indent, createDerives, toRustNS } from '../../rust/utils'
+
+const getUnion2 = (
+  { name, discriminator, members, desc }: UnionStrict,
+  discTypeDef: TypeDefinitionStrict
+) => {
+  
+  const unionMembers = members.map(member => {
+    return `  pub ${snakeCase(member)}: ${member},`
+  }).join('\n')
+
+  const union = `${doc(desc)}
+#[repr(C, packed)]
+pub union ${name} {
+${unionMembers}
+}`
+
+  const serdeMembers = members.map(member => {
+    return `${discTypeDef.name}::${member} => self.${snakeCase(member)}.serialize(serializer),`
+  }).map(indent(8)).join('\n')
+
+  const discPath = discriminator.map(snakeCase).join('.')
+  // we need to generate serde for union as it can't be derived
+  const unionSerdeSerialize = `impl Serialize for ${name} {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where S: Serializer,
+  {
+    unsafe {
+      match &self.${snakeCase(members[0])}.${discPath} {
+${serdeMembers} 
+      }
+    }
+  }
+}`
+
+  const unionDeserializeMembers = members.map(member => {
+    return `${discTypeDef.name}::${member} => from_str(data).map(|v| ${name} { ${snakeCase(member)}: v }),`
+  }).map(indent(6)).join('\n')
+
+  const unionDeserializeJson = `impl ${name} {
+  pub fn deserialize_json(disc: ${discTypeDef.name}, data: &str) -> Result<Self, serde_json::Error> {
+    use serde_json::from_str;
+    match disc {
+${unionDeserializeMembers}
+    }
+  }
+}`
+
+  const unionGetSizeMembers = members.map(member => {
+    return `${discTypeDef.name}::${member} => std::mem::size_of::<${member}>(),`
+  }).map(indent(6)).join('\n')
+
+  const unionGetSize = `impl ${name} {
+  pub fn size_of(disc: ${discTypeDef.name}) -> usize {
+    match disc {
+${unionGetSizeMembers}
+    }
+  }
+}`
+
+  return [union, unionSerdeSerialize, unionDeserializeJson, unionGetSize].join('\n\n')
+}
+
+export const getUnion = (
+  typeDef: UnionStrict,
+  types: TypeDefinitionStrict[]
+): string => {
+  // determine the type of the discriminator from one of union members
+  // TODO: validate if all members have discriminator
+  const memberName = typeDef.members[0]
+  const memberType = <StructStrict>types.find(({ name }) => name === memberName)
+
+  const discTypeDef = typeDef.discriminator.reduce((currentTypeDef, pathSection) => {
+    
+    if (currentTypeDef.kind !== Kind.Struct) {
+      throw new Error(`The path to union discriminator can only contain Structs, ${currentTypeDef.name} is not a Struct`)
+    }
+
+    const discTypeField = (<StructStrict>currentTypeDef)
+      .fields
+      .find(({ name }) => name === pathSection)
+
+    if (discTypeField === undefined) {
+      throw new Error(`no field '${pathSection}' in struct '${currentTypeDef.name}'`)
+    }
+    return <StructStrict>types.find(({ name }) => name === discTypeField.type)
+  }, memberType as TypeDefinitionStrict)
+
+  return getUnion2(typeDef, discTypeDef)
+}
+
+

@@ -93,7 +93,10 @@ test('Rust - newtypes', t => {
           module: 'crate::foo::bar',
         }
       },
-    } 
+    },
+    extraDerives: {
+      'Generated': ['Foo', 'Bar']
+    }
   }
 
   const cleanedGenerated = clean(generateStringRust(newtypes, options))
