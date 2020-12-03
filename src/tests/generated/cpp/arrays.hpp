@@ -3,6 +3,7 @@
 // ignored: char
 using Char3 = char[3];
 using BigArray = char[128];
+using BigArrayNewtype = char[128];
 struct Test {
     uint8_t one;
     uint8_t two;
@@ -16,6 +17,7 @@ struct Foo {
     Char3 id3;
     char id4[3];
     BigArray id5;
+    BigArrayNewtype id6;
     friend std::ostream &operator << (std::ostream &, const Foo &);
 } __attribute__ ((packed));
 

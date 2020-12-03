@@ -24,6 +24,13 @@ export type NewtypeDef = NewtypePublic | NewtypeGenerated | NewtypeInCrate
 // Metadata for the type will contain newtype annotations
 export type TypeMeta = {
   newtype?: NewtypeDef,
+  fields?: FieldsMeta
+}
+
+// Metadata for the struct fields
+export type FieldsMeta = Record<TypeName, FieldMeta>
+export type FieldMeta = {
+  annotations?: string[]
 }
 
 // Options to the type generator

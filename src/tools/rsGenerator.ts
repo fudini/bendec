@@ -5,7 +5,9 @@ import * as fs from 'fs'
 import { range, snakeCase, get, keyBy, flatten } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
-import { Lookup, Kind, StructStrict, AliasStrict, EnumStrict, UnionStrict } from '../types'
+import {
+  Lookup, Kind, StructStrict, AliasStrict, EnumStrict, UnionStrict
+} from '../types'
 export * from './rust/types'
 
 import {
@@ -36,7 +38,12 @@ const pushBigArray = (length: number): string => {
   return '  #[serde(with = "BigArray")]\n'
 }
 
-const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [string[], boolean] => {
+const getMembers = (
+  lookup: Lookup,
+  fields: Field[],
+  typeMap: TypeMapping,
+  meta: Record<TypeName, TypeMeta>,
+): [string[], boolean] => {
   let hasBigArray = false
 
   let fieldsArr = fields.map(field => {
@@ -49,8 +56,10 @@ const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [str
       : rustType
 
     const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
+    
+    const isNewtype = meta[fieldTypeName]?.newtype !== undefined
 
-    if (field.length > 32) {
+    if (field.length > 32 && !isNewtype) {
       hasBigArray = true
       return pushBigArray(field.length) + generatedField
     }
@@ -59,7 +68,7 @@ const getMembers = (lookup: Lookup, fields: Field[], typeMap: TypeMapping): [str
 
     if (type === undefined) {
       console.log(`Field type not found ${field.type}`)
-    } else if (type.kind === Kind.Array && type.length > 32) {
+    } else if (type.kind === Kind.Array && type.length > 32 && !isNewtype) {
       hasBigArray = true
       return pushBigArray(type.length) + generatedField
     }
@@ -108,9 +117,12 @@ const getNewtypeDeref = (
 }
 
 // Return the body of new type
-const getNewtypeBody = (aliasStrict: AliasStrict, newtype: NewtypeDef): string => {
+const getNewtypeBody = (
+  name: string, 
+  alias: string,
+  newtype: NewtypeDef
+): string => {
 
-  let { name, alias } = aliasStrict
   let rustAlias = toRustNS(alias);
 
   switch (newtype.kind) {
@@ -133,12 +145,12 @@ impl ${name} {
 
 // Generate code for alias
 const getAlias = (
-  aliasStrict: AliasStrict,
+  name: string,
+  alias: string,
   meta: TypeMeta,
   extraDerivesArray: string[]
 ): string => {
  
-  let { name, alias } = aliasStrict
   let newtype = meta[name]?.newtype;
   let rustAlias = toRustNS(alias);
 
@@ -147,7 +159,7 @@ const getAlias = (
   }
 
   let derivesString = createDerives(extraDerivesArray)
-  let newtypeCode = getNewtypeBody(aliasStrict, newtype)
+  let newtypeCode = getNewtypeBody(name, alias, newtype)
   let newtypeDerefCode = getNewtypeDeref(name, rustAlias)
 
   return `${derivesString}
@@ -193,7 +205,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Alias) {
-      return getAlias(typeDef, meta, extraDerivesArray)
+      return getAlias(typeName, typeDef.alias, meta, extraDerivesArray)
     }
 
     if (typeDef.kind === Kind.Union) {
@@ -206,7 +218,7 @@ export const generateString = (
 
     if (typeDef.kind === Kind.Struct) {
       const [members, hasBigArray] = typeDef.fields
-        ? getMembers(lookup, typeDef.fields, typeMap)
+        ? getMembers(lookup, typeDef.fields, typeMap, meta)
         : [[], false]
 
       const membersString = members.join('\n')
@@ -232,7 +244,9 @@ ${membersString}
     }
 
     if (typeDef.kind === Kind.Array) {
-      return `pub type ${typeName} = [${toRustNS(typeDef.type)}; ${typeDef.length}];`
+      const { name, type, length } = typeDef
+      const alias = `[${toRustNS(typeDef.type)}; ${typeDef.length}]`
+      return getAlias(typeName, alias, meta, extraDerivesArray)
     }
   })
 

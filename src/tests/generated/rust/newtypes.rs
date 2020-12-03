@@ -36,3 +36,12 @@ impl std::ops::Deref for InCrate {
     &self.0
   }
 }
+
+pub struct FooArray(pub [u8; 10]);
+
+impl std::ops::Deref for FooArray {
+  type Target = [u8; 10];
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}

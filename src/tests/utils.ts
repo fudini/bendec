@@ -1,5 +1,7 @@
+import { trim, isEmpty, negate } from 'lodash'
 import { performance } from 'perf_hooks'
-const measure = (msg, f) => {
+
+export const measure = (msg, f) => {
   const now = performance.now()
   f()
   const time = performance.now() - now
@@ -7,4 +9,15 @@ const measure = (msg, f) => {
   console.log('total time ms: ', Math.round(time))
 }
 
-export { measure }
+export const clean = (content: string): string => {
+  return content.split('\n').map(trim).filter(negate(isEmpty)).join('\n')
+}
+
+// compare code equality
+// TODO: add diff display
+export const codeEquals = (t) => (a: string, b: string) => {
+  const cleanA = clean(a)
+  const cleanB = clean(b)
+  t.equals(cleanA, cleanB)
+}
+

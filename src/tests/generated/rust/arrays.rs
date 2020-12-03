@@ -7,6 +7,14 @@ big_array! { BigArray; 128, }
 pub type Char3 = [char; 3];
 pub type BigArray = [char; 128];
 
+pub struct BigArrayNewtype(pub [char; 128]);
+impl std::ops::Deref for BigArrayNewtype {
+  type Target = [char; 128];
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
 #[repr(C, packed)]
 #[derive(Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields, default)]
@@ -28,4 +36,5 @@ pub struct Foo {
   pub id_4: [u8; 3],
   #[serde(with = "BigArray")]
   pub id_5: BigArray,
+  pub id_6: BigArrayNewtype,
 }

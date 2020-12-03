@@ -1,7 +1,6 @@
 import { readFileSync } from 'fs'
 import path from 'path'
 import test from 'tape'
-import { trim, isEmpty, negate } from 'lodash'
 import { generateString } from '../tools/typeGenerator'
 import { types, enums, unions, arrays, newtypes } from './fixtures'
 import {
@@ -13,10 +12,7 @@ import {
   Options,
 } from '../tools/rsGenerator'
 import { generateString as generateStringCpp } from '../tools/cppGenerator'
-
-const clean = (content: string): string => {
-  return content.split('\n').map(trim).filter(negate(isEmpty)).join('\n')
-}
+import { codeEquals, clean } from './utils'
 
 const getFixture = (filePath: string): string => {
   const filePath2 = path.join(__dirname.replace('dist', 'src'), filePath)
@@ -71,7 +67,17 @@ test('Rust - unions and enums', t => {
 })
 
 test('Rust - arrays', t => {
-  const cleanedGenerated = clean(generateStringRust(arrays))
+
+  const options: Options = {
+    meta: {
+      "BigArrayNewtype": {
+        newtype: { kind: NewtypeKind.Public }
+      },
+    }
+  }
+
+  const cleanedGenerated = clean(generateStringRust(arrays, options))
+  console.log(cleanedGenerated)
   const cleanedFixture = clean(getFixture('./generated/rust/arrays.rs'))
   t.equals(cleanedGenerated, cleanedFixture)
   t.end()
@@ -93,15 +99,23 @@ test('Rust - newtypes', t => {
           module: 'crate::foo::bar',
         }
       },
+      "FooArray": {
+        newtype: { kind: NewtypeKind.Public }
+      },
+      "FieldMetaTest": {
+        fields: {
+        }
+      }
     },
     extraDerives: {
       'Generated': ['Foo', 'Bar']
     }
   }
 
-  const cleanedGenerated = clean(generateStringRust(newtypes, options))
-  const cleanedFixture = clean(getFixture('./generated/rust/newtypes.rs'))
-  t.equals(cleanedGenerated, cleanedFixture)
+  const generated = generateStringRust(newtypes, options)
+  const fixture = getFixture('./generated/rust/newtypes.rs')
+
+  codeEquals(t)(generated, fixture)
   t.end()
 })
 
