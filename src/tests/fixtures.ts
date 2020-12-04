@@ -344,6 +344,7 @@ const arrays: TypeDefinition[] = [{
 }, {
   kind: Kind.Struct,
   name: 'Foo',
+  desc: 'This is the description of the struct Foo',
   fields: [{
     name: 'id1', // alias to array of structs
     type: 'Ident'

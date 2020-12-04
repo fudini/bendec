@@ -26,6 +26,7 @@ pub struct Test {
 pub type Test3 = [Test; 3];
 pub type Ident = Test3;
 
+/// This is the description of the struct Foo
 #[repr(C, packed)]
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

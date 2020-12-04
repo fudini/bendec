@@ -1,5 +1,12 @@
 import { TypeDefinition } from '../../'
 
+export type FieldName = string
+// Metadata for the struct fields
+export type FieldsMeta = Record<FieldName, FieldMeta>
+export type FieldMeta = {
+  annotations?: string[]
+}
+
 export type TypeName = string
 export type TypeMapping = Record<TypeName, (size?: number) => string>
 
@@ -24,13 +31,7 @@ export type NewtypeDef = NewtypePublic | NewtypeGenerated | NewtypeInCrate
 // Metadata for the type will contain newtype annotations
 export type TypeMeta = {
   newtype?: NewtypeDef,
-  fields?: FieldsMeta
-}
-
-// Metadata for the struct fields
-export type FieldsMeta = Record<TypeName, FieldMeta>
-export type FieldMeta = {
-  annotations?: string[]
+  fields?: FieldsMeta,
 }
 
 // Options to the type generator

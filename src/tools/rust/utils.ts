@@ -1,7 +1,9 @@
+import { negate, isEmpty } from 'lodash'
+
 // Create rust comment block with description
 export const doc = (desc?: string): string => {
   if (desc !== undefined) {
-    return `/// ${desc}\n`
+    return `/// ${desc}`
   }
   return ''
 }
@@ -22,5 +24,10 @@ export const createDerives = (derives: string[]): string => {
     return ``
   }
   const derivesString = derives.join(', ')
-  return `#[derive(${derivesString})]\n`
+  return `#[derive(${derivesString})]`
+}
+
+// To remove gaps from annotations
+export const smoosh = (strings: string[]): string  => {
+  return strings.filter(negate(isEmpty)).join('\n')
 }

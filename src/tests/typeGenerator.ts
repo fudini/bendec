@@ -69,15 +69,22 @@ test('Rust - unions and enums', t => {
 test('Rust - arrays', t => {
 
   const options: Options = {
+    extras: ['big_array! { BigArray; 128, }'],
     meta: {
       "BigArrayNewtype": {
         newtype: { kind: NewtypeKind.Public }
       },
+      "Foo": {
+        fields: {
+          "id5": {
+            annotations: ['#[serde(with = "BigArray")]']
+          }
+        }
+      }
     }
   }
 
   const cleanedGenerated = clean(generateStringRust(arrays, options))
-  console.log(cleanedGenerated)
   const cleanedFixture = clean(getFixture('./generated/rust/arrays.rs'))
   t.equals(cleanedGenerated, cleanedFixture)
   t.end()
