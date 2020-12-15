@@ -25,7 +25,8 @@ export const defaultOptions = {
   lookupTypes: [[]],
   extras: [],
   extraDerives: {},
-  meta: {}
+  meta: {},
+  camelCase: false,
 }
 
 export const defaultMapping: TypeMapping = {
@@ -240,12 +241,16 @@ export const generateString = (
       const serdeString = hasBigArray
         ? '#[serde(deny_unknown_fields)]'
         : '#[serde(deny_unknown_fields, default)]'
+      const serdeCamelCase = options.camelCase
+        ? '#[serde(rename_all = "camelCase")]'
+        : ''
 
       return smoosh([
         doc(typeDef.desc),
         `#[repr(C, packed)]`,
         derivesString,
         serdeString,
+        serdeCamelCase,
         `pub struct ${typeName} {`,
         `  ${membersString}`,
         `}`

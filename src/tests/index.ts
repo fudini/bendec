@@ -391,6 +391,7 @@ test('Arrays and array alias', t => {
     id3: 'abc',
     id4: 'def',
     id5: 'ghi',
+    id6: 'hjk',
   }
 
   const encoded = b.encodeAs(foo, 'Foo')

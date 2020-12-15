@@ -2,7 +2,7 @@ import { readFileSync } from 'fs'
 import path from 'path'
 import test from 'tape'
 import { generateString } from '../tools/typeGenerator'
-import { types, enums, unions, arrays, newtypes } from './fixtures'
+import { types, enums, unions, arrays, newtypes, camel } from './fixtures'
 import {
   generateString as generateStringRust,
   NewtypeKind,
@@ -46,9 +46,17 @@ test('TypeScript arrays', t => {
 })
 
 test('Rust - fixtures', t => {
-  const cleanedGenerated = clean(generateStringRust(types))
-  const cleanedFixture = clean(getFixture('./generated/rust/fixtures.rs'))
-  t.equals(cleanedGenerated, cleanedFixture)
+  const generated = generateStringRust(types)
+  const fixture = getFixture('./generated/rust/fixtures.rs')
+  codeEquals(t)(generated, fixture)
+  t.end()
+})
+
+test('Rust - camel case annotation on structs', t => {
+  const options = { camelCase: true }
+  const generated = generateStringRust(camel, options)
+  const fixture = getFixture('./generated/rust/camel.rs')
+  codeEquals(t)(generated, fixture)
   t.end()
 })
 
@@ -110,8 +118,7 @@ test('Rust - newtypes', t => {
         newtype: { kind: NewtypeKind.Public }
       },
       "FieldMetaTest": {
-        fields: {
-        }
+        fields: { }
       }
     },
     extraDerives: {

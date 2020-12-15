@@ -43,6 +43,7 @@ export type Options = {
   // TODO: extra derives should be moved to the options.meta property
   extraDerives?: Record<TypeName, string[]>
   meta?: Record<TypeName, TypeMeta>
+  camelCase?: boolean
 }
 
 
