@@ -1,6 +1,6 @@
 {
   "name": "bendec",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Buffer encoding / decoding for fixed size structs",
   "main": "./dist/index.js",
   "scripts": {
