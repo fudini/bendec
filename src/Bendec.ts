@@ -53,7 +53,7 @@ function assertExists<T>(d: T | undefined, typeName: string): asserts d is T {
   }
 }
 
-class Bendec {
+class Bendec<DefaultType = unknown> {
   private getVariant: Map<string, VariantGetter> = new Map([['default', emptyVariantGetter]])
   private lookup: Lookup = {}
   private writers: Writers = {}
@@ -148,7 +148,7 @@ class Bendec {
   /**
    * Decode the Buffer into an object - DEPRECATED - use decodeAs
    */
-  decode<T = unknown>(buffer: Buffer): T {
+  decode<T = DefaultType>(buffer: Buffer): T {
     const typeName = this.getVariant.get('default').decode(buffer)
     return this.getDecoder<T>(typeName)(buffer)
   }
@@ -156,7 +156,7 @@ class Bendec {
   /**
    * Encode object into Buffer - DEPRECATED - use encodeAs
    */
-  encode<T = unknown>(obj: T, buffer?: Buffer): Buffer {
+  encode<T = DefaultType>(obj: T, buffer?: Buffer): Buffer {
     const typeName = this.getVariant.get('default').encode(obj)
     return this.getEncoder<T>(typeName)(obj, buffer)
   }
@@ -166,11 +166,11 @@ class Bendec {
    * This method won't use a 'getVariant' function to determine
    * what type to encode as
    */
-  encodeAs<T = unknown>(obj: T, typeName: string, buffer?: Buffer): Buffer {
+  encodeAs<T = DefaultType>(obj: T, typeName: string, buffer?: Buffer): Buffer {
     if (this.getVariant.has(typeName)) {
       typeName = this.getVariant.get(typeName).encode(obj)
     }
-    return this.getEncoder(typeName)(obj, buffer)
+    return this.getEncoder<T>(typeName)(obj, buffer)
   }
 
   /**
@@ -178,20 +178,20 @@ class Bendec {
    * This method won't use a 'getVariant' function to determine
    * what type to decode from
    */
-  decodeAs<T = unknown>(buffer: Buffer, typeName: string): T {
+  decodeAs<T = DefaultType>(buffer: Buffer, typeName: string): T {
     if (this.getVariant.has(typeName)) {
       typeName = this.getVariant.get(typeName).decode(buffer)
     }
     return this.getDecoder<T>(typeName)(buffer)
   }
 
-  getDecoder<T = unknown>(typeName: string): Decoder<T> {
+  getDecoder<T = DefaultType>(typeName: string): Decoder<T> {
     const decoder = this.decoders.get(typeName) as (Decoder<T> | undefined)
     assertExists(decoder, typeName)
     return decoder
   }
 
-  getEncoder<T = unknown>(typeName: string): Encoder<T> {
+  getEncoder<T = DefaultType>(typeName: string): Encoder<T> {
     const encoder = this.encoders.get(typeName) as (Encoder<T> | undefined)
     assertExists(encoder, typeName)
     return encoder
@@ -207,7 +207,7 @@ class Bendec {
    *
    * TODO: typeName is stringly typed
    */
-  wrap<T = unknown>(typeName: string, buffer: Buffer): BufferWrapper<T> {
+  wrap<T = DefaultType>(typeName: string, buffer: Buffer): BufferWrapper<T> {
     return (this.wrappers.get(typeName) as BufferWrapper<T>).setBuffer(buffer)
   }
 
@@ -216,7 +216,7 @@ class Bendec {
    *
    * WARNING: works similar to wrap (wrapper is reused)
    */
-  wrap2<T = unknown>(typeName: string, buffer: Buffer): BufferWrapper<T> {
+  wrap2<T = DefaultType>(typeName: string, buffer: Buffer): BufferWrapper<T> {
     return (this.wrappers2.get(typeName) as BufferWrapper<T>).setBuffer(buffer)
   }
 
@@ -225,7 +225,7 @@ class Bendec {
    *
    * TODO: typeName is stringly typed
    */
-  getWrapper<T = unknown>(typeName: string): BufferWrapper<T> {
+  getWrapper<T = DefaultType>(typeName: string): BufferWrapper<T> {
     let buffer = Buffer.alloc(this.getSize(typeName))
     return (this.wrapperFactories.get(typeName) as BufferWrapperFactory<T>)(buffer)
   }
