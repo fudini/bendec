@@ -198,15 +198,22 @@ const enums: TypeDefinition[] = [
   }]
 }]
 
-const unions: TypeDefinition[] = [
-  {name: 'u8', size: 1},
-  {name: 'u16', size: 2},
-{
+const unions: TypeDefinition[] = [{
+  kind: Kind.Primitive,
+  name: 'u8',
+  size: 1
+}, {
+  kind: Kind.Primitive,
+  name: 'u16',
+  size: 2
+}, {
+  kind: Kind.Enum,
   name: 'AnimalKind',
   underlying: 'u16',
   offset: "0x1000",
   variants: [['Zebra', 1], ['Toucan', 2]]
 }, {
+  kind: Kind.Struct,
   name: 'Zebra',
   fields: [{
     name: 'kind',
@@ -216,6 +223,7 @@ const unions: TypeDefinition[] = [
     type: 'u8'
   }]
 }, {
+  kind: Kind.Struct,
   name: 'Toucan',
   fields: [{
     name: 'kind',
@@ -225,20 +233,24 @@ const unions: TypeDefinition[] = [
     type: 'u16'
   }]
 }, {
+  kind: Kind.Union,
   name: 'Animal',
   members: ['Zebra', 'Toucan'],
   discriminator: ['kind']
 }, {
+  kind: Kind.Enum,
   name: 'AnimalKind2',
   underlying: 'u8',
   variants: [['Zebra2', 1], ['Toucan2', 2]]
 }, {
+  kind: Kind.Struct,
   name: 'Header',
   fields: [{
     name: 'animalKind',
     type: 'AnimalKind2'
   }]
 }, {
+  kind: Kind.Struct,
   name: 'Zebra2',
   fields: [{
     name: 'header',
@@ -248,6 +260,7 @@ const unions: TypeDefinition[] = [
     type: 'u8'
   }]
 }, {
+  kind: Kind.Struct,
   name: 'Toucan2',
   fields: [{
     name: 'header',
@@ -258,6 +271,7 @@ const unions: TypeDefinition[] = [
   }]
 }, {
   // union with nested discriminator
+  kind: Kind.Union,
   name: 'Animal2',
   members: ['Zebra2', 'Toucan2'],
   discriminator: ['header', 'animalKind']

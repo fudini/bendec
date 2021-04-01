@@ -6,7 +6,7 @@
   "scripts": {
     "build": "./node_modules/.bin/tsc",
     "watch": "./node_modules/.bin/tsc -w",
-    "perf": "node ./dist/tests/perf",
+    "perf": "node ./dist/tests/perf/index",
     "test": "node ./dist/tests"
   },
   "author": "Daniel Fudala <daniel@fuda.la>",

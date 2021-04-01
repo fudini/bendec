@@ -134,6 +134,9 @@ const readers = {
   u8: (index, length): [string, number] => [`buffer.readUInt8(${index})`, index + 1],
   u16: (index, length): [string, number] => [`buffer.readUInt16LE(${index})`, index + 2],
   u32: (index, length): [string, number] => [`buffer.readUInt32LE(${index})`, index + 4],
+  u64: (index, _length): [string, number] => [`buffer.readBigUInt64LE(${index})`, index + 8],
+  i64: (index, _length): [string, number] => [`buffer.readBigInt64LE(${index})`, index + 8],
+  f64: (index, _length): [string, number] => [`buffer.readDoubleLE(${index})`, index + 8],
   'char[]': (index, length): [string, number] => [`buffer.slice(${index}, ${index + length})`, index + length]
 }
 
@@ -145,6 +148,9 @@ const writers = {
   u8: (index, length, path = 'v'): [string, number] => [`buffer.writeUInt8(${path}, ${index})`, index + 1],
   u16: (index, length, path = 'v'): [string, number] => [`buffer.writeUInt16LE(${path}, ${index})`, index + 2],
   u32: (index, length, path = 'v'): [string, number] => [`buffer.writeUInt32LE(${path}, ${index})`, index + 4],
+  u64: (index, length, path = 'v'): [string, number] => [`buffer.writeBigUInt64LE(${path}, ${index})`, index + 8],
+  i64: (index, length, path = 'v'): [string, number] => [`buffer.writeBigInt64LE(${path}, ${index})`, index + 8],
+  f64: (index, _length, path = 'v'): [string, number] => [`buffer.writeDoubleLE(${path}, ${index})`, index + 8],
   'char[]': (index, length, path = 'v'): [string, number] => [`${path}.copy(buffer, ${index})`, index + length]
 }
 
@@ -187,6 +193,17 @@ const asciiWriter = (index, length, path = 'v'): [string, number] => {
 
 const toAscii = (buffer: Buffer) => buffer.toString('ascii').replace(/\u0000+$/, '')
 const fromAscii = (ascii: string) => Buffer.from(ascii)
+
+const utf8Reader = (index: number, length: number): [string, number] => {
+  return [`buffer.toString('utf8', ${index}, ${index + length}).replace(/\u0000+$/, '')`, index + length]
+}
+
+const utf8Writer = (index: number, length: number, path = 'v'): [string, number] => {
+  return [`buffer.write(${path}, ${index}, ${index + length}, 'utf8')`, index + length]
+}
+
+const toUtf8 = (buffer: Buffer) => buffer.toString('utf8').replace(/\u0000+$/, '')
+const fromUtf8 = (utf8: string) => Buffer.from(utf8, 'utf8')
 
 /// return the size of a given type
 const getTypeSize = lookup => (type: string) => {
@@ -254,6 +271,10 @@ export {
   asciiWriter,
   fromAscii,
   toAscii,
+  utf8Reader,
+  utf8Writer,
+  fromUtf8,
+  toUtf8,
   normalizeTypes,
   appendNamespace,
   findDiscType,

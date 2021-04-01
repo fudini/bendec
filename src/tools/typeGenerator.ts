@@ -47,6 +47,18 @@ ${variantsFields}
 }`
 }
 
+const getStruct = (typeDef, typeMap: TypeMapping) => {
+  const members = typeDef.fields
+    ? getMembers(typeDef.fields, typeMap)
+    : []
+
+  const membersString = members.join('\n')
+
+  return `export interface ${typeDef.name} {
+${membersString}
+}`
+}
+
 const getUnion = ({ name, members }: UnionStrict) => {
   const unionMembers = members.join(' | ')
   return `export type ${name} = ${unionMembers}`
@@ -55,8 +67,12 @@ const getUnion = ({ name, members }: UnionStrict) => {
 /**
  * Generate TypeScript interfaces from Bendec types definitions
  */
-export const generateString = (typesDuck: TypeDefinition[], options: Options = defaultOptions) => {
+export const generateString = (
+  typesDuck: TypeDefinition[],
+  options: Options = defaultOptions
+) => {
   const types: TypeDefinitionStrict[] = normalizeTypes(typesDuck)
+  const unions = types.filter(({ kind }) => kind == Kind.Union)
 
   const {
     extras = [],
@@ -90,15 +106,7 @@ export const generateString = (typesDuck: TypeDefinition[], options: Options = d
     }
 
     if (typeDef.kind === Kind.Struct) {
-      const members = typeDef.fields
-        ? getMembers(typeDef.fields, typeMap)
-        : []
-
-      const membersString = members.join('\n')
-
-      return `export interface ${typeName} {
-${membersString}
-}`
+      return getStruct(typeDef, typeMap)
     }
 
     if (typeDef.kind === Kind.Array) {

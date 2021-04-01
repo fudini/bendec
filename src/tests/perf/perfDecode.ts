@@ -1,6 +1,6 @@
 import { performance } from 'perf_hooks'
-import { types, largeMessage, largeMessageEncoded, getVariant } from './fixtures'
-import { Bendec,  invertLookup, fastReaders, fastWriters } from '../'
+import { types, largeMessage, largeMessageEncoded, getVariant } from '../fixtures'
+import { Bendec,  invertLookup, fastReaders, fastWriters } from '../../'
 
 const bendec = new Bendec({ types, getVariant })
 

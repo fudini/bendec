@@ -1,7 +1,7 @@
 import { performance } from 'perf_hooks'
-import { types, largeMessage, largeMessage2, getVariant } from './fixtures'
-import { Bendec, invertLookup, fastWriters, fastReaders } from '../'
-import { measure } from './utils'
+import { types, largeMessage, largeMessage2, getVariant } from '../fixtures'
+import { Bendec, invertLookup, fastWriters, fastReaders } from '../../'
+import { measure } from '../utils'
 import {
   LargeMessageWrap,
   LargeMessageWrapClass,
@@ -9,7 +9,7 @@ import {
   LargeMessageWrap3,
   LargeMessageWrap4,
   LargeMessageWrap5
-} from './LargeMessageWrap'
+} from '../LargeMessageWrap'
 
 const bendec = new Bendec({ types, getVariant })
 const bendec2 = new Bendec({

@@ -11,32 +11,12 @@ import {
 } from '../'
 import { BufferWrapper } from '../types'
 import { Zebra, Zebra2, AnimalKind, AnimalKind2 } from './generated/ts/unionsEnums'
+import { Uri, User, Header, UserAdd } from './types'
 
 // lets override readers and writers so we can deal with ascii
 const readers = { 'char[]': asciiReader }
 const writers = { 'char[]': asciiWriter }
 
-interface Uri {
-  protocol: string
-  host: string
-  port: number
-}
-
-interface User {
-  firstName: string
-  lastName: string
-  age: number
-  uri: Uri
-}
-
-interface Header {
-  msgType: number
-}
-
-interface UserAdd {
-  header: Header
-  user: User
-}
 
 const user: User = {
   firstName: 'Genezyp',
