@@ -1,6 +1,9 @@
 import * as _ from 'lodash'
 import { genReadFields } from './read'
 
+/**
+ * NOT USED
+ */
 const genWrap = (obj, write, path = []) => {
 
   let construct = []
