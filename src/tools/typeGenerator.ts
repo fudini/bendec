@@ -5,7 +5,7 @@ import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
 import { Kind, EnumStrict, UnionStrict } from '../types'
 import { hexPad } from './utils'
 
-type TypeMapping = { [k: string]: string }
+type TypeMapping = Record<string, string>
 
 type Options = {
   extras?: string[]
@@ -48,10 +48,7 @@ ${variantsFields}
 }
 
 const getStruct = (typeDef, typeMap: TypeMapping) => {
-  const members = typeDef.fields
-    ? getMembers(typeDef.fields, typeMap)
-    : []
-
+  const members = getMembers(typeDef.fields, typeMap)
   const membersString = members.join('\n')
 
   return `export interface ${typeDef.name} {

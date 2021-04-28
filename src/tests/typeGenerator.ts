@@ -20,8 +20,8 @@ const getFixture = (filePath: string): string => {
 }
 
 test('TypeScript - custom type mapping', t => {
-  const types = [{name: 'u64', size: 8}]
-  const typeMapping = {'u64': 'bigint'}
+  const types = [{ name: 'u64', size: 8 }]
+  const typeMapping = { u64: 'bigint' }
   const without = generateString(types, { header: false })
   const withMapping = generateString(types, { typeMapping, header: false })
 

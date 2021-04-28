@@ -18,6 +18,16 @@ impl Default for AnimalKind {
     Self::Zebra
   }
 }
+impl std::convert::TryFrom<u16> for AnimalKind {
+  type Error = ();
+  fn try_from(value: u16) -> Result<Self, Self::Error> {
+    match value {
+      0x1001 => Ok(Self::Zebra),
+      0x1002 => Ok(Self::Toucan),
+      _ => Err(()),
+    }
+  }
+}
 
 #[repr(C, packed)]
 #[derive(Default, Serialize, Deserialize, Copy, Clone)]
@@ -82,6 +92,16 @@ pub enum AnimalKind2 {
 impl Default for AnimalKind2 {
   fn default() -> Self {
     Self::Zebra2
+  }
+}
+impl std::convert::TryFrom<u8> for AnimalKind2 {
+  type Error = ();
+  fn try_from(value: u8) -> Result<Self, Self::Error> {
+    match value {
+      0x0001 => Ok(Self::Zebra2),
+      0x0002 => Ok(Self::Toucan2),
+      _ => Err(()),
+    }
   }
 }
 

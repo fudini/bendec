@@ -16,8 +16,9 @@ import {
   FieldName, FieldMeta
 } from './rust/types'
 import { getUnion } from './rust/gen/union'
-import { hexPad } from './utils'
-import { doc, indent, createDerives, toRustNS, smoosh } from './rust/utils'
+import { getEnum } from './rust/gen/enum'
+import { hexPad, indent, smoosh } from './utils'
+import { doc, createDerives, toRustNS } from './rust/utils'
 
 let globalBigArraySizes = []
 
@@ -85,30 +86,6 @@ const getMembers = (
   })
 
   return [fieldsArr, hasBigArray]
-}
-
-const getEnum = (
-  { name, underlying, variants, desc }: EnumStrict
-) => {
-  const variantsFields = variants
-    .map(([key, value]) => `  ${key} = ${hexPad(value)},`)
-    .join('\n')
-
-  const enumBody =  smoosh([
-doc(desc),
-`#[repr(${underlying})]
-#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
-pub enum ${name} {
-${variantsFields}
-}`])
-
-  const [firstVariantName] = variants[0]
-  const implDefault = `impl Default for ${name} {
-  fn default() -> Self {
-    Self::${firstVariantName}
-  }
-}`
-  return smoosh([enumBody, implDefault])
 }
 
 // Returns a deref code for newtype impl Deref

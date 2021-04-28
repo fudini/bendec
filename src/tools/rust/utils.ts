@@ -1,16 +1,9 @@
-import { negate, isEmpty } from 'lodash'
-
 // Create rust comment block with description
 export const doc = (desc?: string): string => {
   if (desc !== undefined) {
     return `/// ${desc}`
   }
   return ''
-}
-
-// Poor man's left pad
-export const indent = (i: number) => (str: string) => {
-  return '                    '.substr(-i) + str
 }
 
 // Convert dot syntax into double colon (::)
@@ -27,7 +20,3 @@ export const createDerives = (derives: string[]): string => {
   return `#[derive(${derivesString})]`
 }
 
-// To remove gaps from annotations
-export const smoosh = (strings: string[]): string  => {
-  return strings.filter(negate(isEmpty)).join('\n')
-}
