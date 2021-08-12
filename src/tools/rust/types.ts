@@ -34,6 +34,11 @@ export type TypeMeta = {
   fields?: FieldsMeta,
 }
 
+export type EnumConversionError = {
+  type: string,
+  constructor: string,
+}
+
 // Options to the type generator
 export type Options = {
   // These types are just here for lookup so we can resolve shared types
@@ -43,7 +48,8 @@ export type Options = {
   // TODO: extra derives should be moved to the options.meta property
   extraDerives?: Record<TypeName, string[]>
   meta?: Record<TypeName, TypeMeta>
-  camelCase?: boolean
+  camelCase?: boolean,
+  enumConversionError?: EnumConversionError,
 }
 
 

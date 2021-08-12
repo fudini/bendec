@@ -66,10 +66,15 @@ test('Rust - unions and enums', t => {
     extras: ['pub use super::shared::*;'],
     extraDerives: {
       'Zebra': ['Copy', 'Clone']         
+    },
+    enumConversionError: {
+      type: 'EnumValueError',
+      constructor: 'EnumValueError::new(other, "{{ name }}")'
     }
   }
   const cleanedGenerated = clean(generateStringRust(unions, options))
   const cleanedFixture = clean(getFixture('./generated/rust/unions_enums.rs'))
+
   t.equals(cleanedGenerated, cleanedFixture)
   t.end()
 })

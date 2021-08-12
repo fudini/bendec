@@ -28,6 +28,10 @@ export const defaultOptions = {
   extraDerives: {},
   meta: {},
   camelCase: false,
+  enumConversionError: {
+    type: '{{ underlying }}',
+    constructor: 'other'
+  }
 }
 
 export const defaultMapping: TypeMapping = {
@@ -195,7 +199,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Enum) {
-      return getEnum(typeDef)
+      return getEnum(typeDef, options.enumConversionError)
     }
 
     if (typeDef.kind === Kind.Struct) {

@@ -1,2 +1,4 @@
 node_modules
 dist
+/rust/target
+/rust/fixtures.json
