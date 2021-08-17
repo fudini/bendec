@@ -182,9 +182,9 @@ const enums: TypeDefinition[] = [
   name: 'Foo',
   underlying: 'u8',
   variants: [
-    ['variant1', 1],
-    ['variant2', 2],
-    ['variant3', 3],
+    ['Variant1', 1],
+    ['Variant2', 2],
+    ['Variant3', 3],
   ] as EnumVariant[]
 }, {
   // Enum field

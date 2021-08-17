@@ -1,3 +1,5 @@
+import path from 'path'
+import { readFileSync } from 'fs'
 import { trim, isEmpty, negate } from 'lodash'
 import { performance } from 'perf_hooks'
 
@@ -7,6 +9,11 @@ export const measure = (msg, f) => {
   const time = performance.now() - now
   console.log(msg)
   console.log('total time ms: ', Math.round(time))
+}
+
+export const getFixture = (filePath: string): string => {
+  const filePath2 = path.join(__dirname.replace('dist', 'src'), filePath)
+  return readFileSync(filePath2, 'utf8')
 }
 
 export const clean = (content: string): string => {
