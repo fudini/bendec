@@ -1,4 +1,3 @@
-import { readFileSync } from 'fs'
 import path from 'path'
 import test from 'tape'
 import { generateString } from '../tools/typeGenerator'
@@ -12,12 +11,7 @@ import {
   Options,
 } from '../tools/rsGenerator'
 import { generateString as generateStringCpp } from '../tools/cppGenerator'
-import { codeEquals, clean } from './utils'
-
-const getFixture = (filePath: string): string => {
-  const filePath2 = path.join(__dirname.replace('dist', 'src'), filePath)
-  return readFileSync(filePath2, 'utf8')
-}
+import { getFixture, codeEquals, clean } from './utils'
 
 test('TypeScript - custom type mapping', t => {
   const types = [{ name: 'u64', size: 8 }]
