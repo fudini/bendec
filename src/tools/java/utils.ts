@@ -12,6 +12,16 @@ export const defaultOptions = {
 
 export const defaultMapping: TypeMapping = {};
 
+export const header = `package bendec;
+
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+`;
+
 export const indent = (i: number) => {
   return Array(i).fill("    ").join("");
 };
@@ -65,7 +75,6 @@ export function typesToByteOperators(
         write: `buffer.put(Utils.booleanToByteArray(this.${fieldName}));`,
       };
     case "char":
-      console.log("char", length);
       return {
         read: `this.${fieldName} = Utils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
         write: `buffer.put(Utils.stringToByteArray(this.${fieldName}, ${
@@ -73,7 +82,6 @@ export function typesToByteOperators(
         }));`,
       };
     case "char[]":
-      console.log("char[]", length, fieldName);
       return {
         read: `this.${fieldName} = Utils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
         write: `buffer.put(Utils.stringToByteArray(this.${fieldName}, ${

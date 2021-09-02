@@ -11,7 +11,6 @@ import {
 } from "../";
 import { Login } from "./types";
 import { generate } from "../tools/javaGenerator";
-import { utilsFile } from "../tools/java/utils-file";
 import { convertJson } from "../tools/java/convert-json";
 import { marketTypes, sharedTypes } from "../tools/java/fixtures";
 
@@ -44,13 +43,7 @@ test("Bendec login decod", (t) => {
   console.log(encodedLogin);
   const decodedLogin = bendec.decodeAs(encodedLogin, "Login");
   console.log(decodedLogin);
-  generate(
-    convertJson([...(marketTypes as any), ...sharedTypes]),
-    "types.java",
-    {
-      extras: [utilsFile],
-    }
-  );
+  generate(convertJson([...(marketTypes as any), ...sharedTypes]), "java");
   t.deepEqual(encodedLogin, decodedLogin);
   t.end();
 });
