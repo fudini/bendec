@@ -1,3 +1,5 @@
+// convert json from n8 repo (fixtures.ts) to known types
+
 import { Kind, TypeDefinition } from "../../types";
 import { marketTypes, sharedTypes } from "./fixtures";
 

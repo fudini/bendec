@@ -1,3 +1,4 @@
+import { Field } from "../..";
 import { TypeDefinitionStrict } from "../../types";
 
 export interface TypeReadWriteDefinition {
@@ -12,7 +13,15 @@ export type TypeDefinitionStrictWithSize = TypeDefinitionStrict & {
 };
 
 export type Options = {
-  extras?: string[];
+  withJson: boolean;
   typeMapping?: TypeMapping;
   header?: boolean;
+  packageName?: string;
 };
+
+export interface FieldWithJavaProperties extends Field {
+  typeSize: number;
+  javaType: string;
+  finalTypeName: string;
+  typeLength?: number;
+}
