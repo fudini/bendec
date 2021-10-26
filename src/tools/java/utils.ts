@@ -3,7 +3,6 @@ import {
   FieldWithJavaProperties,
   TypeDefinitionStrictWithSize,
   TypeMapping,
-  TypeReadWriteDefinition,
 } from "./types"
 
 export const defaultOptions = {
@@ -14,214 +13,18 @@ export const defaultOptions = {
 
 export const defaultMapping: TypeMapping = {}
 
-export const header = (withJson: boolean, packageName?: string) => `package ${
-  packageName || "pl.bendec"
-};
+export const header = (packageName?: string) => `package ${packageName || "pl.bendec"};
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-${
-  withJson
-    ? `import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ObjectMapper;`
-    : ""
-}
-`
+import java.util.Objects;
+`;
 
 export const indent = (i: number) => {
   return Array(i).fill("    ").join("")
-}
-
-export function typesToByteOperators(
-  types: TypeDefinitionStrictWithSize[],
-  fieldName: string,
-  type: string,
-  typeMap: TypeMapping,
-  size: number,
-  offset?: number,
-  length?: number,
-  inIteration?: boolean
-): TypeReadWriteDefinition {
-  const iterationAppender = inIteration ? ` + i * ${size}` : ""
-  const addOffsetString = offset ? ` + ${offset}` : ""
-  switch (type) {
-    case "u8":
-      return {
-        read: `this.${fieldName} = BendecUtils.uInt8FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.uInt8ToByteArray(this.${fieldName}));`,
-      }
-    case "u16":
-      return {
-        read: `this.${fieldName} = BendecUtils.uInt16FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.uInt16ToByteArray(this.${fieldName}));`,
-      }
-    case "u32":
-      return {
-        read: `this.${fieldName} = BendecUtils.uInt32FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.uInt32ToByteArray(this.${fieldName}));`,
-      }
-    case "u64":
-      return {
-        read: `this.${fieldName} = BendecUtils.uInt64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.uInt64ToByteArray(this.${fieldName}));`,
-      }
-    case "i64":
-      return {
-        read: `this.${fieldName} = BendecUtils.int64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.int64ToByteArray(this.${fieldName}));`,
-      }
-    case "f64":
-      return {
-        read: `this.${fieldName} = BendecUtils.float64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.f64ToByteArray(this.${fieldName}));`,
-      }
-    case "bool":
-      return {
-        read: `this.${fieldName} = BendecUtils.booleanFromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.booleanToByteArray(this.${fieldName}));`,
-      }
-    case "char":
-      return {
-        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
-          length || 0
-        }));`,
-      }
-    case "char[]":
-      return {
-        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
-          length || 0
-        }));`,
-      }
-    default:
-      if (type.includes("[]")) {
-        const unarrayedType = type.replace("[]", "")
-        const finalTypeName = typeMap[unarrayedType] || unarrayedType
-        const javaTypeName = javaTypeMapping(finalTypeName) || finalTypeName
-        const typeDef = types.find((t) => t.name === finalTypeName)
-        return {
-          read: `this.${fieldName} = new ${javaTypeName}[${length}];
-${indent(2)}for(int i = 0; i < ${length}; i++) {
-${indent(3)}${
-            typesToByteOperators(
-              types,
-              `${fieldName}[i]`,
-              unarrayedType,
-              typeMap,
-              typeDef.size,
-              offset,
-              length,
-              true
-            ).read
-          }
-${indent(2)}}`,
-          write: `for(int i = 0; i < ${length}; i++) {
-${indent(3)}${
-            typesToByteOperators(
-              types,
-              `${fieldName}[i]`,
-              unarrayedType,
-              typeMap,
-              typeDef.size,
-              offset,
-              length,
-              true
-            ).write
-          }
-${indent(2)}}`,
-        };
-      } else {
-        const typeObject = types.find((t) => t.name === type)
-        const isEnum = typeObject && typeObject.kind === Kind.Enum
-        return {
-          read: `this.${fieldName} = ${
-            !isEnum ? `new ` : `${type}.get`
-          }${type}(bytes, offset${addOffsetString}${iterationAppender});`,
-          write: `${fieldName}.toBytes(buffer);`,
-        };
-      }
-  }
-}
-
-export function typesToJsonOperators(
-  fieldName: string,
-  type: string,
-  typeMap: TypeMapping,
-  length?: number
-): TypeReadWriteDefinition {
-  switch (type) {
-    case "u8":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "u16":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "u32":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "u64":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "i64":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "f64":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "bool":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "char":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "char[]":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    default:
-      if (type.includes("[]")) {
-        const unarrayedType = type.replace("[]", "");
-        return {
-          read: ``,
-          write: `for(int i = 0; i < ${length}; i++) {
-${indent(3)}${
-            typesToJsonOperators(
-              `${fieldName}[i]`,
-              unarrayedType,
-              typeMap,
-              length
-            ).write
-          }
-${indent(2)}}`,
-        }
-      } else {
-        return {
-          read: ``,
-          write: `object.set("${fieldName}", ${fieldName}.toJson());`,
-        }
-      }
-  }
 }
 
 export function getTypeFormTypeMap(type: string, typeMap: TypeMapping) {

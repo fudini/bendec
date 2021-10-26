@@ -32,3 +32,9 @@ export interface ExtendedStructTypeDef {
   fields: Field[]
   kind: Kind.Struct
 }
+
+export interface FormFile {
+  name: string
+  path: string
+  body: string
+}

@@ -4,8 +4,6 @@ import { TypeDefinitionStrictWithSize, TypeMapping } from "./types"
 import {
   header,
   javaTypeMapping,
-  typesToByteOperators,
-  typesToJsonOperators,
 } from "./utils"
 
 const getEnumMembers = (typeDef: TypeDefinitionStrictWithSize) => {
@@ -33,14 +31,6 @@ const getEnumMethods = (
   javaType: string
 ) => {
   if (typeDef.kind === Kind.Enum) {
-    const byteOperators = typesToByteOperators(
-      [],
-      "value",
-      typeDef.underlying,
-      typeMap,
-      typeDef.size,
-      0
-    )
     return `
 ${indent(1)}private static Map<Integer, ${
       typeDef.name
@@ -69,63 +59,11 @@ ${indent(2)}return val == null ? ${typeDef.name}.UNKNOWN : val;
 ${indent(1)}}
 
 ${indent(1)}/**
-${indent(1)} Get ${typeDef.name} from bytes
-${indent(1)} * @param bytes byte[]
-${indent(1)} * @param offset - int
-${indent(1)} */
-${indent(1)}public static ${typeDef.name} get${
-      typeDef.name
-    }(byte[] bytes, int offset) {
-${indent(2)}return get${typeDef.name}(${
-      byteOperators.read.split(";")[0].split("= ")[1]
-    });
-${indent(1)}}
-
-${indent(1)}/**
 ${indent(1)} * Get ${typeDef.name} int value
 ${indent(1)} * @return int value
 ${indent(1)} */
 ${indent(1)}public ${javaType} get${typeDef.name}Value() { return value; }
 
-${indent(1)}byte[] toBytes() {
-${indent(2)}ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
-${indent(2)}${byteOperators.write}
-${indent(2)}return buffer.array();
-${indent(1)}}
-
-${indent(1)}void toBytes(ByteBuffer buffer) {
-${indent(2)}${byteOperators.write}
-${indent(1)}}
-`
-  } else {
-    return ""
-  }
-}
-
-const getEnumJsonMethods = (
-  typeDef: TypeDefinitionStrictWithSize,
-  typeMap: TypeMapping
-) => {
-  if (typeDef.kind === Kind.Enum) {
-    const jsonOperators = typesToJsonOperators(
-      "value",
-      typeDef.underlying,
-      typeMap,
-      0
-    )
-    return `
-
-${indent(1)}public ObjectNode toJson() {
-${indent(2)}ObjectMapper mapper = new ObjectMapper();
-${indent(2)}ObjectNode object = mapper.createObjectNode();
-${indent(2)}${jsonOperators.write}
-${indent(2)}return object;
-${indent(1)}}
-
-${indent(1)}public ObjectNode toJson(ObjectNode object) {
-${indent(2)}${jsonOperators.write}
-${indent(2)}return object;
-${indent(1)}}
 `
   } else {
     return ""
@@ -135,14 +73,13 @@ ${indent(1)}}
 export const getEnum = (
   typeDef: TypeDefinitionStrictWithSize,
   typeMap: TypeMapping,
-  withJson: boolean,
   packageName?: string
 ) => {
   if (typeDef.kind === Kind.Enum) {
     const javaTypeName = javaTypeMapping(
       typeMap[typeDef.underlying] || typeDef.underlying
     )
-    return `${header(withJson, packageName)}
+    return `${header(packageName)}
 /**
  * Enum: ${typeDef.name}
  * ${typeDef.desc}
@@ -156,8 +93,6 @@ ${indent(1)}private final ${javaTypeName} value;
 ${indent(1)}private final int byteLength = ${typeDef.size};
 
 ${getEnumMethods(typeDef, typeMap, javaTypeName)}
-
-${withJson ? getEnumJsonMethods(typeDef, typeMap) : ""}
 
 }
 `

@@ -5,16 +5,9 @@ import { Kind } from "../types"
 import { defaultMapping, defaultOptions } from "./java/utils"
 import {
   Options,
-  TypeDefinitionStrictWithSize,
   TypeMapping,
 } from "./java/types"
 import { keyBy } from "lodash"
-import {
-  byteSerializableFile,
-  jsonSerializableFile,
-  utilsFile,
-  withHeaderFile,
-} from "./java/utils-files"
 import { getEnum } from "./java/enums"
 import { getStruct } from "./java/structs"
 
@@ -60,7 +53,6 @@ export const generateFileDefinitions = (
               typeDef,
               typeMap,
               types as any,
-              options.withJson,
               options.packageName
             ),
           }
@@ -71,32 +63,14 @@ export const generateFileDefinitions = (
             body: getEnum(
               typeDef,
               typeMap,
-              options.withJson,
               options.packageName
             ),
           }
       }
     })
 
-  const utils = {
-    name: "BendecUtils.java",
-    body: utilsFile(options.withJson, options.packageName),
-  }
-  const byteSerializable = {
-    name: "ByteSerializable.java",
-    body: byteSerializableFile(options.packageName),
-  }
-  const jsonSerializable = {
-    name: "JsonSerializable.java",
-    body: jsonSerializableFile(options.withJson, options.packageName),
-  }
-  const withHeader = {
-    name: "WithHeader.java",
-    body: withHeaderFile(options.packageName),
-  }
-  return [utils, byteSerializable, ...classes, withHeader].concat(
-    options.withJson ? [jsonSerializable] : []
-  )
+
+  return classes;
 }
 
 /**
@@ -107,12 +81,34 @@ export const generate = (
   directory: string,
   options?: Options
 ) => {
-  const fileDefinitions = generateFileDefinitions(types, options)
-  if (!fs.existsSync(directory)) {
-    fs.mkdirSync(directory)
-  }
+  generateFiles(generateFileDefinitions(types, options), directory);
+}
+
+export const generateFiles = (
+  fileDefinitions: { body: string; name: string }[],
+  directory: string,
+) => {
+  writePath(directory);
   fileDefinitions.map((fd) => {
-    fs.writeFileSync(`${directory}/${fd.name}`, fd.body)
-    console.log(`WRITTEN: ${fd.name}`)
-  })
+    fs.writeFileSync(`${directory}/${fd.name}`, fd.body);
+    console.log(`WRITTEN: ${fd.name}`);
+  });
+};
+
+function writePath(path: string) {
+  const backs = path
+    .split("/")
+    .filter((v) => v == "..")
+    .join("/");
+
+  path
+    .split("/")
+    .filter((v) => v != "..")
+    .reduce((acc, p) => {
+      const path = `${acc}/${p}`;
+      if (!/\w\.\w/g.test(path) && !fs.existsSync(path)) {
+        fs.mkdirSync(path);
+      }
+      return path;
+    }, backs || ".");
 }
