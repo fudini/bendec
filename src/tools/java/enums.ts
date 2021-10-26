@@ -1,12 +1,12 @@
-import { Kind } from "../..";
-import { indent } from "./utils";
-import { TypeDefinitionStrictWithSize, TypeMapping } from "./types";
+import { Kind } from "../.."
+import { indent } from "./utils"
+import { TypeDefinitionStrictWithSize, TypeMapping } from "./types"
 import {
   header,
   javaTypeMapping,
   typesToByteOperators,
   typesToJsonOperators,
-} from "./utils";
+} from "./utils"
 
 const getEnumMembers = (typeDef: TypeDefinitionStrictWithSize) => {
   if (typeDef.kind === Kind.Enum) {
@@ -21,11 +21,11 @@ ${indent(1)}${v[0].toUpperCase()}(${v[1]}),`
           : `
 ${indent(1)}UNKNOWN(99999);`,
       ])
-      .join("");
+      .join("")
   } else {
-    return "";
+    return ""
   }
-};
+}
 
 const getEnumMethods = (
   typeDef: TypeDefinitionStrictWithSize,
@@ -40,7 +40,7 @@ const getEnumMethods = (
       typeMap,
       typeDef.size,
       0
-    );
+    )
     return `
 ${indent(1)}private static Map<Integer, ${
       typeDef.name
@@ -96,11 +96,11 @@ ${indent(1)}}
 ${indent(1)}void toBytes(ByteBuffer buffer) {
 ${indent(2)}${byteOperators.write}
 ${indent(1)}}
-`;
+`
   } else {
-    return "";
+    return ""
   }
-};
+}
 
 const getEnumJsonMethods = (
   typeDef: TypeDefinitionStrictWithSize,
@@ -112,7 +112,7 @@ const getEnumJsonMethods = (
       typeDef.underlying,
       typeMap,
       0
-    );
+    )
     return `
 
 ${indent(1)}public ObjectNode toJson() {
@@ -126,11 +126,11 @@ ${indent(1)}public ObjectNode toJson(ObjectNode object) {
 ${indent(2)}${jsonOperators.write}
 ${indent(2)}return object;
 ${indent(1)}}
-`;
+`
   } else {
-    return "";
+    return ""
   }
-};
+}
 
 export const getEnum = (
   typeDef: TypeDefinitionStrictWithSize,
@@ -141,7 +141,7 @@ export const getEnum = (
   if (typeDef.kind === Kind.Enum) {
     const javaTypeName = javaTypeMapping(
       typeMap[typeDef.underlying] || typeDef.underlying
-    );
+    )
     return `${header(withJson, packageName)}
 /**
  * Enum: ${typeDef.name}
@@ -160,8 +160,8 @@ ${getEnumMethods(typeDef, typeMap, javaTypeName)}
 ${withJson ? getEnumJsonMethods(typeDef, typeMap) : ""}
 
 }
-`;
+`
   } else {
-    return "";
+    return ""
   }
-};
+}

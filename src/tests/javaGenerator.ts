@@ -1,15 +1,8 @@
-import { generate } from "../tools/javaGenerator";
-import { convertJson } from "../tools/java/convert-json";
-import { marketTypes, sharedTypes } from "../tools/java/fixtures";
-import test from "tape";
+import { generate } from "../tools/javaGenerator"
+import test from "tape"
+import { types } from "./fixtures"
 
-test("Generate java library files", (t) => {
-  generate(
-    convertJson([...(marketTypes as any), ...sharedTypes]),
-    "java-generated",
-    {
-      withJson: true,
-    }
-  );
-  t.end();
-});
+test("Generate java library files", ( t ) => {
+  generate(types, "java-generated", { withJson: false })
+  t.end()
+})

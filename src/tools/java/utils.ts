@@ -1,18 +1,18 @@
-import { Field, Kind } from "../../types";
+import { Field, Kind } from "../../types"
 import {
   FieldWithJavaProperties,
   TypeDefinitionStrictWithSize,
   TypeMapping,
   TypeReadWriteDefinition,
-} from "./types";
+} from "./types"
 
 export const defaultOptions = {
   extras: [],
   header: true,
   withJson: false,
-};
+}
 
-export const defaultMapping: TypeMapping = {};
+export const defaultMapping: TypeMapping = {}
 
 export const header = (withJson: boolean, packageName?: string) => `package ${
   packageName || "pl.bendec"
@@ -29,11 +29,11 @@ ${
 import com.fasterxml.jackson.databind.ObjectMapper;`
     : ""
 }
-`;
+`
 
 export const indent = (i: number) => {
-  return Array(i).fill("    ").join("");
-};
+  return Array(i).fill("    ").join("")
+}
 
 export function typesToByteOperators(
   types: TypeDefinitionStrictWithSize[],
@@ -45,64 +45,64 @@ export function typesToByteOperators(
   length?: number,
   inIteration?: boolean
 ): TypeReadWriteDefinition {
-  const iterationAppender = inIteration ? ` + i * ${size}` : "";
-  const addOffsetString = offset ? ` + ${offset}` : "";
+  const iterationAppender = inIteration ? ` + i * ${size}` : ""
+  const addOffsetString = offset ? ` + ${offset}` : ""
   switch (type) {
     case "u8":
       return {
         read: `this.${fieldName} = BendecUtils.uInt8FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
         write: `buffer.put(BendecUtils.uInt8ToByteArray(this.${fieldName}));`,
-      };
+      }
     case "u16":
       return {
         read: `this.${fieldName} = BendecUtils.uInt16FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
         write: `buffer.put(BendecUtils.uInt16ToByteArray(this.${fieldName}));`,
-      };
+      }
     case "u32":
       return {
         read: `this.${fieldName} = BendecUtils.uInt32FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
         write: `buffer.put(BendecUtils.uInt32ToByteArray(this.${fieldName}));`,
-      };
+      }
     case "u64":
       return {
         read: `this.${fieldName} = BendecUtils.uInt64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
         write: `buffer.put(BendecUtils.uInt64ToByteArray(this.${fieldName}));`,
-      };
+      }
     case "i64":
       return {
         read: `this.${fieldName} = BendecUtils.int64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
         write: `buffer.put(BendecUtils.int64ToByteArray(this.${fieldName}));`,
-      };
+      }
     case "f64":
       return {
         read: `this.${fieldName} = BendecUtils.float64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
         write: `buffer.put(BendecUtils.f64ToByteArray(this.${fieldName}));`,
-      };
+      }
     case "bool":
       return {
         read: `this.${fieldName} = BendecUtils.booleanFromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
         write: `buffer.put(BendecUtils.booleanToByteArray(this.${fieldName}));`,
-      };
+      }
     case "char":
       return {
         read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
         write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
           length || 0
         }));`,
-      };
+      }
     case "char[]":
       return {
         read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
         write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
           length || 0
         }));`,
-      };
+      }
     default:
       if (type.includes("[]")) {
-        const unarrayedType = type.replace("[]", "");
-        const finalTypeName = typeMap[unarrayedType] || unarrayedType;
-        const javaTypeName = javaTypeMapping(finalTypeName) || finalTypeName;
-        const typeDef = types.find((t) => t.name === finalTypeName);
+        const unarrayedType = type.replace("[]", "")
+        const finalTypeName = typeMap[unarrayedType] || unarrayedType
+        const javaTypeName = javaTypeMapping(finalTypeName) || finalTypeName
+        const typeDef = types.find((t) => t.name === finalTypeName)
         return {
           read: `this.${fieldName} = new ${javaTypeName}[${length}];
 ${indent(2)}for(int i = 0; i < ${length}; i++) {
@@ -135,8 +135,8 @@ ${indent(3)}${
 ${indent(2)}}`,
         };
       } else {
-        const typeObject = types.find((t) => t.name === type);
-        const isEnum = typeObject && typeObject.kind === Kind.Enum;
+        const typeObject = types.find((t) => t.name === type)
+        const isEnum = typeObject && typeObject.kind === Kind.Enum
         return {
           read: `this.${fieldName} = ${
             !isEnum ? `new ` : `${type}.get`
@@ -214,47 +214,46 @@ ${indent(3)}${
             ).write
           }
 ${indent(2)}}`,
-        };
+        }
       } else {
         return {
           read: ``,
           write: `object.set("${fieldName}", ${fieldName}.toJson());`,
-        };
+        }
       }
   }
 }
 
 export function getTypeFormTypeMap(type: string, typeMap: TypeMapping) {
-  const fromMap = typeMap[type];
-  return !fromMap ? type : getTypeFormTypeMap(fromMap, typeMap);
+  const fromMap = typeMap[type]
+  return !fromMap ? type : getTypeFormTypeMap(fromMap, typeMap)
 }
 
 export function javaTypeMapping(type: string) {
   switch (type) {
     case "u8":
-      return "int";
+      return "int"
     case "u16":
-      return "int";
+      return "int"
     case "u32":
-      return "long";
+      return "long"
     case "i64":
-      return "long";
+      return "long"
     case "u64":
-      return "BigInteger";
+      return "BigInteger"
     case "boolean":
-      return "boolean";
+      return "boolean"
     case "bool":
-      return "boolean";
+      return "boolean"
     case "char":
-      return "String";
+      return "String"
     case "char[]":
-      return "String";
+      return "String"
     default: {
       if (type.includes("[]")) {
-        return `${javaTypeMapping(type.replace("[]", ""))} []`;
+        return `${javaTypeMapping(type.replace("[]", ""))} []`
       } else {
-        ``;
-        return type;
+        return type
       }
     }
   }
@@ -265,17 +264,17 @@ export function addJavaFieldProperties(
   typeMap: TypeMapping,
   types: TypeDefinitionStrictWithSize[]
 ): FieldWithJavaProperties {
-  const key = field.type + (field.length ? "[]" : "");
-  const finalTypeName = getTypeFormTypeMap(key, typeMap);
-  const javaType = javaTypeMapping(finalTypeName) || finalTypeName;
+  const key = field.type + (field.length ? "[]" : "")
+  const finalTypeName = getTypeFormTypeMap(key, typeMap)
+  const javaType = javaTypeMapping(finalTypeName) || finalTypeName
   const type =
     types.find((stype) => stype.name === finalTypeName) ||
-    types.find((stype) => stype.name === field.type);
+    types.find((stype) => stype.name === field.type)
   return {
     ...field,
     finalTypeName,
     javaType,
     typeSize: type.size,
     typeLength: (type as any).length,
-  };
+  }
 }

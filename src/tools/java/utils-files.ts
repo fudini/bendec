@@ -1,4 +1,4 @@
-import { header } from "./utils";
+import { header } from "./utils"
 
 export const utilsFile = (withJson: boolean, packageName?: string) => `${header(
   withJson,
@@ -168,7 +168,7 @@ public interface ByteSerializable {
     public abstract byte[] toBytes();
 
 }
-`;
+`
 export const jsonSerializableFile = (
   withJson: boolean,
   packageName?: string
@@ -181,7 +181,7 @@ public interface JsonSerializable {
     public abstract ObjectNode toJson(ObjectNode object);
 
 }
-`;
+`
 export const withHeaderFile = (packageName?: string) => `${header(
   false,
   packageName
@@ -191,4 +191,4 @@ public interface WithHeader {
     public abstract Header getHeader();
 
 }
-`;
+`
