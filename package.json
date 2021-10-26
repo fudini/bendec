@@ -7,8 +7,7 @@
     "build": "./node_modules/.bin/tsc",
     "watch": "./node_modules/.bin/tsc -w",
     "perf": "node ./dist/tests/perf/index",
-    "test": "node ./dist/tests",
-    "generate:java": "node ./dist/tests"
+    "test": "node ./dist/tests"
   },
   "author": "Daniel Fudala <daniel@fuda.la>",
   "license": "MIT",
