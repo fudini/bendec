@@ -38,12 +38,14 @@ ${serdeMembers}
 }`
 
   const unionDeserializeMembers = members.map(member => {
-    return `${discTypeDef.name}::${member} => from_str(data).map(|v| ${name} { ${snakeCase(member)}: v }),`
+    return `${discTypeDef.name}::${member} => ${member}::deserialize(de).map(|v| ${name} { ${snakeCase(member)}: v }),`
   }).map(indent(6)).join('\n')
 
   const unionDeserializeJson = `impl ${name} {
-  pub fn deserialize_json(disc: ${discTypeDef.name}, data: &str) -> Result<Self, serde_json::Error> {
-    use serde_json::from_str;
+  pub fn deserialize<'de, D>(de: D, disc: ${discTypeDef.name}) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
     match disc {
 ${unionDeserializeMembers}
     }
