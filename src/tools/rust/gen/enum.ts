@@ -9,7 +9,7 @@ export const getEnum = (
   conversionError: EnumConversionError
 ) => {
   const variantsFields = variants
-    .map(([key, value]) => `  ${key} = ${hexPad(value)},`)
+    .map(([key, value, docs]) => smoosh([doc(docs),`  ${key} = ${hexPad(value)},`]))
     .join('\n')
 
   const enumBody =  smoosh([
