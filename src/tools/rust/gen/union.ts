@@ -5,7 +5,7 @@ import { doc, createDerives, toRustNS } from '../../rust/utils'
 import { indent } from '../../utils'
 
 const getUnion2 = (
-  { name, discriminator, members, desc }: UnionStrict,
+  { name, discriminator, members, description }: UnionStrict,
   discTypeDef: TypeDefinitionStrict
 ) => {
   
@@ -13,7 +13,7 @@ const getUnion2 = (
     return `  pub ${snakeCase(member)}: ${member},`
   }).join('\n')
 
-  const union = `${doc(desc)}
+  const union = `${doc(description)}
 #[repr(C, packed)]
 pub union ${name} {
 ${unionMembers}

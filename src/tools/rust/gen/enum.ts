@@ -5,7 +5,7 @@ import { EnumConversionError } from '../types'
 import * as _ from 'lodash'
 
 export const getEnum = (
-  { name, underlying, variants, desc }: EnumStrict,
+  { name, underlying, variants, description }: EnumStrict,
   conversionError: EnumConversionError
 ) => {
   const variantsFields = variants
@@ -13,7 +13,7 @@ export const getEnum = (
     .join('\n')
 
   const enumBody =  smoosh([
-doc(desc),
+doc(description),
 `#[repr(${underlying})]
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ${name} {

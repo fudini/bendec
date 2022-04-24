@@ -18,10 +18,10 @@ const types: TypeDefinition[] = [
   {name: 'Age', alias: 'u8'},
   {
     name: 'Header',
-    desc: 'struct description',
+    description: 'struct description',
     fields: [{
       name: 'msgType',
-      desc: 'field description',
+      description: 'field description',
       type: 'u8',
     }]
   }, {
@@ -358,7 +358,7 @@ const arrays: TypeDefinition[] = [{
 }, {
   kind: Kind.Struct,
   name: 'Foo',
-  desc: 'This is the description of the struct Foo',
+  description: 'This is the description of the struct Foo',
   fields: [{
     name: 'id1', // alias to array of structs
     type: 'Ident'

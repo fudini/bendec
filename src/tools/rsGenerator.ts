@@ -83,7 +83,7 @@ const getMembers = (
     }
 
     return smoosh([
-      doc(field.desc),
+      doc(field.description),
       ...fieldAnnotations.map(indent(2)),
       generatedField
     ])
@@ -227,7 +227,7 @@ export const generateString = (
         : ''
 
       return smoosh([
-        doc(typeDef.desc),
+        doc(typeDef.description),
         `#[repr(C, packed)]`,
         derivesString,
         serdeString,

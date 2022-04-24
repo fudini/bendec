@@ -10,28 +10,28 @@ export enum Kind {
 export interface Primitive {
   kind?: Kind.Primitive
   name: string
-  desc?: string
+  description?: string
   size: number
 }
 
 export interface Alias {
   kind?: Kind.Alias
   name: string
-  desc?: string
+  description?: string
   alias: string
 }
 
 export interface ArrayType {
   kind?: Kind.Array
   name: string
-  desc?: string
+  description?: string
   type: string
   length: number
 }
 
 export interface Field {
   name: string
-  desc?: string
+  description?: string
   type: string
   // if length is specified it's an array
   length?: number
@@ -40,17 +40,17 @@ export interface Field {
 export interface Struct {
   kind?: Kind.Struct
   name: string
-  desc?: string
+  description?: string
   fields: Field[]
 }
 
 // enum type is also only to generate types and is not validated by BendecJS
 // It will alias to 'underlying' unsigned primitive
-export type EnumVariant = [string, number]
+export type EnumVariant = [string, number, string?]
 export interface Enum {
   kind?: Kind.Enum
   name: string
-  desc?: string
+  description?: string
   underlying: string
   offset?: number | string // string because in json we can't use hex values
   variants: EnumVariant[]
@@ -65,7 +65,7 @@ export interface Enum {
 export interface Union {
   kind?: Kind.Union
   name: string
-  desc?: string
+  description?: string
   discriminator: string[]
   members: string[]
 }

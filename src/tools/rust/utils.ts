@@ -1,7 +1,7 @@
 // Create rust comment block with description
-export const doc = (desc?: string): string => {
-  if (desc !== undefined) {
-    return `/// ${desc}`
+export const doc = (description?: string): string => {
+  if (description !== undefined) {
+    return `/// ${description}`
   }
   return ''
 }
