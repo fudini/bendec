@@ -10,6 +10,7 @@ pub use super::shared::*;
 #[repr(u16)]
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AnimalKind {
+  /// This is a zebra
   Zebra = 0x1001,
   Toucan = 0x1002,
 }

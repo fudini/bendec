@@ -5,15 +5,15 @@ import { EnumConversionError } from '../types'
 import * as _ from 'lodash'
 
 export const getEnum = (
-  { name, underlying, variants, desc }: EnumStrict,
+  { name, underlying, variants, description }: EnumStrict,
   conversionError: EnumConversionError
 ) => {
   const variantsFields = variants
-    .map(([key, value]) => `  ${key} = ${hexPad(value)},`)
+    .map(([key, value, docs]) => smoosh([doc(docs),`  ${key} = ${hexPad(value)},`]))
     .join('\n')
 
   const enumBody =  smoosh([
-doc(desc),
+doc(description),
 `#[repr(${underlying})]
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ${name} {

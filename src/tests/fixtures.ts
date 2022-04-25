@@ -18,10 +18,10 @@ const types: TypeDefinition[] = [
   {name: 'Age', alias: 'u8'},
   {
     name: 'Header',
-    desc: 'struct description',
+    description: 'struct description',
     fields: [{
       name: 'msgType',
-      desc: 'field description',
+      description: 'field description',
       type: 'u8',
     }]
   }, {
@@ -211,7 +211,7 @@ const unions: TypeDefinition[] = [{
   name: 'AnimalKind',
   underlying: 'u16',
   offset: "0x1000",
-  variants: [['Zebra', 1], ['Toucan', 2]]
+  variants: [['Zebra', 1, "This is a zebra"], ['Toucan', 2]]
 }, {
   kind: Kind.Struct,
   name: 'Zebra',
@@ -358,7 +358,7 @@ const arrays: TypeDefinition[] = [{
 }, {
   kind: Kind.Struct,
   name: 'Foo',
-  desc: 'This is the description of the struct Foo',
+  description: 'This is the description of the struct Foo',
   fields: [{
     name: 'id1', // alias to array of structs
     type: 'Ident'
