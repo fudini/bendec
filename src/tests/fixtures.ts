@@ -15,7 +15,7 @@ const types: TypeDefinition[] = [
   {name: 'u16', size: 2},
   {name: 'u32', size: 4},
   {name: 'char', alias: 'u8'},
-  {name: 'Age', alias: 'u8'},
+  {name: 'Age', alias: 'u8', description: 'alias description'},
   {
     name: 'Header',
     description: 'struct description',
@@ -388,14 +388,17 @@ const newtypes: TypeDefinition[] = [{
 }, {
   kind: Kind.Alias,
   name: 'Public',
+  description: 'Public description',
   alias: 'u8'
 }, {
   kind: Kind.Alias,
   name: 'Generated',
+  description: 'Generated description',
   alias: 'u8'
 }, {
   kind: Kind.Alias,
   name: 'InCrate',
+  description: 'InCrate description',
   alias: 'u8'
 }, {
   // The Array can also be promoted to a newtype
