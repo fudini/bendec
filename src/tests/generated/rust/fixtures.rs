@@ -7,6 +7,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 // primitive built-in: u32
 // ignored: char
 
+/// alias description
 pub type Age = u8;
 
 /// struct description

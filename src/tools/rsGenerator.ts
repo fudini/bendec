@@ -136,21 +136,26 @@ const getAlias = (
   name: string,
   alias: string,
   meta: TypeMeta,
-  extraDerivesArray: string[]
+  extraDerivesArray: string[],
+  description?: string,
 ): string => {
  
   let newtype = meta[name]?.newtype;
   let rustAlias = toRustNS(alias);
+  let docString = doc(description)
 
   if (newtype === undefined) {
-    return `pub type ${name} = ${rustAlias};`
+    return smoosh([
+      docString,
+      `pub type ${name} = ${rustAlias};`
+    ])
   }
 
   let derivesString = createDerives(extraDerivesArray)
   let newtypeCode = getNewtypeBody(name, alias, newtype)
   let newtypeDerefCode = getNewtypeDeref(name, rustAlias)
 
-  return smoosh([derivesString, newtypeCode, newtypeDerefCode])
+  return smoosh([docString, derivesString, newtypeCode, newtypeDerefCode])
 }
 
 /**
@@ -191,7 +196,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Alias) {
-      return getAlias(typeName, typeDef.alias, meta, extraDerivesArray)
+      return getAlias(typeName, typeDef.alias, meta, extraDerivesArray, typeDef.description)
     }
 
     if (typeDef.kind === Kind.Union) {
@@ -241,7 +246,7 @@ export const generateString = (
     if (typeDef.kind === Kind.Array) {
       const { name, type, length } = typeDef
       const alias = `[${toRustNS(typeDef.type)}; ${typeDef.length}]`
-      return getAlias(typeName, alias, meta, extraDerivesArray)
+      return getAlias(typeName, alias, meta, extraDerivesArray, typeDef.description)
     }
   })
 
