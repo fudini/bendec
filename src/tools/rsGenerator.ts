@@ -109,10 +109,9 @@ const getNewtypeDeref = (
 const getNewtypeIntoInner = (
   typeName: string,
   rustAlias: string,
-  fnName: string,
 ): string => {
   return `impl ${typeName} {
-  pub fn ${fnName}(&self) -> ${rustAlias} {
+  pub fn into_inner(&self) -> ${rustAlias} {
     self.0
   }
 }
@@ -161,8 +160,8 @@ impl ${name} {
     visibility.push(constr)
   }
 
-  if (newtype.inner != undefined) {
-    visibility.push(getNewtypeIntoInner(name, rustAlias, newtype.inner))
+  if (newtype.inner == true) {
+    visibility.push(getNewtypeIntoInner(name, rustAlias))
   }
 
   return smoosh(visibility)

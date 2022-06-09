@@ -113,7 +113,7 @@ test('Rust - newtypes', t => {
       "WithIntoInner": {
         newtype: {
           kind: NewtypeKind.Private,
-          inner: 'into_inner',
+          inner: true,
         }
       },
       "InPath": {
