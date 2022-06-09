@@ -6,7 +6,7 @@ import {
   generateString as generateStringRust,
   NewtypeKind,
   NewtypePublic,
-  NewtypeGenerated,
+  NewtypePrivate,
   NewtypeInCrate,
   Options,
 } from '../tools/rsGenerator'
@@ -104,14 +104,26 @@ test('Rust - newtypes', t => {
       "Public": {
         newtype: { kind: NewtypeKind.Public }
       },
-      "Generated": {
-        newtype: { kind: NewtypeKind.Generated }
+      "WithNew": {
+        newtype: {
+          kind: NewtypeKind.Private,
+          constr: true,
+        }
+      },
+      "WithIntoInner": {
+        newtype: {
+          kind: NewtypeKind.Private,
+          inner: 'into_inner',
+        }
+      },
+      "InPath": {
+        newtype: {
+          kind: NewtypeKind.InPath,
+          module: 'path::foo::bar',
+        }
       },
       "InCrate": {
-        newtype: {
-          kind: NewtypeKind.InCrate,
-          module: 'crate::foo::bar',
-        }
+        newtype: { kind: NewtypeKind.InCrate }
       },
       "FooArray": {
         newtype: { kind: NewtypeKind.Public }
@@ -121,7 +133,7 @@ test('Rust - newtypes', t => {
       }
     },
     extraDerives: {
-      'Generated': ['Foo', 'Bar']
+      'WithNew': ['Foo', 'Bar']
     }
   }
 

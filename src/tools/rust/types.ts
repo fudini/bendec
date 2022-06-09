@@ -12,21 +12,45 @@ export type TypeMapping = Record<TypeName, (size?: number) => string>
 
 export enum NewtypeKind {
   Public = 'Public',
-  Generated = 'Generated',
+  Private = 'Private',
   InCrate = 'InCrate',
+  InPath = 'InPath',
 }
 
 // Inner type is going to be public which is just a glorified alias
-export type NewtypePublic = { kind: NewtypeKind.Public }
+export type NewtypePublic = {
+  kind: NewtypeKind.Public,
+  inner?: string,
+  constr?: boolean,
+}
 
 // Constructor for newtype will be generated
-export type NewtypeGenerated = { kind: NewtypeKind.Generated }
+export type NewtypePrivate = {
+  kind: NewtypeKind.Private,
+  inner?: string,
+  constr?: boolean,
+}
 
 // Constructor will have to be defined in the specified module
-export type NewtypeInCrate = { kind: NewtypeKind.InCrate, module: string }
+export type NewtypeInCrate = {
+  kind: NewtypeKind.InCrate,
+  inner?: string,
+  constr?: boolean,
+}
+
+// Constructor will have to be defined in the specified module
+export type NewtypeInPath = {
+  kind: NewtypeKind.InPath,
+  module: string,
+  inner?: string,
+  constr?: boolean,
+}
 
 // Union of new type kinds
-export type NewtypeDef = NewtypePublic | NewtypeGenerated | NewtypeInCrate
+export type NewtypeDef = NewtypePublic
+  | NewtypePrivate
+  | NewtypeInCrate
+  | NewtypeInPath
 
 // Metadata for the type will contain newtype annotations
 export type TypeMeta = {

@@ -8,12 +8,6 @@ pub type Char3 = [char; 3];
 pub type BigArray = [char; 128];
 
 pub struct BigArrayNewtype(pub [char; 128]);
-impl std::ops::Deref for BigArrayNewtype {
-  type Target = [char; 128];
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}
 
 #[repr(C, packed)]
 #[derive(Default, Serialize, Deserialize)]

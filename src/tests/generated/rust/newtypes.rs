@@ -6,45 +6,31 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Public description
 pub struct Public(pub u8);
-impl std::ops::Deref for Public {
-  type Target = u8;
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}
 
 /// Generated description
 #[derive(Foo, Bar)]
-pub struct Generated(u8);
+pub struct WithNew(u8);
 
-impl Generated {
+impl WithNew {
   pub fn new(v: u8) -> Self {
     Self(v)
   }
 }
 
-impl std::ops::Deref for Generated {
-  type Target = u8;
-  fn deref(&self) -> &Self::Target {
-    &self.0
+/// Generated description
+pub struct WithIntoInner(u8);
+
+impl WithIntoInner {
+  pub fn into_inner(&self) -> u8 {
+    self.0
   }
 }
+
+/// InPath description
+pub struct InPath(pub(in path::foo::bar) u8);
 
 /// InCrate description
-pub struct InCrate(pub(in crate::foo::bar) u8);
-
-impl std::ops::Deref for InCrate {
-  type Target = u8;
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}
+pub struct InCrate(pub(crate) u8);
 
 pub struct FooArray(pub [u8; 10]);
 
-impl std::ops::Deref for FooArray {
-  type Target = [u8; 10];
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}

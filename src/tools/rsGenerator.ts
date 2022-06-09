@@ -11,7 +11,7 @@ import {
 export * from './rust/types'
 
 import {
-  TypeName, TypeMapping, NewtypeKind, NewtypePublic, NewtypeGenerated,
+  TypeName, TypeMapping, NewtypeKind, NewtypePublic, NewtypePrivate,
   NewtypeInCrate, NewtypeDef, TypeMeta, Options,
   FieldName, FieldMeta
 } from './rust/types'
@@ -105,8 +105,22 @@ const getNewtypeDeref = (
 }` 
 }
 
+// Returns a deref code for newtype impl Deref
+const getNewtypeIntoInner = (
+  typeName: string,
+  rustAlias: string,
+  fnName: string,
+): string => {
+  return `impl ${typeName} {
+  pub fn ${fnName}(&self) -> ${rustAlias} {
+    self.0
+  }
+}
+` 
+}
+
 // Return the body of new type
-const getNewtypeBody = (
+const getNewtypeVisibility = (
   name: string, 
   alias: string,
   newtype: NewtypeDef
@@ -117,18 +131,41 @@ const getNewtypeBody = (
   switch (newtype.kind) {
     case NewtypeKind.Public:
       return `pub struct ${name}(pub ${rustAlias});`
-    case NewtypeKind.Generated:
-      return `pub struct ${name}(${rustAlias});
+    case NewtypeKind.Private:
+      return `pub struct ${name}(${rustAlias});`
+    case NewtypeKind.InPath:
+      return `pub struct ${name}(pub(in ${newtype.module}) ${rustAlias});`
+    case NewtypeKind.InCrate:
+      return `pub struct ${name}(pub(crate) ${rustAlias});`
+  }
 
+}
+
+const getNewtypeBody = (
+  name: string, 
+  alias: string,
+  newtype: NewtypeDef
+): string => {
+
+  let rustAlias = toRustNS(alias);
+  let visibility = [getNewtypeVisibility(name, alias, newtype)]
+
+  let constr = `
 impl ${name} {
   pub fn new(v: ${rustAlias}) -> Self {
     Self(v)
   }
 }`
-    case NewtypeKind.InCrate:
-      return `pub struct ${name}(pub(in ${newtype.module}) ${rustAlias});`
+
+  if (newtype.constr == true) {
+    visibility.push(constr)
   }
 
+  if (newtype.inner != undefined) {
+    visibility.push(getNewtypeIntoInner(name, rustAlias, newtype.inner))
+  }
+
+  return smoosh(visibility)
 }
 
 // Generate code for alias
@@ -153,9 +190,8 @@ const getAlias = (
 
   let derivesString = createDerives(extraDerivesArray)
   let newtypeCode = getNewtypeBody(name, alias, newtype)
-  let newtypeDerefCode = getNewtypeDeref(name, rustAlias)
 
-  return smoosh([docString, derivesString, newtypeCode, newtypeDerefCode])
+  return smoosh([docString, derivesString, newtypeCode])
 }
 
 /**
