@@ -1,4 +1,4 @@
-import { TypeDefinition } from '../../'
+import { TypeDefinition, TypeDefinitionStrict } from '../../'
 
 export type FieldName = string
 // Metadata for the struct fields
@@ -78,6 +78,8 @@ export type Options = {
   meta?: Record<TypeName, TypeMeta>
   camelCase?: boolean,
   enumConversionError?: EnumConversionError,
+  // You have a chance to generate extra code for each typeDefinition
+  forEachType?: ([generated, context]: [string, TypeDefinitionStrict]) => string
 }
 
 

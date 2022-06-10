@@ -11,3 +11,5 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub struct Foo {
   pub bar: u8,
 }
+
+// extra code for Foo

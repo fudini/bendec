@@ -32,7 +32,8 @@ export const defaultOptions = {
   enumConversionError: {
     type: '{{ underlying }}',
     constructor: 'other'
-  }
+  },
+  forEachType: ([generated, context]) => generated
 }
 
 export const defaultMapping: TypeMapping = {
@@ -176,46 +177,58 @@ export const generateString = (
   const typeMap: TypeMapping = { ...defaultMapping, ...typeMapping }
 
   const definitions = types.map(typeDef => {
+    // This is what we pass into callback function for each type def
+    const context = typeDef
+
     const typeName = typeDef.name
 
     const extraDerivesArray = get(extraDerives, typeName, [])
 
     if (typeMap[typeName]) {
-      return `pub type ${typeName} = ${typeMap[typeName]()};`
+      return [`pub type ${typeName} = ${typeMap[typeName]()};`, context]
     }
 
     if (ignoredTypes.includes(typeName)) {
-      return `// ignored: ${typeName}`
+      return [`// ignored: ${typeName}`, context]
     }
 
     if (typeDef.kind === Kind.Primitive) {
-      return `// primitive built-in: ${typeName}`
+      return [`// primitive built-in: ${typeName}`, context]
     }
 
     if (typeDef.kind === Kind.Alias) {
-      return getAlias(typeName, typeDef.alias, meta, extraDerivesArray, typeDef.description)
+      return [
+        getAlias(typeName, typeDef.alias, meta, extraDerivesArray, typeDef.description),
+        context
+      ]
     }
 
     if (typeDef.kind === Kind.Union) {
-      return getUnion(typeDef, types)
+      return [getUnion(typeDef, types), context]
     }
 
     if (typeDef.kind === Kind.Enum) {
-      return getEnum(typeDef, options.enumConversionError)
+      return [getEnum(typeDef, options.enumConversionError), context]
     }
 
     if (typeDef.kind === Kind.Struct) {
-      return getStruct(typeDef, lookup, typeMap, meta, extraDerivesArray, options.camelCase)
+      return [
+        getStruct(typeDef, lookup, typeMap, meta, extraDerivesArray, options.camelCase),
+        context
+      ]
     }
 
     if (typeDef.kind === Kind.Array) {
       const { name, type, length } = typeDef
       const alias = `[${toRustNS(typeDef.type)}; ${typeDef.length}]`
-      return getAlias(typeName, alias, meta, extraDerivesArray, typeDef.description)
+      return [
+        getAlias(typeName, alias, meta, extraDerivesArray, typeDef.description),
+        context
+      ]
     }
   })
 
-  const result = definitions.join('\n\n')
+  const result = definitions.map(options.forEachType).join('\n\n')
   const extrasString = options.extras.join('\n')
   const bigArraySizesString = globalBigArraySizes.length > 0
     ? `big_array! { BigArray; ${globalBigArraySizes.join(',')}, }`

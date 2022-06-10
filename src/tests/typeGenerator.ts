@@ -46,13 +46,24 @@ test('Rust - fixtures', t => {
   t.end()
 })
 
-test('Rust - camel case annotation on structs', t => {
-  const options = { camelCase: true }
+test('Rust - camel case annotation on structs and extra gen from function', t => {
+  const options = {
+    camelCase: true,
+    forEachType([generated, context]) {
+
+      if (context.name == 'Foo') {
+        return generated + `\n\n// extra code for ${context.name}`
+      }
+
+      return generated
+    }
+  }
   const generated = generateStringRust(camel, options)
   const fixture = getFixture('./generated/rust/camel.rs')
   codeEquals(t)(generated, fixture)
   t.end()
 })
+
 
 test('Rust - unions and enums', t => {
   const options = {
