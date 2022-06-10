@@ -18,6 +18,16 @@ impl WithNew {
 }
 
 /// Generated description
+pub struct WithDeref(u8);
+
+impl std::ops::Deref for WithDeref {
+  type Target = u8;
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+/// Generated description
 pub struct WithIntoInner(u8);
 
 impl WithIntoInner {

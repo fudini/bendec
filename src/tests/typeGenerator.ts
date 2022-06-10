@@ -110,6 +110,12 @@ test('Rust - newtypes', t => {
           constr: true,
         }
       },
+      "WithDeref": {
+        newtype: {
+          kind: NewtypeKind.Private,
+          deref: true,
+        }
+      },
       "WithIntoInner": {
         newtype: {
           kind: NewtypeKind.Private,

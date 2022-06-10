@@ -17,6 +17,7 @@ import {
 } from './rust/types'
 import { getUnion } from './rust/gen/union'
 import { getEnum } from './rust/gen/enum'
+import { getStruct } from './rust/gen/struct'
 import { hexPad, indent, smoosh } from './utils'
 import { doc, createDerives, toRustNS } from './rust/utils'
 
@@ -45,53 +46,6 @@ const pushBigArray = (length: number): string => {
   return '  #[serde(with = "BigArray")]\n'
 }
 
-const getMembers = (
-  lookup: Lookup,
-  fields: Field[],
-  typeMap: TypeMapping,
-  meta: Record<TypeName, TypeMeta>,
-  fieldsMeta: Record<FieldName, FieldMeta>,
-): [string[], boolean] => {
-  // TODO: remove this when Defaults get removed
-  let hasBigArray = false
-
-  let fieldsArr = fields.map(field => {
-    // expand the namespace . in to ::
-    const fieldTypeName = toRustNS(field.type)
-    const key = fieldTypeName + (field.length ? '[]' : '')
-    const rustType = field.length ? `[${fieldTypeName}; ${field.length}]` : fieldTypeName
-    const finalRustType = (typeMap[key] !== undefined)
-      ? typeMap[key](field.length)
-      : rustType
-
-    const fieldAnnotations = fieldsMeta?.[field.name]?.annotations || []
-    const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
-    
-    const typeMeta = meta[fieldTypeName]
-    const isNewtype = typeMeta?.newtype !== undefined
-
-    if (field.length > 32 && !isNewtype) {
-      hasBigArray = true
-    }
-
-    const type = lookup[field.type]
-
-    if (type === undefined) {
-      console.log(`Field type not found ${field.type}`)
-    } else if (type.kind === Kind.Array && type.length > 32 && !isNewtype) {
-      hasBigArray = true
-    }
-
-    return smoosh([
-      doc(field.description),
-      ...fieldAnnotations.map(indent(2)),
-      generatedField
-    ])
-  })
-
-  return [fieldsArr, hasBigArray]
-}
-
 // Returns a deref code for newtype impl Deref
 const getNewtypeDeref = (
   typeName: string,
@@ -114,9 +68,20 @@ const getNewtypeIntoInner = (
   pub fn into_inner(&self) -> ${rustAlias} {
     self.0
   }
+}` 
 }
-` 
+
+const getNewtypeConstr = (
+  typeName: string,
+  rustAlias: string
+): string => {
+  return `impl ${typeName} {
+  pub fn new(v: ${rustAlias}) -> Self {
+    Self(v)
+  }
+}`
 }
+
 
 // Return the body of new type
 const getNewtypeVisibility = (
@@ -149,19 +114,16 @@ const getNewtypeBody = (
   let rustAlias = toRustNS(alias);
   let visibility = [getNewtypeVisibility(name, alias, newtype)]
 
-  let constr = `
-impl ${name} {
-  pub fn new(v: ${rustAlias}) -> Self {
-    Self(v)
-  }
-}`
-
   if (newtype.constr == true) {
-    visibility.push(constr)
+    visibility.push(getNewtypeConstr(name, rustAlias))
   }
 
   if (newtype.inner == true) {
     visibility.push(getNewtypeIntoInner(name, rustAlias))
+  }
+
+  if (newtype.deref == true) {
+    visibility.push(getNewtypeDeref(name, rustAlias))
   }
 
   return smoosh(visibility)
@@ -171,7 +133,7 @@ impl ${name} {
 const getAlias = (
   name: string,
   alias: string,
-  meta: TypeMeta,
+  meta: Record<string, TypeMeta>,
   extraDerivesArray: string[],
   description?: string,
 ): string => {
@@ -243,39 +205,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Struct) {
-
-      const fieldsMeta = meta[typeName]?.fields
-
-      const [members, hasBigArray] = typeDef.fields
-        ? getMembers(lookup, typeDef.fields, typeMap, meta, fieldsMeta)
-        : [[], false]
-
-      const membersString = members.join('\n')
-      
-      const derives = ['Serialize', 'Deserialize']
-      const defaultDerive = hasBigArray ? [] : ['Default']
-      const derivesString = createDerives([
-        ...defaultDerive,
-        ...derives,
-        ...extraDerivesArray
-      ])
-      const serdeString = hasBigArray
-        ? '#[serde(deny_unknown_fields)]'
-        : '#[serde(deny_unknown_fields, default)]'
-      const serdeCamelCase = options.camelCase
-        ? '#[serde(rename_all = "camelCase")]'
-        : ''
-
-      return smoosh([
-        doc(typeDef.description),
-        `#[repr(C, packed)]`,
-        derivesString,
-        serdeString,
-        serdeCamelCase,
-        `pub struct ${typeName} {`,
-        `  ${membersString}`,
-        `}`
-      ])
+      return getStruct(typeDef, lookup, typeMap, meta, extraDerivesArray, options.camelCase)
     }
 
     if (typeDef.kind === Kind.Array) {

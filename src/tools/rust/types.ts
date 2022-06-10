@@ -22,6 +22,7 @@ export type NewtypePublic = {
   kind: NewtypeKind.Public,
   inner?: boolean,
   constr?: boolean,
+  deref?: boolean
 }
 
 // Constructor for newtype will be generated
@@ -29,6 +30,7 @@ export type NewtypePrivate = {
   kind: NewtypeKind.Private,
   inner?: boolean,
   constr?: boolean,
+  deref?: boolean
 }
 
 // Constructor will have to be defined in the specified module
@@ -36,6 +38,7 @@ export type NewtypeInCrate = {
   kind: NewtypeKind.InCrate,
   inner?: boolean,
   constr?: boolean,
+  deref?: boolean
 }
 
 // Constructor will have to be defined in the specified module
@@ -44,6 +47,7 @@ export type NewtypeInPath = {
   module: string,
   inner?: boolean,
   constr?: boolean,
+  deref?: boolean
 }
 
 // Union of new type kinds

@@ -63,7 +63,7 @@ impl Serialize for Animal {
   where S: Serializer,
   {
     unsafe {
-      match &self.zebra.kind {
+      match self.zebra.kind {
         AnimalKind::Zebra => self.zebra.serialize(serializer),
         AnimalKind::Toucan => self.toucan.serialize(serializer),
       }
@@ -160,7 +160,7 @@ impl Serialize for Animal2 {
   where S: Serializer,
   {
     unsafe {
-      match &self.zebra_2.header.animal_kind {
+      match self.zebra_2.header.animal_kind {
         AnimalKind2::Zebra2 => self.zebra_2.serialize(serializer),
         AnimalKind2::Toucan2 => self.toucan_2.serialize(serializer),
       }

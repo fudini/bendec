@@ -30,7 +30,7 @@ ${unionMembers}
   where S: Serializer,
   {
     unsafe {
-      match &self.${snakeCase(members[0])}.${discPath} {
+      match self.${snakeCase(members[0])}.${discPath} {
 ${serdeMembers} 
       }
     }
