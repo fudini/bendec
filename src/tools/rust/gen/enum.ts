@@ -1,21 +1,28 @@
 import { hexPad, smoosh } from '../../utils'
-import { doc } from '../../rust/utils'
+import { doc, createDerives } from '../../rust/utils'
 import { EnumStrict } from '../../../types'
 import { EnumConversionError } from '../types'
 import * as _ from 'lodash'
 
 export const getEnum = (
   { name, underlying, variants, description }: EnumStrict,
-  conversionError: EnumConversionError
+  conversionError: EnumConversionError,
+  extraDerivesArray: string[],
 ) => {
   const variantsFields = variants
     .map(([key, value, docs]) => smoosh([doc(docs, 2),`  ${key} = ${hexPad(value)},`]))
     .join('\n')
 
+  const derives = ['Debug', 'Copy', 'Clone', 'PartialEq', 'Serialize', 'Deserialize']
+  const derivesString = createDerives([
+    ...derives,
+    ...extraDerivesArray,
+  ])
+
   const enumBody =  smoosh([
 doc(description),
 `#[repr(${underlying})]
-#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
+${derivesString}
 pub enum ${name} {
 ${variantsFields}
 }`])

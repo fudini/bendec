@@ -58,7 +58,6 @@ pub struct Toucan {
   pub wingspan: u16,
 }
 
-#[repr(C, packed)]
 pub union Animal {
   pub zebra: Zebra,
   pub toucan: Toucan,
@@ -99,7 +98,7 @@ impl Animal {
 }
 
 #[repr(u8)]
-#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize, ExtraDerive)]
 pub enum AnimalKind2 {
   Zebra2 = 0x0001,
   Toucan2 = 0x0002,
@@ -161,7 +160,6 @@ pub struct Toucan2 {
   pub wingspan: u16,
 }
 
-#[repr(C, packed)]
 pub union Animal2 {
   pub zebra_2: Zebra2,
   pub toucan_2: Toucan2,

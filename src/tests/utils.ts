@@ -36,7 +36,7 @@ export const codeEquals = (t) => (a: string, b: string) => {
     writeFileSync(aFileName, cleanA, 'utf8')
     writeFileSync(bFileName, cleanB, 'utf8')
 
-    let args = `${aFileName} ${bFileName} --color`.split(' ')
+    let args = `${bFileName} ${aFileName} --color`.split(' ')
     spawn('diff', args, { stdio: 'inherit' })
   }
 

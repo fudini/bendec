@@ -14,7 +14,6 @@ const getUnion2 = (
   }).join('\n')
 
   const union = `${doc(description)}
-#[repr(C, packed)]
 pub union ${name} {
 ${unionMembers}
 }`

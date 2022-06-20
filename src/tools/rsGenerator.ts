@@ -208,7 +208,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Enum) {
-      return [getEnum(typeDef, options.enumConversionError), context]
+      return [getEnum(typeDef, options.enumConversionError, extraDerivesArray), context]
     }
 
     if (typeDef.kind === Kind.Struct) {

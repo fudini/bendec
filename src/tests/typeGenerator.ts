@@ -70,7 +70,8 @@ test('Rust - unions and enums', t => {
     // extra imports that you wish to add to the generated file
     extras: ['pub use super::shared::*;'],
     extraDerives: {
-      'Zebra': ['Copy', 'Clone']         
+      'Zebra': ['Copy', 'Clone'],
+      'AnimalKind2': ['ExtraDerive'],
     },
     enumConversionError: {
       type: 'EnumValueError',

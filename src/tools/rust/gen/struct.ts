@@ -1,6 +1,5 @@
 import { indent, smoosh } from '../../utils'
 import { snakeCase } from 'lodash'
-//import { doc, createDerives, toRustNS } from '../../rust/utils'
 import { doc, createDerives, toRustNS } from '../../rust/utils'
 import { Field } from '../../../'
 import {
