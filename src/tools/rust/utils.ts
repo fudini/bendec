@@ -1,7 +1,8 @@
+import { indent } from '../utils'
 // Create rust comment block with description
-export const doc = (description?: string): string => {
+export const doc = (description: string, ind: number = 0): string => {
   if (description !== undefined) {
-    return `/// ${description}`
+    return indent(ind)(`/// ${description}`)
   }
   return ''
 }

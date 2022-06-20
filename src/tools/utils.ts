@@ -7,7 +7,11 @@ export const hexPad = (n: number): string => {
 
 // Poor man's left pad
 export const indent = (i: number) => (str: string) => {
-  return '                    '.substr(-i) + str
+  if (i == 0) {
+    return str
+  } else {
+    return '                    '.substr(-i) + str
+  }
 }
 
 // To remove gaps from annotations

@@ -49,7 +49,7 @@ export const getStruct = (
     serdeString,
     serdeCamelCase,
     `pub struct ${typeName} {`,
-    `  ${membersString}`,
+    `${membersString}`,
     `}`
   ])
 }
@@ -92,7 +92,7 @@ const getMembers = (
     }
 
     return smoosh([
-      doc(field.description),
+      doc(field.description, 2),
       ...fieldAnnotations.map(indent(2)),
       generatedField
     ])

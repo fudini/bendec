@@ -27,6 +27,17 @@ ${variantsFields}
   }
 }`
 
+  const implConstIntValues = variants
+    .map(([key, value]) => `  pub const ${key}: ${underlying} = ${hexPad(value)};`)
+    .join('\n')
+
+  const implConstInt = `struct ${name}Int;
+#[allow(non_upper_case_globals, dead_code)]
+impl ${name}Int {
+${implConstIntValues}
+}
+`
+
   const variantsFieldsRev = variants
     .map(([key, value]) => `      ${hexPad(value)} => Ok(Self::${key}),`)
     .join('\n')
@@ -70,6 +81,6 @@ ${variantsFieldsRev}
     .splice(fromIndex)
     .map(implTryFromCast)
 
-  return smoosh([enumBody, implDefault, implTryFromU32, ...implTryFroms])
+  return smoosh([enumBody, implDefault, implTryFromU32, ...implTryFroms, implConstInt])
 }
 

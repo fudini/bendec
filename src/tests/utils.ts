@@ -1,7 +1,8 @@
 import path from 'path'
-import { readFileSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 import { trim, isEmpty, negate } from 'lodash'
 import { performance } from 'perf_hooks'
+import { spawn } from 'child_process'
 
 export const measure = (msg, f) => {
   const now = performance.now()
@@ -21,10 +22,24 @@ export const clean = (content: string): string => {
 }
 
 // compare code equality
-// TODO: add diff display
 export const codeEquals = (t) => (a: string, b: string) => {
   const cleanA = clean(a)
   const cleanB = clean(b)
+
+  if (cleanA != cleanB && process.env["DUMP_DIFF"] == "1") {
+
+    let randomName = Math.random().toString().replace(/\./, '')
+
+    let aFileName = `/tmp/${randomName}.a.txt`
+    let bFileName = `/tmp/${randomName}.b.txt`
+
+    writeFileSync(aFileName, cleanA, 'utf8')
+    writeFileSync(bFileName, cleanB, 'utf8')
+
+    let args = `${aFileName} ${bFileName} --color`.split(' ')
+    spawn('diff', args, { stdio: 'inherit' })
+  }
+
   t.equals(cleanA, cleanB)
 }
 

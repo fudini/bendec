@@ -28,14 +28,14 @@ test('TypeScript - custom type mapping', t => {
 test('TypeScript - unions and enums', t => {
   const cleanedGenerated = clean(generateString(unions))
   const cleanedFixture = clean(getFixture('./generated/ts/unionsEnums.ts'))
-  t.equals(cleanedGenerated, cleanedFixture)
+  codeEquals(t)(cleanedGenerated, cleanedFixture)
   t.end()
 })
 
 test('TypeScript arrays', t => {
-  const cleanedGenerated = clean(generateString(arrays))
-  const cleanedFixture = clean(getFixture('./generated/ts/arrays.ts'))
-  t.equals(cleanedGenerated, cleanedFixture)
+  const cleanedGenerated = generateString(arrays)
+  const cleanedFixture = getFixture('./generated/ts/arrays.ts')
+  codeEquals(t)(cleanedGenerated, cleanedFixture)
   t.end()
 })
 
@@ -77,10 +77,10 @@ test('Rust - unions and enums', t => {
       constructor: 'EnumValueError::new(other, "{{ name }}")'
     }
   }
-  const cleanedGenerated = clean(generateStringRust(unions, options))
-  const cleanedFixture = clean(getFixture('./generated/rust/unions_enums.rs'))
+  const cleanedGenerated = generateStringRust(unions, options)
+  const cleanedFixture = getFixture('./generated/rust/unions_enums.rs')
 
-  t.equals(cleanedGenerated, cleanedFixture)
+  codeEquals(t)(cleanedGenerated, cleanedFixture)
   t.end()
 })
 
@@ -102,9 +102,9 @@ test('Rust - arrays', t => {
     }
   }
 
-  const cleanedGenerated = clean(generateStringRust(arrays, options))
-  const cleanedFixture = clean(getFixture('./generated/rust/arrays.rs'))
-  t.equals(cleanedGenerated, cleanedFixture)
+  const cleanedGenerated = generateStringRust(arrays, options)
+  const cleanedFixture = getFixture('./generated/rust/arrays.rs')
+  codeEquals(t)(cleanedGenerated, cleanedFixture)
   t.end()
 })
 
