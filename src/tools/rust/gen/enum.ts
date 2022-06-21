@@ -38,7 +38,7 @@ ${variantsFields}
     .map(([key, value]) => `  pub const ${key}: ${underlying} = ${hexPad(value)};`)
     .join('\n')
 
-  const implConstInt = `struct ${name}Int;
+  const implConstInt = `pub struct ${name}Int;
 #[allow(non_upper_case_globals, dead_code)]
 impl ${name}Int {
 ${implConstIntValues}

@@ -35,7 +35,7 @@ impl std::convert::TryFrom<u16> for AnimalKind {
     std::convert::TryInto::try_into(value as u32)
   }
 }
-struct AnimalKindInt;
+pub struct AnimalKindInt;
 #[allow(non_upper_case_globals, dead_code)]
 impl AnimalKindInt {
   pub const Zebra: u16 = 0x1001;
@@ -130,7 +130,7 @@ impl std::convert::TryFrom<u16> for AnimalKind2 {
     std::convert::TryInto::try_into(value as u32)
   }
 }
-struct AnimalKind2Int;
+pub struct AnimalKind2Int;
 #[allow(non_upper_case_globals, dead_code)]
 impl AnimalKind2Int {
   pub const Zebra2: u8 = 0x0001;
