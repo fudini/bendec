@@ -60,6 +60,7 @@ export type NewtypeDef = NewtypePublic
 export type TypeMeta = {
   newtype?: NewtypeDef,
   fields?: FieldsMeta,
+  bitflags?: boolean
 }
 
 export type EnumConversionError = {

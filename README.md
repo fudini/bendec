@@ -6,15 +6,6 @@ Supports: Primitives, Structs, Enums, Unions, Arrays, Aliases
 
 Generators: Rust, TypeScript, C++
 
-TODO:
-
-* ~~TypeScript definitions generator~~
-* ~~Enum type~~
-* Add validate function that will check the correctness  
-  of the object you're trying to encode
-* ~~Wrapper for types with getters and setters~~
-* read-only wrappers
-
 ```js
 const bendec = new Bendec({
     definitions, // todo

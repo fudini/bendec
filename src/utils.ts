@@ -69,7 +69,18 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
     def.underlying = appendNamespace(def.underlying, ns)
     // Adjust the offset for this enum
     const variants = def.variants.map(([name, value, docs]) => {
-      return [name, value + offset, docs]
+
+      let valueNumber: number = 0
+      if (typeof value == 'string') {
+        if (value.startsWith('0x')) {
+          valueNumber = parseInt(value)
+        } else if (value.startsWith('0b')) {
+          valueNumber = parseInt(value.substr(2), 2)
+        }
+      } else {
+        valueNumber = value
+      }
+      return [name, valueNumber + offset, docs]
     })
 
     return { ...typeDef, variants, kind: Kind.Enum } as EnumStrict

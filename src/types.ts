@@ -46,7 +46,8 @@ export interface Struct {
 
 // enum type is also only to generate types and is not validated by BendecJS
 // It will alias to 'underlying' unsigned primitive
-export type EnumVariant = [string, number, string?]
+export type EnumVariant = [string, number | string, string?]
+export type EnumVariantStrict = [string, number, string?]
 export interface Enum {
   kind?: Kind.Enum
   name: string
@@ -79,7 +80,14 @@ type KindRequired<T extends { kind?: Kind }> = Pick<T, Exclude<keyof T, 'kind'>>
 export type PrimitiveStrict = KindRequired<Primitive>
 export type AliasStrict = KindRequired<Alias>
 export type StructStrict = KindRequired<Struct>
-export type EnumStrict = KindRequired<Enum>
+export type EnumStrict = {
+  kind: Kind.Enum
+  name: string
+  description?: string
+  underlying: string
+  offset: number
+  variants: EnumVariantStrict[]
+}
 export type UnionStrict = KindRequired<Union>
 export type ArrayTypeStrict = KindRequired<ArrayType>
 

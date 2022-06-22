@@ -1,7 +1,7 @@
 import path from 'path'
 import test from 'tape'
 import { generateString } from '../tools/typeGenerator'
-import { types, enums, unions, arrays, newtypes, camel } from './fixtures'
+import { types, unions, arrays, newtypes, camel } from './fixtures'
 import {
   generateString as generateStringRust,
   NewtypeKind,
@@ -76,7 +76,12 @@ test('Rust - unions and enums', t => {
     enumConversionError: {
       type: 'EnumValueError',
       constructor: 'EnumValueError::new(other, "{{ name }}")'
-    }
+    },
+    meta: {
+      'Bitflags': {
+        bitflags: true
+      }
+    },
   }
   const cleanedGenerated = generateStringRust(unions, options)
   const cleanedFixture = getFixture('./generated/rust/unions_enums.rs')
@@ -163,22 +168,22 @@ test('Rust - newtypes', t => {
 })
 
 test('CPP fixtures', t => {
-  const cleanedGenerated = clean(generateStringCpp(types))
-  const cleanedFixture = clean(getFixture('./generated/cpp/fixtures.hpp'))
-  t.equals(cleanedGenerated, cleanedFixture)
+  const generated = generateStringCpp(types)
+  const fixture = getFixture('./generated/cpp/fixtures.hpp')
+  codeEquals(t)(generated, fixture)
   t.end()
 })
 
 test('CPP unions and enums', t => {
-  const cleanedGenerated = clean(generateStringCpp(unions))
-  const cleanedFixture = clean(getFixture('./generated/cpp/unions_enums.hpp'))
-  t.equals(cleanedGenerated, cleanedFixture)
+  const generated = generateStringCpp(unions)
+  const fixture = getFixture('./generated/cpp/unions_enums.hpp')
+  codeEquals(t)(generated, fixture)
   t.end()
 })
 
 test('CPP arrays', t => {
-  const cleanedGenerated = clean(generateStringCpp(arrays))
-  const cleanedFixture = clean(getFixture('./generated/cpp/arrays.hpp'))
-  t.equals(cleanedGenerated, cleanedFixture)
+  const generated = generateStringCpp(arrays)
+  const fixture = getFixture('./generated/cpp/arrays.hpp')
+  codeEquals(t)(generated, fixture)
   t.end()
 })

@@ -2,13 +2,24 @@ import { hexPad, smoosh } from '../../utils'
 import { doc, createDerives } from '../../rust/utils'
 import { EnumStrict } from '../../../types'
 import { EnumConversionError } from '../types'
+import { NewtypeInCrate, NewtypeDef, TypeMeta } from '../../rust/types'
+import { getBitflags } from './bitflags'
 import * as _ from 'lodash'
 
 export const getEnum = (
-  { name, underlying, variants, description }: EnumStrict,
+  enumStrict: EnumStrict,
   conversionError: EnumConversionError,
+  meta: Record<string, TypeMeta>,
   extraDerivesArray: string[],
-) => {
+): string => {
+
+
+  const { name, underlying, variants, description } = enumStrict
+  // Delefate to bitflags generator if needed
+  if (meta[name]?.bitflags) {
+    return getBitflags(enumStrict, extraDerivesArray)
+  }
+
   const variantsFields = variants
     .map(([key, value, docs]) => smoosh([doc(docs, 2),`  ${key} = ${hexPad(value)},`]))
     .join('\n')

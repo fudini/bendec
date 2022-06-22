@@ -275,6 +275,15 @@ const unions: TypeDefinition[] = [{
   name: 'Animal2',
   members: ['Zebra2', 'Toucan2'],
   discriminator: ['header', 'animalKind']
+}, {
+  // Enum bitflags
+  name: 'Bitflags',
+  underlying: 'u8',
+  variants: [
+    ['A', 0b0001],
+    ['B', 0b0010],
+    ['Long', 0b0100],
+  ] as EnumVariant[]
 }]
 
 const largeMessage = {

@@ -41,3 +41,8 @@ union Animal2 {
     Zebra2 uZebra2;
     Toucan2 uToucan2;
 };
+enum class Bitflags: uint8_t {
+A = 0x0001
+,B = 0x0002
+,Long = 0x0004
+};
