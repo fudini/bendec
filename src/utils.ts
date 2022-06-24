@@ -83,7 +83,8 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
       return [name, valueNumber + offset, docs]
     })
 
-    return { ...typeDef, variants, kind: Kind.Enum } as EnumStrict
+    const bitflags = !!def.bitflags
+    return { ...def, bitflags, variants, kind: Kind.Enum } as EnumStrict
   }
 
   if ((<Union>typeDef).members !== undefined) {

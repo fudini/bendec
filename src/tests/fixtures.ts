@@ -279,6 +279,7 @@ const unions: TypeDefinition[] = [{
   // Enum bitflags
   name: 'Bitflags',
   underlying: 'u8',
+  bitflags: true,
   variants: [
     ['A', 0b0001],
     ['B', 0b0010],

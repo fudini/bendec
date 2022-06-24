@@ -76,12 +76,7 @@ test('Rust - unions and enums', t => {
     enumConversionError: {
       type: 'EnumValueError',
       constructor: 'EnumValueError::new(other, "{{ name }}")'
-    },
-    meta: {
-      'Bitflags': {
-        bitflags: true
-      }
-    },
+    }
   }
   const cleanedGenerated = generateStringRust(unions, options)
   const cleanedFixture = getFixture('./generated/rust/unions_enums.rs')

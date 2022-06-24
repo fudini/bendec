@@ -14,9 +14,9 @@ export const getEnum = (
 ): string => {
 
 
-  const { name, underlying, variants, description } = enumStrict
-  // Delefate to bitflags generator if needed
-  if (meta[name]?.bitflags) {
+  const { name, underlying, variants, description, bitflags } = enumStrict
+  // Delegate to bitflags generator if needed
+  if (meta[name]?.bitflags || bitflags) {
     return getBitflags(enumStrict, extraDerivesArray)
   }
 
