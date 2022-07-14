@@ -14,12 +14,12 @@ export const getStruct = (
   typeDef: StructStrict,
   lookup: Lookup,
   typeMap: TypeMapping,
-  meta: Record<string, TypeMeta>,
+  meta: TypeMeta,
   extraDerivesArray: string[],
   camelCase: boolean
 ) => {
   const typeName = typeDef.name
-  const fieldsMeta = meta[typeName]?.fields
+  const fieldsMeta = meta?.fields
 
   const [members, hasBigArray] = typeDef.fields
     ? getMembers(lookup, typeDef.fields, typeMap, meta, fieldsMeta)
@@ -57,7 +57,7 @@ const getMembers = (
   lookup: Lookup,
   fields: Field[],
   typeMap: TypeMapping,
-  meta: Record<TypeName, TypeMeta>,
+  meta: TypeMeta,
   fieldsMeta: Record<FieldName, FieldMeta>,
 ): [string[], boolean] => {
   // TODO: remove this when Defaults get removed
@@ -75,8 +75,7 @@ const getMembers = (
     const fieldAnnotations = fieldsMeta?.[field.name]?.annotations || []
     const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
     
-    const typeMeta = meta[fieldTypeName]
-    const isNewtype = typeMeta?.newtype !== undefined
+    const isNewtype = meta?.newtype !== undefined
 
     if (field.length > 32 && !isNewtype) {
       hasBigArray = true

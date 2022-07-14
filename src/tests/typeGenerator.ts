@@ -49,7 +49,7 @@ test('Rust - fixtures', t => {
 test('Rust - camel case annotation on structs and extra gen from function', t => {
   const options = {
     camelCase: true,
-    forEachType([generated, context]) {
+    forEachType([generated, context, meta]) {
 
       if (context.name == 'Foo') {
         return generated + `\n\n// extra code for ${context.name}`

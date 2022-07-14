@@ -9,14 +9,14 @@ import * as _ from 'lodash'
 export const getEnum = (
   enumStrict: EnumStrict,
   conversionError: EnumConversionError,
-  meta: Record<string, TypeMeta>,
+  meta: TypeMeta,
   extraDerivesArray: string[],
 ): string => {
 
 
   const { name, underlying, variants, description, bitflags } = enumStrict
   // Delegate to bitflags generator if needed
-  if (meta[name]?.bitflags || bitflags) {
+  if (meta?.bitflags || bitflags) {
     return getBitflags(enumStrict, extraDerivesArray)
   }
 

@@ -34,7 +34,7 @@ export const defaultOptions = {
     type: '{{ underlying }}',
     constructor: 'other'
   },
-  forEachType: ([generated, context]) => generated
+  forEachType: ([generated, context, meta]) => generated
 }
 
 export const defaultMapping: TypeMapping = {
@@ -74,6 +74,8 @@ export const generateString = (
 
     const typeName = typeDef.name
 
+    const typeMeta = meta[typeName]
+
     const extraDerivesArray = get(extraDerives, typeName, [])
 
     if (typeMap[typeName]) {
@@ -90,7 +92,7 @@ export const generateString = (
 
     if (typeDef.kind === Kind.Alias) {
       return [
-        getAlias(typeName, typeDef.alias, meta, extraDerivesArray, typeDef.description),
+        getAlias(typeName, typeDef.alias, typeMeta, extraDerivesArray, typeDef.description),
         context
       ]
     }
@@ -100,12 +102,12 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Enum) {
-      return [getEnum(typeDef, options.enumConversionError, meta, extraDerivesArray), context]
+      return [getEnum(typeDef, options.enumConversionError, typeMeta, extraDerivesArray), context]
     }
 
     if (typeDef.kind === Kind.Struct) {
       return [
-        getStruct(typeDef, lookup, typeMap, meta, extraDerivesArray, options.camelCase),
+        getStruct(typeDef, lookup, typeMap, typeMeta, extraDerivesArray, options.camelCase),
         context
       ]
     }
@@ -114,13 +116,17 @@ export const generateString = (
       const { name, type, length } = typeDef
       const alias = `[${toRustNS(typeDef.type)}; ${typeDef.length}]`
       return [
-        getAlias(typeName, alias, meta, extraDerivesArray, typeDef.description),
+        getAlias(typeName, alias, typeMeta, extraDerivesArray, typeDef.description),
         context
       ]
     }
   })
 
-  const result = definitions.map(options.forEachType).join('\n\n')
+  const result = definitions.map(([generated, context]: [string, TypeDefinitionStrict]) => {
+    const typeName = context.name
+    const typeMeta = meta[typeName]
+    return options.forEachType([generated, context, typeMeta])
+  }).join('\n\n')
   const extrasString = options.extras.join('\n')
   const bigArraySizesString = globalBigArraySizes.length > 0
     ? `big_array! { BigArray; ${globalBigArraySizes.join(',')}, }`
