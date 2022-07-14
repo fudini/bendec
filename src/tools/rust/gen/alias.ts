@@ -12,12 +12,12 @@ import { doc, createDerives, toRustNS } from '../../rust/utils'
 export const getAlias = (
   name: string,
   alias: string,
-  meta: Record<string, TypeMeta>,
+  meta: TypeMeta,
   extraDerivesArray: string[],
   description?: string,
 ): string => {
  
-  let newtype = meta[name]?.newtype;
+  let newtype = meta?.newtype;
   let rustAlias = toRustNS(alias);
   let docString = doc(description)
 

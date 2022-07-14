@@ -80,7 +80,7 @@ export type Options = {
   camelCase?: boolean,
   enumConversionError?: EnumConversionError,
   // You have a chance to generate extra code for each typeDefinition
-  forEachType?: ([generated, context]: [string, TypeDefinitionStrict]) => string
+  forEachType?: ([generated, context, meta]: [string, TypeDefinitionStrict, TypeMeta]) => string
 }
 
 
