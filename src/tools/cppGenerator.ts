@@ -58,26 +58,25 @@ const getEnum = (
   attribute: string
 ) => {
   const variantsFields: string = variants.map(([key, value], index) => {
-    // let out = `    ${key} = ${hexPad(value)}`;
-    let out = `    ${key} = ${value}`;
+    let out = `    ${key} = ${value}`
     if (index < variants.length - 1) {
-      out += ',';
+      out += ','
     }
     return `${out}`
   }).join('\n')
 
   const name2typeMapFields: string = variants.map(([key, value], index) => {
-    let out = `    { "${key}", ${name}::${key} }`;
+    let out = `    { "${key}", ${name}::${key} }`
     if (index < variants.length - 1) {
-      out += ',';
+      out += ','
     }
     return `${out}`
   }).join('\n')
 
   const type2nameMapFields: string = variants.map(([key, value], index) => {
-    let out = `    { ${name}::${key}, "${key}" }`;
+    let out = `    { ${name}::${key}, "${key}" }`
     if (index < variants.length - 1) {
-      out += ',';
+      out += ','
     }
     return `${out}`
   }).join('\n')
@@ -126,14 +125,14 @@ export const generateString = (
 ) => {
 
   class CppTypeDefinition {
-    name: string;
-    content: string;
-    dependencies: string[];
+    name: string
+    content: string
+    dependencies: string[]
 
     constructor(name: string, content: string, dependencies: string[]) {
-      this.name = name;
-      this.content = content;
-      this.dependencies = dependencies;
+      this.name = name
+      this.content = content
+      this.dependencies = dependencies
     }
   }
 
@@ -147,21 +146,21 @@ export const generateString = (
     const typeName = getCppType(typeDef.name)
 
     if (typeMap[typeName]) {
-      return new CppTypeDefinition(typeName, `using ${typeName} = ${typeMap[typeName]};`, []);
+      return new CppTypeDefinition(typeName, `using ${typeName} = ${typeMap[typeName]};`, [])
     }
 
     if (ignoredTypes.includes(typeName)) {
-      return new CppTypeDefinition(typeName, `// ignored: ${typeName}`, []);
+      return new CppTypeDefinition(typeName, `// ignored: ${typeName}`, [])
     }
 
     if (typeDef.kind === Kind.Primitive) {
-      return new CppTypeDefinition(typeName, `// primitive built-in: ${typeName}`, []);
+      return new CppTypeDefinition(typeName, `// primitive built-in: ${typeName}`, [])
     }
 
     if (typeDef.kind === Kind.Alias) {
-      const typeAlias = getCppType(typeDef.alias);
+      const typeAlias = getCppType(typeDef.alias)
 
-      return new CppTypeDefinition(typeName, `using ${typeName} = ${typeAlias};`, [typeAlias]);
+      return new CppTypeDefinition(typeName, `using ${typeName} = ${typeAlias};`, [typeAlias])
     }
 
     if (typeDef.kind === Kind.Union) {
@@ -184,7 +183,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Enum) {
-      return new CppTypeDefinition(typeName, getEnum(typeDef, options.attribute), []);
+      return new CppTypeDefinition(typeName, getEnum(typeDef, options.attribute), [])
     }
 
     if (typeDef.kind === Kind.Struct) {
@@ -199,7 +198,7 @@ struct ${typeName} {
 ${membersString}
 
     friend std::ostream &operator << (std::ostream &, const ${typeName} &);
-} __attribute__ ((packed));`, typeDef.fields.map(field => field.type));
+} __attribute__ ((packed));`, typeDef.fields.map(field => field.type))
     }
 
     if (typeDef.kind === Kind.Array) {
@@ -208,40 +207,40 @@ ${membersString}
       return new CppTypeDefinition(typeName, `using ${typeName} = ${cppType}[${typeDef.length}];`, [typeDef.type]);
     }
 
-  });
+  })
 
-  let missingTypes: Set<string> = new Set();
+  let missingTypes: Set<string> = new Set()
 
-  let contents: Map<string, string> = new Map();
+  let contents: Map<string, string> = new Map()
 
-  let depGraph = new DepGraph();
+  let depGraph = new DepGraph()
 
-  Object.keys(cppTypeMap).forEach(primitive => depGraph.addNode(primitive));
+  Object.keys(cppTypeMap).forEach(primitive => depGraph.addNode(primitive))
 
   definitions.forEach(def => {
-    contents.set(def.name, def.content);
-    depGraph.addNode(def.name);
-  });
+    contents.set(def.name, def.content)
+    depGraph.addNode(def.name)
+  })
   definitions.forEach(def => {
     def.dependencies.forEach(dep => {
       if (depGraph.hasNode(dep)) {
-        depGraph.addDependency(def.name, dep);
+        depGraph.addDependency(def.name, dep)
       }
       else {
-        missingTypes.add(dep);
+        missingTypes.add(dep)
       }
-    });
-  });
+    })
+  })
 
   const missingTypesString: string = Array.from(missingTypes).map(x => `// missing definition: ${x}`).join('\n');
   const result = missingTypesString + '\n' + depGraph.overallOrder().filter(
     (name: string) => contents.has(name)
-  ).map(name => contents.get(name)).join('\n');
-  let guardPrefix: string = "";
-  let guardPostfix: string = "";
+  ).map(name => contents.get(name)).join('\n')
+  let guardPrefix: string = ""
+  let guardPostfix: string = ""
   if (filename != null) {
-    const finalFilename: string = path.basename(filename);
-    const guard: string = finalFilename.replace(/[^\w]/g, "_").toUpperCase();
+    const finalFilename: string = path.basename(filename)
+    const guard: string = finalFilename.replace(/[^\w]/g, "_").toUpperCase()
     guardPrefix = `
 #ifndef ${guard}
 #define ${guard}
