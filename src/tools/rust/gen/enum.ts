@@ -14,12 +14,20 @@ export const getEnum = (
 ): string => {
 
 
-  const { name, underlying, variants, description, bitflags } = enumStrict
+  const {
+    name,
+    underlying,
+    variants,
+    description,
+    bitflags,
+  } = enumStrict
+
   // Delegate to bitflags generator if needed
   if (meta?.bitflags || bitflags) {
     return getBitflags(enumStrict, extraDerivesArray)
   }
 
+  const implConst = !!(meta?.implConst)
   const variantsFields = variants
     .map(([key, value, docs]) => smoosh([doc(docs, 2),`  ${key} = ${hexPad(value)},`]))
     .join('\n')
@@ -77,28 +85,13 @@ ${variantsFieldsRev}
 }`
   }
 
-  // Implements using existing implementation for u32
-  const implTryFromCast = (from: string) => {
-    const errorType = _.template(conversionError.type)({ underlying: 'u32' });
-    const errorConstructor = _.template(conversionError.constructor)({ underlying: from, name })
-  return `impl std::convert::TryFrom<${from}> for ${name} {
-  type Error = ${errorType};
-  fn try_from(value: ${from}) -> Result<Self, Self::Error> {
-    std::convert::TryInto::try_into(value as u32)
+  const implTryFromUnderlying = implTryFrom(underlying)
+  var impls = [enumBody, implDefault, implTryFromUnderlying]
+
+  if (implConst) {
+    impls.push(implConstInt)
   }
-}`
-  }
-  
-  const implTryFromU32 = implTryFrom('u32')
 
-  // We implement from underlying and up
-  const froms = ['u8', 'u16']
-  const fromIndex = froms.findIndex(f => f == underlying)
-
-  const implTryFroms = froms
-    .splice(fromIndex)
-    .map(implTryFromCast)
-
-  return smoosh([enumBody, implDefault, implTryFromU32, ...implTryFroms, implConstInt])
+  return smoosh(impls)
 }
 

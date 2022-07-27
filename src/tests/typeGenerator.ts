@@ -76,6 +76,11 @@ test('Rust - unions and enums', t => {
     enumConversionError: {
       type: 'EnumValueError',
       constructor: 'EnumValueError::new(other, "{{ name }}")'
+    },
+    meta: {
+      "AnimalKind": {
+        implConst: true
+      }
     }
   }
   const cleanedGenerated = generateStringRust(unions, options)

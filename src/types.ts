@@ -56,6 +56,7 @@ export interface Enum {
   offset?: number | string // string because in json we can't use hex values
   variants: EnumVariant[]
   bitflags?: boolean
+  implConst?: boolean
 }
 
 // Bendec doesn't support Union type as a field type yet
@@ -89,6 +90,7 @@ export type EnumStrict = {
   offset: number
   variants: EnumVariantStrict[]
   bitflags: boolean
+  implConst: boolean
 }
 export type UnionStrict = KindRequired<Union>
 export type ArrayTypeStrict = KindRequired<ArrayType>
