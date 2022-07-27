@@ -61,6 +61,7 @@ export type TypeMeta = {
   newtype?: NewtypeDef,
   fields?: FieldsMeta,
   bitflags?: boolean
+  implConst?: boolean
 }
 
 export type EnumConversionError = {
