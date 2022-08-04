@@ -8,7 +8,7 @@ pub use super::shared::*;
 // primitive built-in: u16
 
 #[repr(u16)]
-#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum AnimalKind {
   /// This is a zebra
   Zebra = 0x1001,
@@ -92,7 +92,7 @@ impl Animal {
 }
 
 #[repr(u8)]
-#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize, ExtraDerive)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize, ExtraDerive)]
 pub enum AnimalKind2 {
   Zebra2 = 0x0001,
   Toucan2 = 0x0002,
