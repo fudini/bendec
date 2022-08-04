@@ -32,7 +32,7 @@ export const getEnum = (
     .map(([key, value, docs]) => smoosh([doc(docs, 2),`  ${key} = ${hexPad(value)},`]))
     .join('\n')
 
-  const derives = ['Debug', 'Copy', 'Clone', 'PartialEq', 'Serialize', 'Deserialize']
+  const derives = ['Debug', 'Copy', 'Clone', 'Eq', 'PartialEq', 'Serialize', 'Deserialize']
   const derivesString = createDerives([
     ...derives,
     ...extraDerivesArray,
