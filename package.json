@@ -4,8 +4,8 @@
   "description": "Buffer encoding / decoding for fixed size structs",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "./node_modules/.bin/tsc",
-    "watch": "./node_modules/.bin/tsc -w",
+    "build": "tsc",
+    "watch": "tsc -w",
     "perf": "node ./dist/tests/perf/index",
     "test": "node ./dist/tests"
   },

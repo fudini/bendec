@@ -19,20 +19,14 @@ impl Default for AnimalKind {
     Self::Zebra
   }
 }
-impl std::convert::TryFrom<u32> for AnimalKind {
+impl std::convert::TryFrom<u16> for AnimalKind {
   type Error = EnumValueError;
-  fn try_from(value: u32) -> Result<Self, Self::Error> {
+  fn try_from(value: u16) -> Result<Self, Self::Error> {
     match value {
       0x1001 => Ok(Self::Zebra),
       0x1002 => Ok(Self::Toucan),
       other => Err(EnumValueError::new(other, "AnimalKind")),
     }
-  }
-}
-impl std::convert::TryFrom<u16> for AnimalKind {
-  type Error = EnumValueError;
-  fn try_from(value: u16) -> Result<Self, Self::Error> {
-    std::convert::TryInto::try_into(value as u32)
   }
 }
 pub struct AnimalKindInt;
@@ -108,33 +102,15 @@ impl Default for AnimalKind2 {
     Self::Zebra2
   }
 }
-impl std::convert::TryFrom<u32> for AnimalKind2 {
+impl std::convert::TryFrom<u8> for AnimalKind2 {
   type Error = EnumValueError;
-  fn try_from(value: u32) -> Result<Self, Self::Error> {
+  fn try_from(value: u8) -> Result<Self, Self::Error> {
     match value {
       0x0001 => Ok(Self::Zebra2),
       0x0002 => Ok(Self::Toucan2),
       other => Err(EnumValueError::new(other, "AnimalKind2")),
     }
   }
-}
-impl std::convert::TryFrom<u8> for AnimalKind2 {
-  type Error = EnumValueError;
-  fn try_from(value: u8) -> Result<Self, Self::Error> {
-    std::convert::TryInto::try_into(value as u32)
-  }
-}
-impl std::convert::TryFrom<u16> for AnimalKind2 {
-  type Error = EnumValueError;
-  fn try_from(value: u16) -> Result<Self, Self::Error> {
-    std::convert::TryInto::try_into(value as u32)
-  }
-}
-pub struct AnimalKind2Int;
-#[allow(non_upper_case_globals, dead_code)]
-impl AnimalKind2Int {
-  pub const Zebra2: u8 = 0x0001;
-  pub const Toucan2: u8 = 0x0002;
 }
 
 #[repr(C, packed)]
