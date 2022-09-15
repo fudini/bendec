@@ -47,13 +47,24 @@ const getNewtypeDeref = (
 }` 
 }
 
-// Returns a deref code for newtype impl Deref
 const getNewtypeIntoInner = (
   typeName: string,
   rustAlias: string,
 ): string => {
   return `impl ${typeName} {
-  pub fn into_inner(&self) -> ${rustAlias} {
+  pub fn into_inner(self) -> ${rustAlias} {
+    self.0
+  }
+}` 
+}
+
+// Returns a as_inner code for newtype impl
+const getNewtypeAsInner = (
+  typeName: string,
+  rustAlias: string,
+): string => {
+  return `impl ${typeName} {
+  pub fn as_inner(&self) -> ${rustAlias} {
     self.0
   }
 }` 
@@ -95,7 +106,7 @@ const getNewtypeVisibility = (
 const getNewtypeBody = (
   name: string, 
   alias: string,
-  newtype: NewtypeDef
+  newtype: NewtypeDef 
 ): string => {
 
   let rustAlias = toRustNS(alias);
@@ -105,8 +116,12 @@ const getNewtypeBody = (
     visibility.push(getNewtypeConstr(name, rustAlias))
   }
 
-  if (newtype.inner == true) {
+  if (newtype.intoInner == true) {
     visibility.push(getNewtypeIntoInner(name, rustAlias))
+  }
+
+  if (newtype.asInner == true) {
+    visibility.push(getNewtypeAsInner(name, rustAlias))
   }
 
   if (newtype.deref == true) {

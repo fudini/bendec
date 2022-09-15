@@ -20,7 +20,8 @@ export enum NewtypeKind {
 // Inner type is going to be public which is just a glorified alias
 export type NewtypePublic = {
   kind: NewtypeKind.Public,
-  inner?: boolean,
+  intoInner?: boolean,
+  asInner?: boolean,
   constr?: boolean,
   deref?: boolean
 }
@@ -28,7 +29,8 @@ export type NewtypePublic = {
 // Constructor for newtype will be generated
 export type NewtypePrivate = {
   kind: NewtypeKind.Private,
-  inner?: boolean,
+  intoInner?: boolean,
+  asInner?: boolean,
   constr?: boolean,
   deref?: boolean
 }
@@ -36,7 +38,8 @@ export type NewtypePrivate = {
 // Constructor will have to be defined in the specified module
 export type NewtypeInCrate = {
   kind: NewtypeKind.InCrate,
-  inner?: boolean,
+  intoInner?: boolean,
+  asInner?: boolean,
   constr?: boolean,
   deref?: boolean
 }
@@ -45,7 +48,8 @@ export type NewtypeInCrate = {
 export type NewtypeInPath = {
   kind: NewtypeKind.InPath,
   module: string,
-  inner?: boolean,
+  intoInner?: boolean,
+  asInner?: boolean,
   constr?: boolean,
   deref?: boolean
 }

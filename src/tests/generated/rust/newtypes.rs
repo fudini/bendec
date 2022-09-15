@@ -31,7 +31,16 @@ impl std::ops::Deref for WithDeref {
 pub struct WithIntoInner(u8);
 
 impl WithIntoInner {
-  pub fn into_inner(&self) -> u8 {
+  pub fn into_inner(self) -> u8 {
+    self.0
+  }
+}
+
+/// Generated description
+pub struct WithAsInner(u8);
+
+impl WithAsInner {
+  pub fn as_inner(&self) -> u8 {
     self.0
   }
 }

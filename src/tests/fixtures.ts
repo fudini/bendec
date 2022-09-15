@@ -417,6 +417,11 @@ const newtypes: TypeDefinition[] = [{
   alias: 'u8'
 }, {
   kind: Kind.Alias,
+  name: 'WithAsInner',
+  description: 'Generated description',
+  alias: 'u8'
+}, {
+  kind: Kind.Alias,
   name: 'InPath',
   description: 'InPath description',
   alias: 'u8'
