@@ -198,7 +198,7 @@ struct ${typeName} {
 ${membersString}
 
     friend std::ostream &operator << (std::ostream &, const ${typeName} &);
-} __attribute__ ((packed));`, typeDef.fields.map(field => field.type))
+};`, typeDef.fields.map(field => field.type))
     }
 
     if (typeDef.kind === Kind.Array) {
@@ -244,8 +244,13 @@ ${membersString}
     guardPrefix = `
 #ifndef ${guard}
 #define ${guard}
+
+#pragma pack(push)
+#prgama pack(1)
 `;
     guardPostfix = `
+#pragma pack(pop)
+
 #endif // ${guard}
 `;
   }
