@@ -10,7 +10,7 @@ struct Uri {
     uint16_t port;
 
     friend std::ostream &operator << (std::ostream &, const Uri &);
-} __attribute__ ((packed));
+};
 // primitive built-in: uint8_t
 using Age = uint8_t;
 
@@ -22,13 +22,13 @@ struct UserExtra {
     Uri uris[4];
 
     friend std::ostream &operator << (std::ostream &, const UserExtra &);
-} __attribute__ ((packed));
+};
 
 struct Header {
     uint8_t msgType;
 
     friend std::ostream &operator << (std::ostream &, const Header &);
-} __attribute__ ((packed));
+};
 
 struct User {
     char firstName[16];
@@ -37,14 +37,14 @@ struct User {
     Age age;
 
     friend std::ostream &operator << (std::ostream &, const User &);
-} __attribute__ ((packed));
+};
 
 struct UserAdd {
     Header header;
     User user;
 
     friend std::ostream &operator << (std::ostream &, const UserAdd &);
-} __attribute__ ((packed));
+};
 using CustomerAdd = UserAdd;
 
 struct Group {
@@ -53,7 +53,7 @@ struct Group {
     User users[5];
 
     friend std::ostream &operator << (std::ostream &, const Group &);
-} __attribute__ ((packed));
+};
 
 struct Person {
     uint16_t a;
@@ -62,7 +62,7 @@ struct Person {
     uint8_t d;
 
     friend std::ostream &operator << (std::ostream &, const Person &);
-} __attribute__ ((packed));
+};
 // primitive built-in: uint32_t
 using Price = uint32_t;
 
@@ -83,4 +83,4 @@ struct LargeMessage {
     char name4[64];
 
     friend std::ostream &operator << (std::ostream &, const LargeMessage &);
-} __attribute__ ((packed));
+};

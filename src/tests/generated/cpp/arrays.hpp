@@ -8,7 +8,7 @@ struct Test {
     uint8_t two;
 
     friend std::ostream &operator << (std::ostream &, const Test &);
-} __attribute__ ((packed));
+};
 using Test3 = Test[3];
 using Ident = Test3;
 // ignored: char
@@ -25,4 +25,4 @@ struct Foo {
     BigArrayNewtype id6;
 
     friend std::ostream &operator << (std::ostream &, const Foo &);
-} __attribute__ ((packed));
+};

@@ -25,14 +25,14 @@ struct Zebra {
     uint8_t legs;
 
     friend std::ostream &operator << (std::ostream &, const Zebra &);
-} __attribute__ ((packed));
+};
 
 struct Toucan {
     AnimalKind kind;
     uint16_t wingspan;
 
     friend std::ostream &operator << (std::ostream &, const Toucan &);
-} __attribute__ ((packed));
+};
 
 union Animal {
     Zebra uZebra;
@@ -59,21 +59,21 @@ struct Header {
     AnimalKind2 animalKind;
 
     friend std::ostream &operator << (std::ostream &, const Header &);
-} __attribute__ ((packed));
+};
 
 struct Zebra2 {
     Header header;
     uint8_t legs;
 
     friend std::ostream &operator << (std::ostream &, const Zebra2 &);
-} __attribute__ ((packed));
+};
 
 struct Toucan2 {
     Header header;
     uint16_t wingspan;
 
     friend std::ostream &operator << (std::ostream &, const Toucan2 &);
-} __attribute__ ((packed));
+};
 
 union Animal2 {
     Zebra2 uZebra2;
