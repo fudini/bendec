@@ -1,0 +1,213 @@
+import {upperFirst} from "lodash";
+import {
+  FieldWithJavaProperties,
+  getInterfacesImports,
+  Options,
+  TypeDefinitionStrictWithSize,
+  TypeMapping,
+} from "./types";
+import {addJavaFieldProperties, header, indent, typesToByteOperators,} from "./utils";
+
+const getMembers = (fields: FieldWithJavaProperties[]) => {
+  const length = fields.reduce(
+    (acc, field) => (acc += field.typeSize * (field.length || 1)),
+    0
+  );
+  return fields
+    .map((field) => `${indent(1)}private ${field.javaType} ${field.name};`)
+    .concat([`${indent(1)}public static final int byteLength = ${length};`])
+    .join("\n");
+};
+
+const getterJavadoc = field => {
+  return field.description ? `${indent(1)}/**
+${indent(1)} * @return ${field.description}
+${indent(1)} */\n` : '';
+}
+
+const getGetters = (fields: FieldWithJavaProperties[]) => {
+  return fields
+    .map(
+      (field) =>
+        `${getterJavadoc(field)}${indent(1)}public ${field.javaType} get${upperFirst(field.name)}() {
+${indent(2)}return this.${field.name};
+${indent(1)}};`
+    )
+    .join("\n");
+};
+
+const setterJavadoc = field => {
+  return field.description ? `${indent(1)}/**
+${indent(1)} * @param ${field.name} ${field.description}
+${indent(1)} */\n` : '';
+}
+
+const getSetters = (fields: FieldWithJavaProperties[]) => {
+  return fields
+    .map(
+      (field) =>
+        `${setterJavadoc(field)}${indent(1)}public void set${upperFirst(field.name)}(${field.javaType} ${field.name}) {
+${indent(2)}this.${field.name} = ${field.name};
+${indent(1)}};`
+    )
+    .join("\n");
+};
+
+const getConstructors = (
+  name: string,
+  fields: FieldWithJavaProperties[],
+  typeMap: TypeMapping,
+  types: TypeDefinitionStrictWithSize[],
+  options: Options
+) => {
+  const parameters = fields
+    .map((field) => {
+      return `${field.javaType} ${field.name}`;
+    })
+    .join(", ");
+  const assignments = fields
+    .map((field) => `${indent(2)}this.${field.name} = ${field.name};`)
+    .join("\n");
+
+  const hasHeader = !!fields.find((f) => f.name === "header");
+
+  let currentLength = 0;
+  const byteAssignments = fields
+    .map((field) => {
+      const outputString = `${indent(2)}${
+        typesToByteOperators(
+          types,
+          field.name,
+          field.finalTypeName,
+          typeMap,
+          field.typeSize,
+          currentLength,
+          field.length || field.typeLength
+        ).read
+      }`;
+      currentLength += field.typeSize * (field.length || 1);
+      return outputString;
+    })
+    .join("\n");
+  const bytesContructors = `
+${indent(1)}public ${name}(byte[] bytes, int offset) {
+${byteAssignments}${
+    hasHeader
+      ? `
+${indent(2)}this.header.setLength(this.byteLength);`
+      : ""
+  }${
+    hasHeader
+      ? `
+${indent(2)}this.header.setMsgType(MsgType.${name.toLocaleUpperCase()});`
+      : ""
+  }
+${indent(1)}}
+
+${indent(1)}public ${name}(byte[] bytes) {
+${indent(2)}this(bytes, 0);
+${indent(1)}}
+
+${indent(1)}public ${name}() {
+${indent(1)}}
+`;
+  return `
+${indent(1)}public ${name}(${parameters}) {
+${assignments}${
+    hasHeader
+      ? `
+${indent(2)}this.header.setLength(this.byteLength);`
+      : ""
+  }${
+    hasHeader
+      ? `
+${indent(2)}this.header.setMsgType(MsgType.${name.toLocaleUpperCase()});`
+      : ""
+  }
+${indent(1)}}
+${bytesContructors}
+`;
+};
+
+const getStructDocumentation = (typeDef) => {
+  return `
+/**
+ * <h2>${typeDef.name}</h2>
+${typeDef.description ? " * <p>" + typeDef.description + "</p>" : ""}
+ * <p>Byte length: ${typeDef.size}</p>
+ * ${(typeDef.fields as FieldWithJavaProperties[])
+   .map((field) => {
+     const typeString = `${field.type}${
+       field.javaType !== field.type ? ` > ${field.javaType}` : ""
+     }${field.finalTypeName !== field.type ? ` (${field.finalTypeName})` : ""}`;
+     return `<p>${typeString} ${field.name} - ${
+       (field as any).description
+     } | size ${field.typeSize * (field.length || 1)}</p>
+ * `;
+   })
+   .join("")}*/`;
+};
+
+const getAdditionalMethods = (
+  name: string,
+  fields: FieldWithJavaProperties[]
+) => {
+  const stringFields = fields.map((f, i) => `${indent(3)}"${i !== 0 ? `, ` : ``}${f.name}=" + ${f.name} +`);
+  return `${indent(1)}@Override
+${indent(1)}public int hashCode() {
+${indent(2)}return Objects.hash(${fields.map((f) => f.name).join(", ")});
+${indent(1)}}
+
+${indent(1)}@Override
+${indent(1)}public String toString() {
+${indent(2)}return "${name}{" +
+${stringFields.join("\n")}
+${indent(3)}'}';
+${indent(2)}}`
+}
+
+
+export const getStruct = (
+  typeDef,
+  typeMap: TypeMapping,
+  types: TypeDefinitionStrictWithSize[],
+  options: Options,
+  unionInterfaces?: string[]
+) => {
+  const extendedTypeDef = {
+    ...typeDef,
+    fields: typeDef.fields.map((f) =>
+      addJavaFieldProperties(f, typeMap, types)
+    ),
+  };
+  const intefaces = options.interfaces.filter(i => i.addInterfaceOrNot(typeDef))
+      .map(i => i.interfaceName).concat(unionInterfaces)
+      .filter((x: string) => x.length > 0).join(", ");
+
+  return `${header(
+    options.bendecPackageName,
+    getInterfacesImports(options.interfaces),
+  )}
+${getStructDocumentation(extendedTypeDef)}
+
+public class ${extendedTypeDef.name} implements ${intefaces} {
+
+${getMembers(extendedTypeDef.fields)}
+${getConstructors(
+  extendedTypeDef.name,
+  extendedTypeDef.fields,
+  typeMap,
+  types,
+  options
+)}
+
+${getGetters(extendedTypeDef.fields)}
+
+${getSetters(extendedTypeDef.fields)}
+
+${options.interfaces.map(i => i.structMethods(extendedTypeDef.fields, types, typeDef, typeMap))
+      .filter((x: string) => x.length > 0).join("")}
+${getAdditionalMethods(extendedTypeDef.name, extendedTypeDef.fields)}
+}
+`;
+};
