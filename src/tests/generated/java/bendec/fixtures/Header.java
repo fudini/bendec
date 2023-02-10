@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.fixtures.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -71,8 +72,7 @@ public class Header implements ByteSerializable, JsonSerializable {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.put("msgType", msgType);
         return object;
     }

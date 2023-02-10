@@ -1,6 +1,13 @@
-import {header, indent, typesToJsonOperators} from "./utils";
-import {FieldWithJavaProperties, JavaInterface, TypeDefinitionStrictWithSize, TypeMapping} from "./types";
+import {header, indent} from "./utils";
+import {
+    FieldWithJavaProperties,
+    JavaInterface,
+    TypeDefinitionStrictWithSize,
+    TypeMapping,
+    TypeReadWriteDefinition
+} from "./types";
 import {Kind} from "../../types";
+import {includes, upperFirst} from "lodash";
 
 export function jsonSerializableGenerator(packageName: string) : JavaInterface {
     return {
@@ -11,6 +18,7 @@ export function jsonSerializableGenerator(packageName: string) : JavaInterface {
             body: jsonSerializableFile(packageName)
         },
         imports: `import ${packageName}.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -23,7 +31,8 @@ import com.fasterxml.jackson.databind.node.TextNode;`,
 
 export const jsonSerializableFile = (packageName: string) => `${header(
     packageName,
-    `import com.fasterxml.jackson.databind.node.ObjectNode;
+    `import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.TextNode;`
@@ -31,9 +40,10 @@ import com.fasterxml.jackson.databind.node.TextNode;`
 
 public interface JsonSerializable {
 
-    public abstract ObjectNode toJson();
-
-    public abstract ObjectNode toJson(ObjectNode object);
+    JsonMapper MAPPER = new JsonMapper();
+    
+    abstract ObjectNode toJson();
+    abstract ObjectNode toJson(ObjectNode object);
 
 }
 `;
@@ -59,8 +69,7 @@ const getStructJsonMethods = (
     return `
 ${indent(1)}@Override  
 ${indent(1)}public ObjectNode toJson() {
-${indent(2)}ObjectMapper mapper = new ObjectMapper();
-${indent(2)}ObjectNode object = mapper.createObjectNode();
+${indent(2)}ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
 ${jsonFilling}
 ${indent(2)}return object;
 ${indent(1)}}
@@ -90,3 +99,82 @@ ${indent(1)}}
         return "";
     }
 };
+
+const  typesToJsonOperators = (
+  fieldName: string,
+  type: string,
+  typeMap: TypeMapping,
+  length?: number
+): TypeReadWriteDefinition => {
+    switch (type) {
+        case "u8":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "u16":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "u32":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "u64":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "i64":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "f64":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "bool":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "char":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "char[]":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        case "u8[]":
+            return {
+                read: ``,
+                write: `object.put("${fieldName}", ${fieldName});`,
+            };
+        default:
+            if (type.includes("[]")) {
+                const unarrayedType = type.replace("[]", "");
+                const isSimpleType = includes(["u8", "u16", "u32", "u64", "i64", "f64", "bool", "char"],
+                  unarrayedType)
+                return {
+                    read: ``,
+                    write: `ArrayNode array${upperFirst(fieldName)}=JsonSerializable.MAPPER.createArrayNode();
+${indent(2)}for(int i = 0; i < ${fieldName}.length; i++) {
+${indent(3)}array${upperFirst(fieldName)}.add(${fieldName}[i]${isSimpleType ? "" : ".toJson()"});
+${indent(2)}}
+${indent(2)}object.set("${fieldName}", array${upperFirst(fieldName)});`,
+                };
+            } else {
+                return {
+                    read: ``,
+                    write: `object.set("${fieldName}", ${fieldName}.toJson());`,
+                };
+            }
+    }
+}

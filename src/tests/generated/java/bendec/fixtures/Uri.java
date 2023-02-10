@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.fixtures.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,9 +18,9 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>Uri</h2>
 
  * <p>Byte length: 44</p>
- * <p>char > String (char[]) protocol - undefined | size 10</p>
- * <p>char > String (char[]) host - undefined | size 32</p>
- * <p>u16 > int port - undefined | size 2</p>
+ * <p>char > String (u8[]) protocol | size 10</p>
+ * <p>char > String (u8[]) host | size 32</p>
+ * <p>u16 > int port | size 2</p>
  * */
 
 public class Uri implements ByteSerializable, JsonSerializable {
@@ -89,8 +90,7 @@ public class Uri implements ByteSerializable, JsonSerializable {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.put("protocol", protocol);
         object.put("host", host);
         object.put("port", port);

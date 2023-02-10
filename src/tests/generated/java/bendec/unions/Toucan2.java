@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.unions.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,8 +18,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>Toucan2</h2>
 
  * <p>Byte length: 3</p>
- * <p>Header header - undefined | size 1</p>
- * <p>u16 > int wingspan - undefined | size 2</p>
+ * <p>Header header | size 1</p>
+ * <p>u16 > int wingspan | size 2</p>
  * */
 
 public class Toucan2 implements ByteSerializable, JsonSerializable, Animal2 {
@@ -30,15 +31,13 @@ public class Toucan2 implements ByteSerializable, JsonSerializable, Animal2 {
     public Toucan2(Header header, int wingspan) {
         this.header = header;
         this.wingspan = wingspan;
-        this.header.setLength(this.byteLength);
-        this.header.setMsgType(MsgType.TOUCAN2);
+        this.header.setAnimalKind(AnimalKind2.TOUCAN2);
     }
 
     public Toucan2(byte[] bytes, int offset) {
         this.header = new Header(bytes, offset);
         this.wingspan = BendecUtils.uInt16FromByteArray(bytes, offset + 1);
-        this.header.setLength(this.byteLength);
-        this.header.setMsgType(MsgType.TOUCAN2);
+        this.header.setAnimalKind(AnimalKind2.TOUCAN2);
     }
 
     public Toucan2(byte[] bytes) {
@@ -81,8 +80,7 @@ public class Toucan2 implements ByteSerializable, JsonSerializable, Animal2 {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.set("header", header.toJson());
         object.put("wingspan", wingspan);
         return object;

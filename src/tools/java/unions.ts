@@ -68,7 +68,7 @@ const generateGetDiscriminator = (typeDef, discTypeDef, firstDiscPathType, discT
   return `${indent(1)}default ${upperFirst(discTypeDef.name)} get${upperFirst(discTypeDef.name)}() {
 ${indent(2)}return this${nestedObjects};
 ${indent(1)}}
-${indent(1)}${upperFirst(firstDiscPathType.name)} get${upperFirst(firstDiscPathType.name)}();
+${indent(1)}${upperFirst(firstDiscPathType.type)} get${upperFirst(firstDiscPathType.name)}();
 
 ${indent(1)}static ${discTypeDef.name} get${discTypeDef.name}(byte[] bytes) {
 ${indent(2)}return ${discTypeDef.name}.get${discTypeDef.name}(bytes, ${discTypeOffset[1]});

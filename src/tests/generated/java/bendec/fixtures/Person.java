@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.fixtures.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,10 +18,10 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>Person</h2>
 
  * <p>Byte length: 11</p>
- * <p>u16 > int a - undefined | size 2</p>
- * <p>u32 > long b - undefined | size 4</p>
- * <p>u32 > long c - undefined | size 4</p>
- * <p>u8 > int d - undefined | size 1</p>
+ * <p>u16 > int a | size 2</p>
+ * <p>u32 > long b | size 4</p>
+ * <p>u32 > long c | size 4</p>
+ * <p>u8 > int d | size 1</p>
  * */
 
 public class Person implements ByteSerializable, JsonSerializable {
@@ -101,8 +102,7 @@ public class Person implements ByteSerializable, JsonSerializable {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.put("a", a);
         object.put("b", b);
         object.put("c", c);

@@ -30,7 +30,6 @@ export type JavaInterface = {
 export interface Options {
   typeMapping?: TypeMapping;
   bendecPackageName: string;
-  repositories?: Repository[];
   interfaces?: JavaInterface[];
 };
 export const getInterfacesImports = (interfaces: JavaInterface[]): string => {
@@ -43,36 +42,3 @@ export interface FieldWithJavaProperties extends Field {
   finalTypeName: string;
   typeLength?: number;
 }
-
-export interface FieldWithJavaAndDbProperties extends FieldWithJavaProperties {
-  id?: boolean;
-  enum?: boolean;
-  relation?: Relation;
-}
-
-export interface Relation {
-  type: 'ManyToOne' | 'OneToMany',
-  structs: string[];
-}
-
-export type PredefinedRelations = Relation & { byField: string }
-
-export interface Repository {
-  schema?: string;
-  packageName: string;
-  mainStructs: string[];
-  predefinedRelations: Record<string, PredefinedRelations[]>;
-  withFilters?: boolean;
-}
-
-export type RepositoryWithDependecies = Repository & {
-  mainTypes: DbStruct[];
-  dependentTypes: { type: DbStruct, dependentTo: string, dependentByField: string, parent?: boolean, parentTo?: string[] }[];
-}
-
-type KindRequiredOmitFields<T extends { kind?: Kind }> = Pick<T, Exclude<keyof T, 'kind' | 'fields'>> & {
-  kind: T['kind']
-}
-export type DbStruct =
-  KindRequiredOmitFields<Struct>
-  & { fields: FieldWithJavaAndDbProperties [], childOf?: DbStruct, parent?: boolean };

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.unions.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,8 +18,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>Toucan</h2>
 
  * <p>Byte length: 4</p>
- * <p>AnimalKind kind - undefined | size 2</p>
- * <p>u16 > int wingspan - undefined | size 2</p>
+ * <p>AnimalKind kind | size 2</p>
+ * <p>u16 > int wingspan | size 2</p>
  * */
 
 public class Toucan implements ByteSerializable, JsonSerializable, Animal {
@@ -77,8 +78,7 @@ public class Toucan implements ByteSerializable, JsonSerializable, Animal {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.set("kind", kind.toJson());
         object.put("wingspan", wingspan);
         return object;
