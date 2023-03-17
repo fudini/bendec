@@ -31,7 +31,7 @@ export const generationBase = (
   const arrayTypeMapping = types.reduce(
     (acc, t) =>
       t.kind === Kind.Array
-        ? {...acc, [t.name]: t.type === "bool" ? "bool[]" : `char[]`}
+        ? {...acc, [t.name]: t.type+"[]"}
         : acc,
     {}
   );
@@ -138,8 +138,7 @@ export const generateFiles = (
 
   if (options && options.interfaces) {
     options.interfaces.map(i => definitions.push(i.interfaceBody));
-  }
-  ;
+  };
 
   if (additionalGenerators)
     additionalGenerators.map(gen => gen(types, options)).forEach(x => definitions.push(...x));

@@ -1,4 +1,4 @@
-import {Field, Kind} from "../../types";
+import {AliasStrict, ArrayType, Field, Kind} from "../../types";
 import {
   FieldWithJavaProperties,
   Options,
@@ -105,6 +105,13 @@ export function typesToByteOperators(
           length || 0
         }));`,
       };
+    case "u8[]":
+      return {
+        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
+          length || 0
+        }));`,
+      };
     default:
       if (type.includes("[]")) {
         const unarrayedType = type.replace("[]", "");
@@ -113,7 +120,7 @@ export function typesToByteOperators(
         const typeDef = types.find((t) => t.name === finalTypeName);
         return {
           read: `this.${fieldName} = new ${javaTypeName}[${length}];
-${indent(2)}for(int i = 0; i < ${length}; i++) {
+${indent(2)}for(int i = 0; i < ${fieldName}.length; i++) {
 ${indent(3)}${
             typesToByteOperators(
               types,
@@ -127,7 +134,7 @@ ${indent(3)}${
             ).read
           }
 ${indent(2)}}`,
-          write: `for(int i = 0; i < ${length}; i++) {
+          write: `for(int i = 0; i < ${fieldName}.length; i++) {
 ${indent(3)}${
             typesToByteOperators(
               types,
@@ -150,83 +157,6 @@ ${indent(2)}}`,
             !isEnum ? `new ` : `${type}.get`
           }${type}(bytes, offset${addOffsetString}${iterationAppender});`,
           write: `${fieldName}.toBytes(buffer);`,
-        };
-      }
-  }
-}
-
-export function typesToJsonOperators(
-  fieldName: string,
-  type: string,
-  typeMap: TypeMapping,
-  length?: number
-): TypeReadWriteDefinition {
-  switch (type) {
-    case "u8":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "u16":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "u32":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "u64":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "i64":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "f64":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "bool":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "char":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    case "char[]":
-      return {
-        read: ``,
-        write: `object.put("${fieldName}", ${fieldName});`,
-      };
-    default:
-      if (type.includes("[]")) {
-        const unarrayedType = type.replace("[]", "");
-        return {
-          read: ``,
-          write: `for(int i = 0; i < ${length}; i++) {
-${indent(3)}${
-            typesToJsonOperators(
-              `${fieldName}[i]`,
-              unarrayedType,
-              typeMap,
-              length
-            ).write
-          }
-${indent(2)}}`,
-        };
-      } else {
-        return {
-          read: ``,
-          write: `object.set("${fieldName}", ${fieldName}.toJson());`,
         };
       }
   }
@@ -257,11 +187,12 @@ export function javaTypeMapping(type: string) {
       return "String";
     case "char[]":
       return "String";
+    case "u8[]":
+      return "String";
     default: {
       if (type.includes("[]")) {
-        return `${javaTypeMapping(type.replace("[]", ""))} []`;
+        return `${javaTypeMapping(type.replace("[]", ""))}[]`;
       } else {
-        ``;
         return type;
       }
     }
@@ -274,17 +205,26 @@ export function addJavaFieldProperties(
   types: TypeDefinitionStrictWithSize[]
 ): FieldWithJavaProperties {
   const key = field.type + (field.length ? "[]" : "");
-  const finalTypeName = getTypeFormTypeMap(key, typeMap);
+  let finalTypeName = getTypeFormTypeMap(key, typeMap);
+  if (finalTypeName.endsWith("[]")) {
+    const ff = types.find((stype) => stype.name === finalTypeName.replace("[]", ""))
+    if (ff.kind === Kind.Alias)
+      finalTypeName = getTypeFormTypeMap(ff.alias, typeMap)+"[]";
+
+  }
   const javaType = javaTypeMapping(finalTypeName) || finalTypeName;
   const type =
     types.find((stype) => stype.name === finalTypeName) ||
     types.find((stype) => stype.name === field.type);
+  const aliasType = type.kind === Kind.Alias ?
+    types.find((s) => s.name === (type as AliasStrict).alias) : undefined
+  const typeLength = aliasType ? (aliasType as ArrayType).length : (type as any).length
   return {
     ...field,
     finalTypeName,
     javaType,
     typeSize: type.size,
-    typeLength: (type as any).length,
+    typeLength,
   };
 }
 

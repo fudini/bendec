@@ -13,7 +13,7 @@ public interface Animal {
     default AnimalKind getAnimalKind() {
         return this.getKind();
     }
-    Kind getKind();
+    AnimalKind getKind();
 
     static AnimalKind getAnimalKind(byte[] bytes) {
         return AnimalKind.getAnimalKind(bytes, 0);

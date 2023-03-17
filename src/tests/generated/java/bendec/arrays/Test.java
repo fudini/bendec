@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.arrays.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,8 +18,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>Test</h2>
 
  * <p>Byte length: 2</p>
- * <p>u8 > int one - undefined | size 1</p>
- * <p>u8 > int two - undefined | size 1</p>
+ * <p>u8 > int one | size 1</p>
+ * <p>u8 > int two | size 1</p>
  * */
 
 public class Test implements ByteSerializable, JsonSerializable {
@@ -77,8 +78,7 @@ public class Test implements ByteSerializable, JsonSerializable {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.put("one", one);
         object.put("two", two);
         return object;

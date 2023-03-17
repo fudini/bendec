@@ -1,4 +1,9 @@
-import {FieldWithJavaProperties, JavaInterface, TypeDefinitionStrictWithSize, TypeMapping} from "./types";
+import {
+    FieldWithJavaProperties,
+    JavaInterface,
+    TypeDefinitionStrictWithSize,
+    TypeMapping,
+} from "./types";
 import {header, indent, typesToByteOperators} from "./utils";
 import {Kind} from "../../types";
 

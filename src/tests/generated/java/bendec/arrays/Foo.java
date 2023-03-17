@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.arrays.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,25 +18,25 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>Foo</h2>
  * <p>This is the description of the struct Foo</p>
  * <p>Byte length: 274</p>
- * <p>Ident > String (char[]) id1 - undefined | size 6</p>
- * <p>Test3 > String (char[]) id2 - undefined | size 6</p>
- * <p>Char3 > String (char[]) id3 - undefined | size 3</p>
- * <p>char > String (char[]) id4 - undefined | size 3</p>
- * <p>BigArray > String (char[]) id5 - undefined | size 128</p>
- * <p>BigArrayNewtype > String (char[]) id6 - undefined | size 128</p>
+ * <p>Ident > Test[] (Test[]) id1 | size 6</p>
+ * <p>Test3 > Test[] (Test[]) id2 | size 6</p>
+ * <p>Char3 > String (u8[]) id3 | size 3</p>
+ * <p>char > String (u8[]) id4 | size 3</p>
+ * <p>BigArray > String (u8[]) id5 | size 128</p>
+ * <p>BigArrayNewtype > String (u8[]) id6 | size 128</p>
  * */
 
 public class Foo implements ByteSerializable, JsonSerializable {
 
-    private String id1;
-    private String id2;
+    private Test[] id1;
+    private Test[] id2;
     private String id3;
     private String id4;
     private String id5;
     private String id6;
     public static final int byteLength = 274;
 
-    public Foo(String id1, String id2, String id3, String id4, String id5, String id6) {
+    public Foo(Test[] id1, Test[] id2, String id3, String id4, String id5, String id6) {
         this.id1 = id1;
         this.id2 = id2;
         this.id3 = id3;
@@ -45,8 +46,14 @@ public class Foo implements ByteSerializable, JsonSerializable {
     }
 
     public Foo(byte[] bytes, int offset) {
-        this.id1 = BendecUtils.stringFromByteArray(bytes, offset, undefined);
-        this.id2 = BendecUtils.stringFromByteArray(bytes, offset + 6, 3);
+        this.id1 = new Test[3];
+        for(int i = 0; i < id1.length; i++) {
+            this.id1[i] = new Test(bytes, offset + i * 2);
+        }
+        this.id2 = new Test[3];
+        for(int i = 0; i < id2.length; i++) {
+            this.id2[i] = new Test(bytes, offset + 6 + i * 2);
+        }
         this.id3 = BendecUtils.stringFromByteArray(bytes, offset + 12, 3);
         this.id4 = BendecUtils.stringFromByteArray(bytes, offset + 15, 3);
         this.id5 = BendecUtils.stringFromByteArray(bytes, offset + 18, 128);
@@ -62,10 +69,10 @@ public class Foo implements ByteSerializable, JsonSerializable {
 
 
 
-    public String getId1() {
+    public Test[] getId1() {
         return this.id1;
     };
-    public String getId2() {
+    public Test[] getId2() {
         return this.id2;
     };
     public String getId3() {
@@ -81,10 +88,10 @@ public class Foo implements ByteSerializable, JsonSerializable {
         return this.id6;
     };
 
-    public void setId1(String id1) {
+    public void setId1(Test[] id1) {
         this.id1 = id1;
     };
-    public void setId2(String id2) {
+    public void setId2(Test[] id2) {
         this.id2 = id2;
     };
     public void setId3(String id3) {
@@ -104,8 +111,12 @@ public class Foo implements ByteSerializable, JsonSerializable {
     @Override  
     public byte[] toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
-        buffer.put(BendecUtils.stringToByteArray(this.id1, 0));
-        buffer.put(BendecUtils.stringToByteArray(this.id2, 3));
+        for(int i = 0; i < id1.length; i++) {
+            id1[i].toBytes(buffer);
+        }
+        for(int i = 0; i < id2.length; i++) {
+            id2[i].toBytes(buffer);
+        }
         buffer.put(BendecUtils.stringToByteArray(this.id3, 3));
         buffer.put(BendecUtils.stringToByteArray(this.id4, 3));
         buffer.put(BendecUtils.stringToByteArray(this.id5, 128));
@@ -115,8 +126,12 @@ public class Foo implements ByteSerializable, JsonSerializable {
 
     @Override  
     public void toBytes(ByteBuffer buffer) {
-        buffer.put(BendecUtils.stringToByteArray(this.id1, 0));
-        buffer.put(BendecUtils.stringToByteArray(this.id2, 3));
+        for(int i = 0; i < id1.length; i++) {
+            id1[i].toBytes(buffer);
+        }
+        for(int i = 0; i < id2.length; i++) {
+            id2[i].toBytes(buffer);
+        }
         buffer.put(BendecUtils.stringToByteArray(this.id3, 3));
         buffer.put(BendecUtils.stringToByteArray(this.id4, 3));
         buffer.put(BendecUtils.stringToByteArray(this.id5, 128));
@@ -125,10 +140,17 @@ public class Foo implements ByteSerializable, JsonSerializable {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
-        object.put("id1", id1);
-        object.put("id2", id2);
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
+        ArrayNode arrayId1=JsonSerializable.MAPPER.createArrayNode();
+        for(int i = 0; i < id1.length; i++) {
+            arrayId1.add(id1[i].toJson());
+        }
+        object.set("id1", arrayId1);
+        ArrayNode arrayId2=JsonSerializable.MAPPER.createArrayNode();
+        for(int i = 0; i < id2.length; i++) {
+            arrayId2.add(id2[i].toJson());
+        }
+        object.set("id2", arrayId2);
         object.put("id3", id3);
         object.put("id4", id4);
         object.put("id5", id5);
@@ -138,8 +160,16 @@ public class Foo implements ByteSerializable, JsonSerializable {
 
     @Override  
     public ObjectNode toJson(ObjectNode object) {
-        object.put("id1", id1);
-        object.put("id2", id2);
+        ArrayNode arrayId1=JsonSerializable.MAPPER.createArrayNode();
+        for(int i = 0; i < id1.length; i++) {
+            arrayId1.add(id1[i].toJson());
+        }
+        object.set("id1", arrayId1);
+        ArrayNode arrayId2=JsonSerializable.MAPPER.createArrayNode();
+        for(int i = 0; i < id2.length; i++) {
+            arrayId2.add(id2[i].toJson());
+        }
+        object.set("id2", arrayId2);
         object.put("id3", id3);
         object.put("id4", id4);
         object.put("id5", id5);

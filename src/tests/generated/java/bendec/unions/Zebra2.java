@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.unions.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,8 +18,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>Zebra2</h2>
 
  * <p>Byte length: 2</p>
- * <p>Header header - undefined | size 1</p>
- * <p>u8 > int legs - undefined | size 1</p>
+ * <p>Header header | size 1</p>
+ * <p>u8 > int legs | size 1</p>
  * */
 
 public class Zebra2 implements ByteSerializable, JsonSerializable, Animal2 {
@@ -30,15 +31,13 @@ public class Zebra2 implements ByteSerializable, JsonSerializable, Animal2 {
     public Zebra2(Header header, int legs) {
         this.header = header;
         this.legs = legs;
-        this.header.setLength(this.byteLength);
-        this.header.setMsgType(MsgType.ZEBRA2);
+        this.header.setAnimalKind(AnimalKind2.ZEBRA2);
     }
 
     public Zebra2(byte[] bytes, int offset) {
         this.header = new Header(bytes, offset);
         this.legs = BendecUtils.uInt8FromByteArray(bytes, offset + 1);
-        this.header.setLength(this.byteLength);
-        this.header.setMsgType(MsgType.ZEBRA2);
+        this.header.setAnimalKind(AnimalKind2.ZEBRA2);
     }
 
     public Zebra2(byte[] bytes) {
@@ -81,8 +80,7 @@ public class Zebra2 implements ByteSerializable, JsonSerializable, Animal2 {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.set("header", header.toJson());
         object.put("legs", legs);
         return object;

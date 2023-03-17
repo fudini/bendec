@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.fixtures.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,10 +18,10 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>User</h2>
 
  * <p>Byte length: 77</p>
- * <p>char > String (char[]) firstName - undefined | size 16</p>
- * <p>char > String (char[]) lastName - undefined | size 16</p>
- * <p>Uri uri - undefined | size 44</p>
- * <p>Age > int (u8) age - undefined | size 1</p>
+ * <p>char > String (u8[]) firstName | size 16</p>
+ * <p>char > String (u8[]) lastName | size 16</p>
+ * <p>Uri uri | size 44</p>
+ * <p>Age > int (u8) age | size 1</p>
  * */
 
 public class User implements ByteSerializable, JsonSerializable {
@@ -101,8 +102,7 @@ public class User implements ByteSerializable, JsonSerializable {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.put("firstName", firstName);
         object.put("lastName", lastName);
         object.set("uri", uri.toJson());

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.fixtures.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,20 +18,20 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>LargeMessage</h2>
 
  * <p>Byte length: 301</p>
- * <p>Header header - undefined | size 1</p>
- * <p>Person person1 - undefined | size 11</p>
- * <p>Person person2 - undefined | size 11</p>
- * <p>u32 > long aaa - undefined | size 4</p>
- * <p>Price > long (u32) bbb - undefined | size 4</p>
- * <p>u32 > long ccc - undefined | size 4</p>
- * <p>u32 > long ddd - undefined | size 4</p>
- * <p>u32 > long eee - undefined | size 4</p>
- * <p>u8 > int fff - undefined | size 1</p>
- * <p>u8 > int ggg - undefined | size 1</p>
- * <p>char > String (char[]) name1 - undefined | size 64</p>
- * <p>char > String (char[]) name2 - undefined | size 64</p>
- * <p>char > String (char[]) name3 - undefined | size 64</p>
- * <p>char > String (char[]) name4 - undefined | size 64</p>
+ * <p>Header header | size 1</p>
+ * <p>Person person1 | size 11</p>
+ * <p>Person person2 | size 11</p>
+ * <p>u32 > long aaa | size 4</p>
+ * <p>Price > long (u32) bbb | size 4</p>
+ * <p>u32 > long ccc | size 4</p>
+ * <p>u32 > long ddd | size 4</p>
+ * <p>u32 > long eee | size 4</p>
+ * <p>u8 > int fff | size 1</p>
+ * <p>u8 > int ggg | size 1</p>
+ * <p>char > String (u8[]) name1 | size 64</p>
+ * <p>char > String (u8[]) name2 | size 64</p>
+ * <p>char > String (u8[]) name3 | size 64</p>
+ * <p>char > String (u8[]) name4 | size 64</p>
  * */
 
 public class LargeMessage implements ByteSerializable, JsonSerializable {
@@ -66,8 +67,6 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         this.name2 = name2;
         this.name3 = name3;
         this.name4 = name4;
-        this.header.setLength(this.byteLength);
-        this.header.setMsgType(MsgType.LARGEMESSAGE);
     }
 
     public LargeMessage(byte[] bytes, int offset) {
@@ -85,8 +84,6 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         this.name2 = BendecUtils.stringFromByteArray(bytes, offset + 109, 64);
         this.name3 = BendecUtils.stringFromByteArray(bytes, offset + 173, 64);
         this.name4 = BendecUtils.stringFromByteArray(bytes, offset + 237, 64);
-        this.header.setLength(this.byteLength);
-        this.header.setMsgType(MsgType.LARGEMESSAGE);
     }
 
     public LargeMessage(byte[] bytes) {
@@ -225,8 +222,7 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.set("header", header.toJson());
         object.set("person1", person1.toJson());
         object.set("person2", person2.toJson());

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.ByteBuffer;
 import bendec.fixtures.JsonSerializable;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -17,11 +18,11 @@ import com.fasterxml.jackson.databind.node.TextNode;
  * <h2>UserExtra</h2>
 
  * <p>Byte length: 253</p>
- * <p>char > String (char[]) firstName - undefined | size 16</p>
- * <p>char > String (char[]) lastName - undefined | size 16</p>
- * <p>Uri uri - undefined | size 44</p>
- * <p>Age > int (u8) age - undefined | size 1</p>
- * <p>Uri > Uri [] (Uri[]) uris - undefined | size 176</p>
+ * <p>char > String (u8[]) firstName | size 16</p>
+ * <p>char > String (u8[]) lastName | size 16</p>
+ * <p>Uri uri | size 44</p>
+ * <p>Age > int (u8) age | size 1</p>
+ * <p>Uri > Uri[] (Uri[]) uris | size 176</p>
  * */
 
 public class UserExtra implements ByteSerializable, JsonSerializable {
@@ -30,10 +31,10 @@ public class UserExtra implements ByteSerializable, JsonSerializable {
     private String lastName;
     private Uri uri;
     private int age;
-    private Uri [] uris;
+    private Uri[] uris;
     public static final int byteLength = 253;
 
-    public UserExtra(String firstName, String lastName, Uri uri, int age, Uri [] uris) {
+    public UserExtra(String firstName, String lastName, Uri uri, int age, Uri[] uris) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.uri = uri;
@@ -47,7 +48,7 @@ public class UserExtra implements ByteSerializable, JsonSerializable {
         this.uri = new Uri(bytes, offset + 32);
         this.age = BendecUtils.uInt8FromByteArray(bytes, offset + 76);
         this.uris = new Uri[4];
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < uris.length; i++) {
             this.uris[i] = new Uri(bytes, offset + 77 + i * 44);
         }
     }
@@ -73,7 +74,7 @@ public class UserExtra implements ByteSerializable, JsonSerializable {
     public int getAge() {
         return this.age;
     };
-    public Uri [] getUris() {
+    public Uri[] getUris() {
         return this.uris;
     };
 
@@ -89,7 +90,7 @@ public class UserExtra implements ByteSerializable, JsonSerializable {
     public void setAge(int age) {
         this.age = age;
     };
-    public void setUris(Uri [] uris) {
+    public void setUris(Uri[] uris) {
         this.uris = uris;
     };
 
@@ -101,7 +102,7 @@ public class UserExtra implements ByteSerializable, JsonSerializable {
         buffer.put(BendecUtils.stringToByteArray(this.lastName, 16));
         uri.toBytes(buffer);
         buffer.put(BendecUtils.uInt8ToByteArray(this.age));
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < uris.length; i++) {
             uris[i].toBytes(buffer);
         }
         return buffer.array();
@@ -113,22 +114,23 @@ public class UserExtra implements ByteSerializable, JsonSerializable {
         buffer.put(BendecUtils.stringToByteArray(this.lastName, 16));
         uri.toBytes(buffer);
         buffer.put(BendecUtils.uInt8ToByteArray(this.age));
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < uris.length; i++) {
             uris[i].toBytes(buffer);
         }
     }
 
     @Override  
     public ObjectNode toJson() {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode object = mapper.createObjectNode();
+        ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.put("firstName", firstName);
         object.put("lastName", lastName);
         object.set("uri", uri.toJson());
         object.put("age", age);
-        for(int i = 0; i < 4; i++) {
-            object.set("uris[i]", uris[i].toJson());
+        ArrayNode arrayUris=JsonSerializable.MAPPER.createArrayNode();
+        for(int i = 0; i < uris.length; i++) {
+            arrayUris.add(uris[i].toJson());
         }
+        object.set("uris", arrayUris);
         return object;
     }
 
@@ -138,9 +140,11 @@ public class UserExtra implements ByteSerializable, JsonSerializable {
         object.put("lastName", lastName);
         object.set("uri", uri.toJson());
         object.put("age", age);
-        for(int i = 0; i < 4; i++) {
-            object.set("uris[i]", uris[i].toJson());
+        ArrayNode arrayUris=JsonSerializable.MAPPER.createArrayNode();
+        for(int i = 0; i < uris.length; i++) {
+            arrayUris.add(uris[i].toJson());
         }
+        object.set("uris", arrayUris);
         return object;
     }
 

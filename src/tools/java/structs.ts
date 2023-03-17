@@ -7,6 +7,7 @@ import {
   TypeMapping,
 } from "./types";
 import {addJavaFieldProperties, header, indent, typesToByteOperators,} from "./utils";
+import {Kind, Struct, StructStrict, TypeDefinitionStrict, Union} from "../../types";
 
 const getMembers = (fields: FieldWithJavaProperties[]) => {
   const length = fields.reduce(
@@ -69,7 +70,25 @@ const getConstructors = (
     .map((field) => `${indent(2)}this.${field.name} = ${field.name};`)
     .join("\n");
 
-  const hasHeader = !!fields.find((f) => f.name === "header");
+  let setLength = "";
+  let setDiscriminator = "";
+  const headerField = fields.find((f) => f.name === "header");
+  if (headerField) {
+    const headerType = types.find((t) => t.name === headerField.type && t.kind === Kind.Struct);
+    if (!!(headerType as Struct).fields.find(f => f.name === "length"))
+      setLength = `
+${indent(2)}this.header.setLength(this.byteLength);`
+
+    const unions : Union[] = types.filter(t => t.kind === Kind.Union) as Union[];
+    for (let u of unions) {
+      const disctiminator = (u as Union).discriminator.length > 1 ? (u as Union).discriminator[1] : undefined;
+      const headerDiscriminatorField = disctiminator ? (headerType as Struct).fields.find(hf => hf.name === disctiminator) : undefined;
+      if (headerDiscriminatorField) {
+        setDiscriminator = `
+${indent(2)}this.header.set${upperFirst(disctiminator)}(${upperFirst(headerDiscriminatorField.type)}.${name.toLocaleUpperCase()});`
+      }
+    }
+  }
 
   let currentLength = 0;
   const byteAssignments = fields
@@ -91,17 +110,7 @@ const getConstructors = (
     .join("\n");
   const bytesContructors = `
 ${indent(1)}public ${name}(byte[] bytes, int offset) {
-${byteAssignments}${
-    hasHeader
-      ? `
-${indent(2)}this.header.setLength(this.byteLength);`
-      : ""
-  }${
-    hasHeader
-      ? `
-${indent(2)}this.header.setMsgType(MsgType.${name.toLocaleUpperCase()});`
-      : ""
-  }
+${byteAssignments}${setLength}${setDiscriminator}
 ${indent(1)}}
 
 ${indent(1)}public ${name}(byte[] bytes) {
@@ -113,17 +122,7 @@ ${indent(1)}}
 `;
   return `
 ${indent(1)}public ${name}(${parameters}) {
-${assignments}${
-    hasHeader
-      ? `
-${indent(2)}this.header.setLength(this.byteLength);`
-      : ""
-  }${
-    hasHeader
-      ? `
-${indent(2)}this.header.setMsgType(MsgType.${name.toLocaleUpperCase()});`
-      : ""
-  }
+${assignments}${setLength}${setDiscriminator}
 ${indent(1)}}
 ${bytesContructors}
 `;
@@ -140,9 +139,8 @@ ${typeDef.description ? " * <p>" + typeDef.description + "</p>" : ""}
      const typeString = `${field.type}${
        field.javaType !== field.type ? ` > ${field.javaType}` : ""
      }${field.finalTypeName !== field.type ? ` (${field.finalTypeName})` : ""}`;
-     return `<p>${typeString} ${field.name} - ${
-       (field as any).description
-     } | size ${field.typeSize * (field.length || 1)}</p>
+     const desc = field.description ? ` - ${field.description}` : ``;
+     return `<p>${typeString} ${field.name}${desc} | size ${field.typeSize * (field.length || 1)}</p>
  * `;
    })
    .join("")}*/`;
