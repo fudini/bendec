@@ -46,6 +46,7 @@ export const getBitflags = (
 `bitflags::bitflags! {
   ${doc(description)}
   ${derivesString}
+  #[repr(transparent)]
   pub struct ${name}: ${underlying} {
 ${variantsFields}
   }
