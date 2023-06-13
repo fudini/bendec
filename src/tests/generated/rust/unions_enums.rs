@@ -177,6 +177,7 @@ impl Animal2 {
 
 bitflags::bitflags! {
   #[derive(Serialize, Deserialize)]
+  #[repr(transparent)]
   pub struct Bitflags: u8 {
     const A    = 0b00000001;
     const B    = 0b00000010;
