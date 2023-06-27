@@ -3,7 +3,6 @@ import { doc, createDerives } from '../../rust/utils'
 import { EnumStrict } from '../../../types'
 import { padEnd, toUpper, snakeCase } from 'lodash'
 import _ from 'lodash'
-import { defaultDerives } from '../utils'
 
 const getPadder = (underlying: string) => {
   switch (underlying) {
