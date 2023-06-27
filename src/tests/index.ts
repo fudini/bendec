@@ -1,5 +1,5 @@
 import test from 'tape'
-import * as _ from 'lodash'
+import _ from 'lodash'
 import { MsgType, types, enums, unions, arrays } from './fixtures'
 import {
   Bendec,
@@ -11,7 +11,7 @@ import {
 } from '../'
 import { BufferWrapper } from '../types'
 import { Zebra, Zebra2, AnimalKind, AnimalKind2 } from './generated/ts/unionsEnums'
-import { Uri, User, Header, UserAdd } from './types'
+import { User, UserAdd } from './types'
 
 // lets override readers and writers so we can deal with ascii
 const readers = { 'char[]': asciiReader }
@@ -68,8 +68,8 @@ const groupResult = {
 const lookup = invertLookup(MsgType)
 
 const getVariant = {
-  encode: message => lookup[message.header.msgType],
-  decode: buffer => lookup[buffer.readUInt8()]
+  encode: (message: any) => lookup[message.header.msgType],
+  decode: (buffer: Buffer) => lookup[buffer.readUInt8(0)]
 }
 
 const bendec = new Bendec<any>({ types, getVariant, readers, writers })
@@ -301,7 +301,6 @@ test('Bendec union encodeAs / decodeAs simple path', t => {
 
   t.deepEqual(zebra, decodedAnimal)
 
-  const encodedAnimal = b.encodeAs(zebra, 'Animal')
   const decodedZebra = b.decodeAs(encodedZebra, 'Animal')
 
   t.deepEqual(decodedAnimal, decodedZebra)
@@ -324,7 +323,6 @@ test('Bendec union encodeAs / decodeAs nested path', t => {
 
   t.deepEqual(zebra, decodedAnimal)
 
-  const encodedAnimal = b.encodeAs(zebra, 'Animal2')
   const decodedZebra = b.decodeAs(encodedZebra, 'Animal2')
 
   t.deepEqual(decodedAnimal, decodedZebra)
@@ -342,16 +340,6 @@ test('Bendec show error in case of missing types', t => {
 
   t.end()
 })
-
-type Test = {
-  one: number,
-  two: number
-}
-
-type Foo = {
-  id1: Test[],
-  id2: Test[],
-}
 
 test('Arrays and array alias', t => {
 

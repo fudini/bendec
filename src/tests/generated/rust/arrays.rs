@@ -10,8 +10,8 @@ pub type BigArray = [char; 128];
 pub struct BigArrayNewtype(pub [char; 128]);
 
 #[repr(C, packed)]
-#[derive(Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields, default)]
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Test {
   pub one: u8,
   pub two: u8,

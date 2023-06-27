@@ -453,8 +453,8 @@ const largeMessageEncoded = Buffer.from([100,1,0,1,0,0,0,123,0,0,0,1,1,0,1,0,0,0
 
 const lookup = invertLookup(MsgType)
 const getVariant = {
-  encode: message => lookup[message.header.msgType],
-  decode: buffer => lookup[buffer.readUInt8()]
+  encode: (message: any) => lookup[message.header.msgType],
+  decode: (buffer: Buffer) => lookup[buffer.readUInt8(0)]
 }
 
 export {

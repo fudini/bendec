@@ -1,10 +1,6 @@
-import * as fs from 'fs'
 export * from '../../rust/types'
 
-import {
-  NewtypeKind, NewtypePublic, NewtypePrivate,
-  NewtypeInCrate, NewtypeDef, TypeMeta,
-} from '../../rust/types'
+import { NewtypeKind, NewtypeDef, TypeMeta } from '../../rust/types'
 import { smoosh } from '../../utils'
 import { doc, createDerives, toRustNS } from '../../rust/utils'
 
@@ -13,6 +9,7 @@ export const getAlias = (
   name: string,
   alias: string,
   meta: TypeMeta,
+  defaultDerives: string[],
   extraDerivesArray: string[],
   description?: string,
 ): string => {
@@ -28,7 +25,10 @@ export const getAlias = (
     ])
   }
 
-  let derivesString = createDerives(extraDerivesArray)
+  let derivesString = createDerives([
+    ...defaultDerives,
+    ...extraDerivesArray
+  ])
   let newtypeCode = getNewtypeBody(name, alias, newtype)
 
   return smoosh([docString, derivesString, newtypeCode])

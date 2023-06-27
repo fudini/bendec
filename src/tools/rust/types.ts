@@ -73,12 +73,20 @@ export type EnumConversionError = {
   constructor: string,
 }
 
+export type DefaultDerives = {
+  struct?: string[],
+  enum?: string[],
+  bitflags?: string[],
+  newtype?: string[],
+}
+
 // Options to the type generator
 export type Options = {
   // These types are just here for lookup so we can resolve shared types
   lookupTypes?: TypeDefinition[][],
   typeMapping?: TypeMapping
   extras?: string[]
+  defaultDerives?: DefaultDerives,
   // TODO: extra derives should be moved to the options.meta property
   extraDerives?: Record<TypeName, string[]>
   meta?: Record<TypeName, TypeMeta>

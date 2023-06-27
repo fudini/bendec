@@ -5,8 +5,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 // primitive built-in: u8
 
 #[repr(C, packed)]
-#[derive(Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields, default)]
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 #[serde(rename_all = "camelCase")]
 pub struct Foo {
   pub bar: u8,

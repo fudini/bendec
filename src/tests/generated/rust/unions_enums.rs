@@ -37,16 +37,16 @@ impl AnimalKindInt {
 }
 
 #[repr(C, packed)]
-#[derive(Default, Serialize, Deserialize, Copy, Clone)]
-#[serde(deny_unknown_fields, default)]
+#[derive(Serialize, Deserialize, Copy, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Zebra {
   pub kind: AnimalKind,
   pub legs: u8,
 }
 
 #[repr(C, packed)]
-#[derive(Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields, default)]
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Toucan {
   pub kind: AnimalKind,
   pub wingspan: u16,
@@ -114,23 +114,23 @@ impl std::convert::TryFrom<u8> for AnimalKind2 {
 }
 
 #[repr(C, packed)]
-#[derive(Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields, default)]
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Header {
   pub animal_kind: AnimalKind2,
 }
 
 #[repr(C, packed)]
-#[derive(Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields, default)]
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Zebra2 {
   pub header: Header,
   pub legs: u8,
 }
 
 #[repr(C, packed)]
-#[derive(Default, Serialize, Deserialize)]
-#[serde(deny_unknown_fields, default)]
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Toucan2 {
   pub header: Header,
   pub wingspan: u16,

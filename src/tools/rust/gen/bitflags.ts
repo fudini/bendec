@@ -1,9 +1,8 @@
 import { binPad, smoosh } from '../../utils'
 import { doc, createDerives } from '../../rust/utils'
 import { EnumStrict } from '../../../types'
-import { EnumConversionError } from '../types'
 import { padEnd, toUpper, snakeCase } from 'lodash'
-import * as _ from 'lodash'
+import _ from 'lodash'
 
 const getPadder = (underlying: string) => {
   switch (underlying) {
@@ -18,6 +17,7 @@ const getPadder = (underlying: string) => {
 
 export const getBitflags = (
   enumStrict: EnumStrict,
+  defaultDerives: string[],
   extraDerivesArray: string[],
 ): string => {
 
@@ -36,9 +36,8 @@ export const getBitflags = (
     .join('\n')
 
   // As opposed to enum - bitflags implements Copy, Clone and Debug so we don't need it
-  const derives = ['Serialize', 'Deserialize']
   const derivesString = createDerives([
-    ...derives,
+    ...defaultDerives,
     ...extraDerivesArray,
   ])
 

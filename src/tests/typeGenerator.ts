@@ -1,13 +1,9 @@
-import path from 'path'
 import test from 'tape'
 import { generateString } from '../tools/typeGenerator'
 import { types, unions, arrays, newtypes, camel } from './fixtures'
 import {
   generateString as generateStringRust,
   NewtypeKind,
-  NewtypePublic,
-  NewtypePrivate,
-  NewtypeInCrate,
   Options,
 } from '../tools/rsGenerator'
 import { generateString as generateStringCpp } from '../tools/cppGenerator'
@@ -40,7 +36,16 @@ test('TypeScript arrays', t => {
 })
 
 test('Rust - fixtures', t => {
-  const generated = generateStringRust(types)
+  const options: Options = {
+    defaultDerives: {
+      struct: ['Serialize', 'Deserialize', 'Copy']
+    },
+    extraDerives: {
+      'Header': ['Default']
+    }
+  }
+
+  const generated = generateStringRust(types, options)
   const fixture = getFixture('./generated/rust/fixtures.rs')
   codeEquals(t)(generated, fixture)
   t.end()
@@ -49,7 +54,7 @@ test('Rust - fixtures', t => {
 test('Rust - camel case annotation on structs and extra gen from function', t => {
   const options = {
     camelCase: true,
-    forEachType([generated, context, meta]) {
+    forEachType([generated, context, _meta]) {
 
       if (context.name == 'Foo') {
         return generated + `\n\n// extra code for ${context.name}`

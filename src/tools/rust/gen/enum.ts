@@ -1,15 +1,16 @@
 import { hexPad, smoosh } from '../../utils'
 import { doc, createDerives } from '../../rust/utils'
 import { EnumStrict } from '../../../types'
-import { EnumConversionError } from '../types'
-import { NewtypeInCrate, NewtypeDef, TypeMeta } from '../../rust/types'
+import { EnumConversionError, DefaultDerives } from '../types'
+import { TypeMeta } from '../../rust/types'
 import { getBitflags } from './bitflags'
-import * as _ from 'lodash'
+import _ from 'lodash'
 
 export const getEnum = (
   enumStrict: EnumStrict,
   conversionError: EnumConversionError,
   meta: TypeMeta,
+  defaultDerives: DefaultDerives,
   extraDerivesArray: string[],
 ): string => {
 
@@ -24,7 +25,7 @@ export const getEnum = (
 
   // Delegate to bitflags generator if needed
   if (meta?.bitflags || bitflags) {
-    return getBitflags(enumStrict, extraDerivesArray)
+    return getBitflags(enumStrict, defaultDerives.bitflags, extraDerivesArray)
   }
 
   const implConst = !!(meta?.implConst)
@@ -32,9 +33,8 @@ export const getEnum = (
     .map(([key, value, docs]) => smoosh([doc(docs, 2),`  ${key} = ${hexPad(value)},`]))
     .join('\n')
 
-  const derives = ['Debug', 'Copy', 'Clone', 'Eq', 'PartialEq', 'Serialize', 'Deserialize']
   const derivesString = createDerives([
-    ...derives,
+    ...defaultDerives.enum,
     ...extraDerivesArray,
   ])
 
