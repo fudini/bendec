@@ -29,7 +29,8 @@ export const defaultOptions = {
     type: '{{ underlying }}',
     constructor: 'other'
   },
-  forEachType: ([generated, _context, _meta]) => generated
+  forEachType: ([generated, _context, _meta]) => generated,
+  transparentBitflags: false
 }
 
 export const defaultMapping: TypeMapping = {
@@ -104,7 +105,8 @@ export const generateString = (
           options.enumConversionError,
           typeMeta,
           defaultDerives,
-          extraDerivesArray
+          extraDerivesArray,
+          options.transparentBitflags,
         ),
         context
       ]

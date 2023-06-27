@@ -19,6 +19,7 @@ export const getBitflags = (
   enumStrict: EnumStrict,
   defaultDerives: string[],
   extraDerivesArray: string[],
+  transparentBitflags: boolean,
 ): string => {
 
   const { name, underlying, variants, description } = enumStrict
@@ -41,11 +42,16 @@ export const getBitflags = (
     ...extraDerivesArray,
   ])
 
+  const serde = transparentBitflags
+    ? '  #[serde(transparent)]'
+    : ''
+
   return smoosh([
 `bitflags::bitflags! {
   ${doc(description)}
-  ${derivesString}
-  #[repr(transparent)]
+  ${derivesString}`,
+  serde,
+`  #[repr(transparent)]
   pub struct ${name}: ${underlying} {
 ${variantsFields}
   }
