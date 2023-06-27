@@ -324,7 +324,6 @@ test('Bendec union encodeAs / decodeAs nested path', t => {
 
   t.deepEqual(zebra, decodedAnimal)
 
-  const encodedAnimal = b.encodeAs(zebra, 'Animal2')
   const decodedZebra = b.decodeAs(encodedZebra, 'Animal2')
 
   t.deepEqual(decodedAnimal, decodedZebra)
@@ -342,16 +341,6 @@ test('Bendec show error in case of missing types', t => {
 
   t.end()
 })
-
-type Test = {
-  one: number,
-  two: number
-}
-
-type Foo = {
-  id1: Test[],
-  id2: Test[],
-}
 
 test('Arrays and array alias', t => {
 

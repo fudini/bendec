@@ -19,7 +19,6 @@ import {
   genWrapFunction2, // function get/set
   genReadFunction,
   genWriteFunction,
-  genReadFields,
   genVariantGetter,
 } from './readersWriters/index'
 
@@ -36,7 +35,7 @@ const error = new Error('You used encode/decode without specifying getVariant me
 // getVariant is to be deprecated but we want to keep it for backwards compatibility
 const emptyVariantGetter = {
   encode() { throw error },
-  decode(buf: Buffer) { throw error }
+  decode(_buf: Buffer) { throw error }
 }
 
 const defaultConfig: Config = {

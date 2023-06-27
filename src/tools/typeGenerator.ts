@@ -1,8 +1,7 @@
 import * as fs from 'fs'
-import { range } from 'lodash'
 import { normalizeTypes } from '../utils'
 import { TypeDefinition, TypeDefinitionStrict, Field } from '../'
-import { Kind, EnumStrict, UnionStrict } from '../types'
+import { Kind, EnumStrict, UnionStrict, StructStrict } from '../types'
 import { hexPad } from './utils'
 
 type TypeMapping = Record<string, string>
@@ -22,14 +21,6 @@ export const defaultMapping: TypeMapping = {
   'char[]': 'Buffer',
 }
 
-const resolveCustomType = (typeMap, key): string => {
-  return typeMap[key] === undefined ? key : typeMap[key]
-}
-
-const indent = (i: number) => (str: string) => {
-  return '                    '.substr(-i) + str
-}
-
 const getMembers = (fields: Field[], typeMap: TypeMapping) => {
   return fields.map(field => {
     const key = field.type + (field.length ? '[]' : '')
@@ -47,7 +38,7 @@ ${variantsFields}
 }`
 }
 
-const getStruct = (typeDef, typeMap: TypeMapping) => {
+const getStruct = (typeDef: StructStrict, typeMap: TypeMapping) => {
   const members = getMembers(typeDef.fields, typeMap)
   const membersString = members.join('\n')
 
@@ -69,7 +60,6 @@ export const generateString = (
   options: Options = defaultOptions
 ) => {
   const types: TypeDefinitionStrict[] = normalizeTypes(typesDuck)
-  const unions = types.filter(({ kind }) => kind == Kind.Union)
 
   const {
     extras = [],

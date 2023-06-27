@@ -33,18 +33,14 @@ export const defaultOptions = {
 }
 
 export const defaultMapping: TypeMapping = {
-  'char[]': size => `[]`,
-}
-
-const indent = (i: number) => (str: string) => {
-  return '                    '.substr(-i) + str
+  'char[]': _size => `[]`,
 }
 
 const getCppType = (inName: string) => {
   return (inName in cppTypeMap) ? cppTypeMap[inName] : inName
 }
 
-const getMembers = (fields: Field[], typeMap: TypeMapping) => {
+const getMembers = (fields: Field[], _typeMap: TypeMapping) => {
   return fields.map(field => {
     const cppType = getCppType(field.type)
     const name = (field.length) ? `${field.name}[${field.length}]` : field.name
@@ -65,7 +61,7 @@ const getEnum = (
     return `${out}`
   }).join('\n')
 
-  const name2typeMapFields: string = variants.map(([key, value], index) => {
+  const name2typeMapFields: string = variants.map(([key, _value], index) => {
     let out = `    { "${key}", ${name}::${key} }`
     if (index < variants.length - 1) {
       out += ','
@@ -73,7 +69,7 @@ const getEnum = (
     return `${out}`
   }).join('\n')
 
-  const type2nameMapFields: string = variants.map(([key, value], index) => {
+  const type2nameMapFields: string = variants.map(([key, _value], index) => {
     let out = `    { ${name}::${key}, "${key}" }`
     if (index < variants.length - 1) {
       out += ','
@@ -98,8 +94,8 @@ ${type2nameMapFields}
 }
 
 const getUnion = (
-  { name, discriminator, members }: UnionStrict,
-  discTypeDef: TypeDefinitionStrict,
+  { name, members }: UnionStrict,
+  _discTypeDef: TypeDefinitionStrict,
   attribute: string
 ) => {
 

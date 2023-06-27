@@ -1,10 +1,6 @@
-import * as fs from 'fs'
 export * from '../../rust/types'
 
-import {
-  NewtypeKind, NewtypePublic, NewtypePrivate,
-  NewtypeInCrate, NewtypeDef, TypeMeta,
-} from '../../rust/types'
+import { NewtypeKind, NewtypeDef, TypeMeta } from '../../rust/types'
 import { smoosh } from '../../utils'
 import { doc, createDerives, toRustNS } from '../../rust/utils'
 

@@ -1,4 +1,6 @@
 import { indent } from '../utils'
+import { DefaultDerives } from './types'
+
 // Create rust comment block with description
 export const doc = (description: string, ind: number = 0): string => {
   if (description !== undefined) {
@@ -21,3 +23,9 @@ export const createDerives = (derives: string[]): string => {
   return `#[derive(${derivesString})]`
 }
 
+export const defaultDerives: DefaultDerives = {
+  struct: ['Serialize', 'Deserialize'],
+  enum: ['Debug', 'Copy', 'Clone', 'Eq', 'PartialEq', 'Serialize', 'Deserialize'],
+  union: ['Serialize', 'Deserialize'],
+  bitflags: ['Serialize', 'Deserialize'],
+}

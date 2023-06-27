@@ -148,7 +148,5 @@ export const generateFiles = (
       fs.mkdirSync(`${directory}/${fd.path}`, {recursive: true});
     }
     fs.writeFileSync(`${directory}/${fd.path}/${fd.name}`, fd.body);
-    console.log(`WRITTEN: ${directory}/${fd.path}/${fd.name}`);
-  });
-
+    console.log(`WRITTEN: ${directory}/${fd.path}/${fd.name}`); });
 };

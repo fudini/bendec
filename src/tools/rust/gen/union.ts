@@ -1,6 +1,6 @@
 import { snakeCase } from 'lodash'
-import { TypeDefinition, TypeDefinitionStrict, Field } from '../../../'
-import { Lookup, Kind, StructStrict, AliasStrict, EnumStrict, UnionStrict } from '../../../types'
+import { TypeDefinitionStrict } from '../../../'
+import { Kind, StructStrict, UnionStrict } from '../../../types'
 import { doc, createDerives, toRustNS } from '../../rust/utils'
 import { indent } from '../../utils'
 

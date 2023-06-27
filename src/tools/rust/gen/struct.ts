@@ -2,13 +2,9 @@ import { indent, smoosh } from '../../utils'
 import { snakeCase } from 'lodash'
 import { doc, createDerives, toRustNS } from '../../rust/utils'
 import { Field } from '../../../'
-import {
-  Lookup, Kind, StructStrict,
-  AliasStrict, EnumStrict, UnionStrict
-} from '../../../types'
-import {
-  TypeName, TypeMapping, TypeMeta, Options, FieldName, FieldMeta
-} from '../../rust/types'
+import { Lookup, Kind, StructStrict } from '../../../types'
+import { TypeMapping, TypeMeta, FieldName, FieldMeta } from '../../rust/types'
+import { defaultDerives } from '../utils'
 
 export const getStruct = (
   typeDef: StructStrict,
@@ -27,14 +23,10 @@ export const getStruct = (
 
   const membersString = members.join('\n')
   
-  const derives = ['Serialize', 'Deserialize']
-  const defaultDerive = hasBigArray ? [] : ['Default']
-  const derivesString = createDerives([
-    ...defaultDerive,
-    ...derives,
-    ...extraDerivesArray
-  ])
-  const serdeString = hasBigArray
+  const derives = defaultDerives.struct
+  const allDerives = [...derives, ...extraDerivesArray]
+  const derivesString = createDerives(allDerives)
+  const serdeString = !allDerives.includes('Default')
     ? '#[serde(deny_unknown_fields)]'
     : '#[serde(deny_unknown_fields, default)]'
   const serdeCamelCase = camelCase

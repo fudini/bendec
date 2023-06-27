@@ -1,4 +1,4 @@
-# Bendec
+![Bendec](./src/assets/bendec-logo.svg)
 
 ### Binary encoder / decoder featuring fixed-size arrays
 
