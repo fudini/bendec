@@ -3,8 +3,9 @@ import { readFileSync, writeFileSync } from 'fs'
 import { trim, isEmpty, negate } from 'lodash'
 import { performance } from 'perf_hooks'
 import { spawn } from 'child_process'
+import { Test } from 'tape'
 
-export const measure = (msg, f) => {
+export const measure = (msg: string, f: () => void) => {
   const now = performance.now()
   f()
   const time = performance.now() - now
@@ -22,7 +23,7 @@ export const clean = (content: string): string => {
 }
 
 // compare code equality
-export const codeEquals = (t) => (a: string, b: string) => {
+export const codeEquals = (t: Test) => (a: string, b: string) => {
   const cleanA = clean(a)
   const cleanB = clean(b)
 

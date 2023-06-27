@@ -14,13 +14,14 @@ import { getEnum } from './rust/gen/enum'
 import { getStruct } from './rust/gen/struct'
 import { getAlias } from './rust/gen/alias'
 import { smoosh } from './utils'
-import { toRustNS } from './rust/utils'
+import { toRustNS, defaultDerives as defaultDerivesConst } from './rust/utils'
 
 let globalBigArraySizes = []
 
 export const defaultOptions = {
   lookupTypes: [[]],
   extras: [],
+  defaultDerives: {},
   extraDerives: {},
   meta: {},
   camelCase: false,
@@ -54,6 +55,7 @@ export const generateString = (
 
   const { typeMapping, extraDerives = [], meta } = options 
   const typeMap: TypeMapping = { ...defaultMapping, ...typeMapping }
+  const defaultDerives = { ...defaultDerivesConst, ...options.defaultDerives }
 
   const definitions = types.map(typeDef => {
     // This is what we pass into callback function for each type def
@@ -79,7 +81,14 @@ export const generateString = (
 
     if (typeDef.kind === Kind.Alias) {
       return [
-        getAlias(typeName, typeDef.alias, typeMeta, extraDerivesArray, typeDef.description),
+        getAlias(
+          typeName,
+          typeDef.alias,
+          typeMeta,
+          defaultDerives.newtype,
+          extraDerivesArray,
+          typeDef.description
+        ),
         context
       ]
     }
@@ -89,12 +98,29 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Enum) {
-      return [getEnum(typeDef, options.enumConversionError, typeMeta, extraDerivesArray), context]
+      return [
+        getEnum(
+          typeDef,
+          options.enumConversionError,
+          typeMeta,
+          defaultDerives,
+          extraDerivesArray
+        ),
+        context
+      ]
     }
 
     if (typeDef.kind === Kind.Struct) {
       return [
-        getStruct(typeDef, lookup, typeMap, typeMeta, extraDerivesArray, options.camelCase),
+        getStruct(
+          typeDef,
+          lookup,
+          typeMap,
+          typeMeta,
+          defaultDerives.struct,
+          extraDerivesArray,
+          options.camelCase
+        ),
         context
       ]
     }
@@ -102,7 +128,14 @@ export const generateString = (
     if (typeDef.kind === Kind.Array) {
       const alias = `[${toRustNS(typeDef.type)}; ${typeDef.length}]`
       return [
-        getAlias(typeName, alias, typeMeta, extraDerivesArray, typeDef.description),
+        getAlias(
+          typeName,
+          alias,
+          typeMeta,
+          defaultDerives.newtype,
+          extraDerivesArray,
+          typeDef.description
+        ),
         context
       ]
     }

@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { indent } from '../utils'
 import { DefaultDerives } from './types'
 
@@ -17,7 +18,7 @@ export const toRustNS = (type: string): string => {
 // Create derive annotation from array of items
 export const createDerives = (derives: string[]): string => {
   if (derives.length === 0) {
-    return ``
+    return ''
   }
   const derivesString = derives.join(', ')
   return `#[derive(${derivesString})]`
@@ -26,6 +27,6 @@ export const createDerives = (derives: string[]): string => {
 export const defaultDerives: DefaultDerives = {
   struct: ['Serialize', 'Deserialize'],
   enum: ['Debug', 'Copy', 'Clone', 'Eq', 'PartialEq', 'Serialize', 'Deserialize'],
-  union: ['Serialize', 'Deserialize'],
   bitflags: ['Serialize', 'Deserialize'],
+  newtype: [],
 }

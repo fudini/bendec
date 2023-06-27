@@ -14,7 +14,8 @@
   "devDependencies": {
     "@types/lodash": "4.14.155",
     "@types/node": "13.5",
-    "tape": "5.0.1",
+    "tape": "5.6.3",
+    "@types/tape": "5.6.0",
     "typescript": "3.9.3"
   },
   "dependencies": {

@@ -76,8 +76,8 @@ export type EnumConversionError = {
 export type DefaultDerives = {
   struct?: string[],
   enum?: string[],
-  union?: string[],
   bitflags?: string[],
+  newtype?: string[],
 }
 
 // Options to the type generator

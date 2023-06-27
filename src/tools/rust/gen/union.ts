@@ -1,7 +1,7 @@
 import { snakeCase } from 'lodash'
 import { TypeDefinitionStrict } from '../../../'
 import { Kind, StructStrict, UnionStrict } from '../../../types'
-import { doc, createDerives, toRustNS } from '../../rust/utils'
+import { doc } from '../../rust/utils'
 import { indent } from '../../utils'
 
 const getUnion2 = (

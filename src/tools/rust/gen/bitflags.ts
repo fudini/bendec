@@ -18,6 +18,7 @@ const getPadder = (underlying: string) => {
 
 export const getBitflags = (
   enumStrict: EnumStrict,
+  defaultDerives: string[],
   extraDerivesArray: string[],
 ): string => {
 
@@ -36,9 +37,8 @@ export const getBitflags = (
     .join('\n')
 
   // As opposed to enum - bitflags implements Copy, Clone and Debug so we don't need it
-  const derives = defaultDerives.bitflags
   const derivesString = createDerives([
-    ...derives,
+    ...defaultDerives,
     ...extraDerivesArray,
   ])
 

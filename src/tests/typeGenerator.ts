@@ -37,13 +37,15 @@ test('TypeScript arrays', t => {
 
 test('Rust - fixtures', t => {
   const options: Options = {
+    defaultDerives: {
+      struct: ['Serialize', 'Deserialize', 'Copy']
+    },
     extraDerives: {
       'Header': ['Default']
     }
   }
 
   const generated = generateStringRust(types, options)
-  console.log(generated)
   const fixture = getFixture('./generated/rust/fixtures.rs')
   codeEquals(t)(generated, fixture)
   t.end()
@@ -52,7 +54,7 @@ test('Rust - fixtures', t => {
 test('Rust - camel case annotation on structs and extra gen from function', t => {
   const options = {
     camelCase: true,
-    forEachType([generated, context, meta]) {
+    forEachType([generated, context, _meta]) {
 
       if (context.name == 'Foo') {
         return generated + `\n\n// extra code for ${context.name}`

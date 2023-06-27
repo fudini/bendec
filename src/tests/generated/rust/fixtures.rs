@@ -12,7 +12,7 @@ pub type Age = u8;
 
 /// struct description
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Copy, Default)]
 #[serde(deny_unknown_fields, default)]
 pub struct Header {
   /// field description
@@ -20,7 +20,7 @@ pub struct Header {
 }
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct Uri {
   pub protocol: [u8; 10],
@@ -29,7 +29,7 @@ pub struct Uri {
 }
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct User {
   pub first_name: [u8; 16],
@@ -39,7 +39,7 @@ pub struct User {
 }
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct UserExtra {
   pub first_name: [u8; 16],
@@ -50,7 +50,7 @@ pub struct UserExtra {
 }
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct UserAdd {
   pub header: Header,
@@ -60,7 +60,7 @@ pub struct UserAdd {
 pub type CustomerAdd = UserAdd;
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct Group {
   pub header: Header,
@@ -71,7 +71,7 @@ pub struct Group {
 pub type Price = u32;
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct Person {
   pub a: u16,
@@ -81,7 +81,7 @@ pub struct Person {
 }
 
 #[repr(C, packed)]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct LargeMessage {
   pub header: Header,
