@@ -12,6 +12,7 @@ export const getEnum = (
   meta: TypeMeta,
   defaultDerives: DefaultDerives,
   extraDerivesArray: string[],
+  transparentBitflags: boolean,
 ): string => {
 
 
@@ -25,7 +26,7 @@ export const getEnum = (
 
   // Delegate to bitflags generator if needed
   if (meta?.bitflags || bitflags) {
-    return getBitflags(enumStrict, defaultDerives.bitflags, extraDerivesArray)
+    return getBitflags(enumStrict, defaultDerives.bitflags, extraDerivesArray, transparentBitflags)
   }
 
   const implConst = !!(meta?.implConst)
