@@ -94,6 +94,7 @@ export type Options = {
   enumConversionError?: EnumConversionError,
   // You have a chance to generate extra code for each typeDefinition
   forEachType?: ([generated, context, meta]: [string, TypeDefinitionStrict, TypeMeta]) => string
+  transparentBitflags?: boolean
 }
 
 
