@@ -83,7 +83,7 @@ impl Animal {
 }
 
 impl Animal {
-  pub fn size_of(disc: AnimalKind) -> usize {
+  pub const fn size_of(disc: AnimalKind) -> usize {
     match disc {
       AnimalKind::Zebra => std::mem::size_of::<Zebra>(),
       AnimalKind::Toucan => std::mem::size_of::<Toucan>(),
@@ -167,7 +167,7 @@ impl Animal2 {
 }
 
 impl Animal2 {
-  pub fn size_of(disc: AnimalKind2) -> usize {
+  pub const fn size_of(disc: AnimalKind2) -> usize {
     match disc {
       AnimalKind2::Zebra2 => std::mem::size_of::<Zebra2>(),
       AnimalKind2::Toucan2 => std::mem::size_of::<Toucan2>(),

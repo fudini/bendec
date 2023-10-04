@@ -56,7 +56,7 @@ ${unionDeserializeMembers}
   }).map(indent(6)).join('\n')
 
   const unionGetSize = `impl ${name} {
-  pub fn size_of(disc: ${discTypeDef.name}) -> usize {
+  pub const fn size_of(disc: ${discTypeDef.name}) -> usize {
     match disc {
 ${unionGetSizeMembers}
     }
