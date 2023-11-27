@@ -5,7 +5,7 @@ import {
     TypeMapping,
 } from "./types";
 import {header, indent, typesToByteOperators} from "./utils";
-import {Kind} from "../../types";
+import {Kind, Struct} from "../../types";
 
 
 export function binSerializableGenerator(packageName: string) : JavaInterface {
@@ -41,7 +41,7 @@ public interface ByteSerializable {
 const getStructMethods = (
     fields: FieldWithJavaProperties[],
     types: TypeDefinitionStrictWithSize[],
-    typeDef: TypeDefinitionStrictWithSize,
+    typeDef: Struct,
     typeMap: TypeMapping
 ) => {
     const bufferFilling = fields

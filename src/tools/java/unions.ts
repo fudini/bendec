@@ -55,8 +55,9 @@ import java.util.Optional;
 
 public interface ${typeDef.name} {
 ${generateGetDiscriminator(typeDef, discTypeDef, firstDiscPathType, discOffset)}
-${generateFactory(discTypeDef, members)}
-
+${generateSimplifiedFactory(typeDef.name, discTypeDef)}
+${generateFactory(typeDef.name, discTypeDef, members)}
+${generateTypeClassMap(discTypeDef, members)}
 }`;
 };
 
@@ -75,18 +76,38 @@ ${indent(2)}return ${discTypeDef.name}.get${discTypeDef.name}(bytes, ${discTypeO
 ${indent(1)}}\n`;
 }
 
-const generateFactory = (discTypeDef, members) => {
-  return `${indent(1)}static Optional<Object> createObject(${discTypeDef.name} type, byte[] bytes){
+const generateSimplifiedFactory = (unionName, discTypeDef) : string => {
+  return `${indent(1)}static Optional<${unionName}> createObject(byte[] bytes) {
+${indent(2)}return createObject(get${upperFirst(discTypeDef.name)}(bytes), bytes);
+${indent(1)}}\n`;
+}
+
+const generateFactory = (unionName, discTypeDef, members) => {
+  return `${indent(1)}static Optional<${unionName}> createObject(${discTypeDef.name} type, byte[] bytes) {
 ${indent(2)}switch (type) {
-${members.map(
-          (v) => `
-${indent(3)}case ${v.toUpperCase()}:
-${indent(4)}return Optional.of(new ${v}(bytes));
-`
-      )
-      .join("")}
+${members.map((v) => `${indent(3)}case ${v.toUpperCase()}:
+${indent(4)}return Optional.of(new ${v}(bytes));`).join("\n")}
 ${indent(3)}default:
 ${indent(4)}return Optional.empty();
 ${indent(2)}}
 ${indent(1)}}`
+}
+
+const generateTypeClassMap = (discTypeDef, members) => {
+  return `
+${indent(1)}static Class findClassByDiscriminator(${discTypeDef.name} type) {
+${indent(2)}return  typeToClassMap.get(type);
+${indent(1)}}
+
+${indent(1)}static ${discTypeDef.name} findDiscriminatorByClass(Class clazz) {
+${indent(2)}return  classToTypeMap.get(clazz);
+${indent(1)}}
+
+${indent(1)}HashMap<Class, ${discTypeDef.name}> classToTypeMap = new HashMap<>(){{
+${members.map((v) => `${indent(2)}put(${v}.class, ${discTypeDef.name}.${v.toUpperCase()});`).join("\n")}
+${indent(1)}}};
+
+${indent(1)}HashMap<${discTypeDef.name}, Class> typeToClassMap = new HashMap<>() {{
+${members.map((v) => `${indent(2)}put(${discTypeDef.name}.${v.toUpperCase()}, ${v}.class);`).join("\n")}
+${indent(1)}}};`
 }

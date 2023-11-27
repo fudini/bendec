@@ -162,9 +162,9 @@ ${indent(2)}}`,
   }
 }
 
-export function getTypeFormTypeMap(type: string, typeMap: TypeMapping) {
+export function getFinalType(type: string, typeMap: TypeMapping) : string {
   const fromMap = typeMap[type];
-  return !fromMap ? type : getTypeFormTypeMap(fromMap, typeMap);
+  return !fromMap ? type : getFinalType(fromMap, typeMap);
 }
 
 export function javaTypeMapping(type: string) {
@@ -205,12 +205,11 @@ export function addJavaFieldProperties(
   types: TypeDefinitionStrictWithSize[]
 ): FieldWithJavaProperties {
   const key = field.type + (field.length ? "[]" : "");
-  let finalTypeName = getTypeFormTypeMap(key, typeMap);
+  let finalTypeName = getFinalType(key, typeMap);
   if (finalTypeName.endsWith("[]")) {
     const ff = types.find((stype) => stype.name === finalTypeName.replace("[]", ""))
     if (ff.kind === Kind.Alias)
-      finalTypeName = getTypeFormTypeMap(ff.alias, typeMap)+"[]";
-
+      finalTypeName = getFinalType(ff.alias, typeMap)+"[]";
   }
   const javaType = javaTypeMapping(finalTypeName) || finalTypeName;
   const type =

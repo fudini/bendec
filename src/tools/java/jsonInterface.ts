@@ -6,7 +6,7 @@ import {
     TypeMapping,
     TypeReadWriteDefinition
 } from "./types";
-import {Kind} from "../../types";
+import {Kind, Struct} from "../../types";
 import {includes, upperFirst} from "lodash";
 
 export function jsonSerializableGenerator(packageName: string) : JavaInterface {
@@ -51,7 +51,7 @@ public interface JsonSerializable {
 const getStructJsonMethods = (
     fields: FieldWithJavaProperties[],
     types: TypeDefinitionStrictWithSize[],
-    typeDef: TypeDefinitionStrictWithSize,
+    typeDef: Struct,
     typeMap: TypeMapping
 ) : string => {
     const jsonFilling = fields

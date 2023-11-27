@@ -7,7 +7,7 @@ import {
   TypeMapping,
 } from "./types";
 import {addJavaFieldProperties, header, indent, typesToByteOperators,} from "./utils";
-import {Kind, Struct, StructStrict, TypeDefinitionStrict, Union} from "../../types";
+import {Kind, Struct, Union} from "../../types";
 
 const getMembers = (fields: FieldWithJavaProperties[]) => {
   const length = fields.reduce(
@@ -20,7 +20,7 @@ const getMembers = (fields: FieldWithJavaProperties[]) => {
     .join("\n");
 };
 
-const getterJavadoc = field => {
+const getterJavadoc = (field: FieldWithJavaProperties) : string => {
   return field.description ? `${indent(1)}/**
 ${indent(1)} * @return ${field.description}
 ${indent(1)} */\n` : '';
@@ -37,7 +37,7 @@ ${indent(1)}};`
     .join("\n");
 };
 
-const setterJavadoc = field => {
+const setterJavadoc = (field: FieldWithJavaProperties) : string => {
   return field.description ? `${indent(1)}/**
 ${indent(1)} * @param ${field.name} ${field.description}
 ${indent(1)} */\n` : '';
@@ -59,8 +59,7 @@ const getConstructors = (
   fields: FieldWithJavaProperties[],
   typeMap: TypeMapping,
   types: TypeDefinitionStrictWithSize[],
-  options: Options
-) => {
+) : string => {
   const parameters = fields
     .map((field) => {
       return `${field.javaType} ${field.name}`;
@@ -81,11 +80,11 @@ ${indent(2)}this.header.setLength(this.byteLength);`
 
     const unions : Union[] = types.filter(t => t.kind === Kind.Union) as Union[];
     for (let u of unions) {
-      const disctiminator = (u as Union).discriminator.length > 1 ? (u as Union).discriminator[1] : undefined;
-      const headerDiscriminatorField = disctiminator ? (headerType as Struct).fields.find(hf => hf.name === disctiminator) : undefined;
+      const discriminator = (u as Union).discriminator.length > 1 ? (u as Union).discriminator[1] : undefined;
+      const headerDiscriminatorField = discriminator ? (headerType as Struct).fields.find(hf => hf.name === discriminator) : undefined;
       if (headerDiscriminatorField) {
         setDiscriminator = `
-${indent(2)}this.header.set${upperFirst(disctiminator)}(${upperFirst(headerDiscriminatorField.type)}.${name.toLocaleUpperCase()});`
+${indent(2)}this.header.set${upperFirst(discriminator)}(${upperFirst(headerDiscriminatorField.type)}.${name.toLocaleUpperCase()});`
       }
     }
   }
@@ -149,7 +148,7 @@ ${typeDef.description ? " * <p>" + typeDef.description + "</p>" : ""}
 const getAdditionalMethods = (
   name: string,
   fields: FieldWithJavaProperties[]
-) => {
+) : string => {
   const stringFields = fields.map((f, i) => `${indent(3)}"${i !== 0 ? `, ` : ``}${f.name}=" + ${f.name} +`);
   return `${indent(1)}@Override
 ${indent(1)}public int hashCode() {
@@ -166,19 +165,19 @@ ${indent(2)}}`
 
 
 export const getStruct = (
-  typeDef,
+  typeDef: Struct,
   typeMap: TypeMapping,
   types: TypeDefinitionStrictWithSize[],
   options: Options,
   unionInterfaces?: string[]
-) => {
+) : string => {
   const extendedTypeDef = {
     ...typeDef,
     fields: typeDef.fields.map((f) =>
       addJavaFieldProperties(f, typeMap, types)
     ),
   };
-  const intefaces = options.interfaces.filter(i => i.addInterfaceOrNot(typeDef))
+  const interfaces = options.interfaces.filter(i => i.addInterfaceOrNot(typeDef))
       .map(i => i.interfaceName).concat(unionInterfaces)
       .filter((x: string) => x.length > 0).join(", ");
 
@@ -188,15 +187,14 @@ export const getStruct = (
   )}
 ${getStructDocumentation(extendedTypeDef)}
 
-public class ${extendedTypeDef.name} implements ${intefaces} {
+public class ${extendedTypeDef.name} implements ${interfaces} {
 
 ${getMembers(extendedTypeDef.fields)}
 ${getConstructors(
   extendedTypeDef.name,
   extendedTypeDef.fields,
   typeMap,
-  types,
-  options
+  types
 )}
 
 ${getGetters(extendedTypeDef.fields)}

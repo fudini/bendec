@@ -22,7 +22,7 @@ export type JavaInterface = {
   interfaceName: string;
   interfaceBody: JavaFile;
   imports: string,
-  structMethods: (properties: FieldWithJavaProperties[], types: TypeDefinitionStrictWithSize[], typeDef: TypeDefinitionStrictWithSize, typeMap: TypeMapping) => string;
+  structMethods: (properties: FieldWithJavaProperties[], types: TypeDefinitionStrictWithSize[], typeDef: Struct, typeMap: TypeMapping) => string;
   enumMethods: (properties: FieldWithJavaProperties[], types: TypeDefinitionStrictWithSize[], typeDef: TypeDefinitionStrictWithSize, typeMap: TypeMapping) => string;
   addInterfaceOrNot: (typeDef) => boolean;
 };
