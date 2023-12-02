@@ -175,6 +175,12 @@ impl Animal2 {
   }
 }
 
+#[repr(u16)]
+pub enum AnimalKind3 {
+  Zebra3(Zebra) = 0x2001,
+  Toucan3 = 0x2002,
+}
+
 bitflags::bitflags! {
   #[derive(Serialize, Deserialize)]
   #[repr(transparent)]

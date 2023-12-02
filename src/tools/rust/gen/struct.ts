@@ -16,6 +16,7 @@ export const getStruct = (
 ) => {
   const typeName = typeDef.name
   const fieldsMeta = meta?.fields
+  const typeAnnotation = meta?.annotation
 
   const members = typeDef.fields
     ? getMembers(lookup, typeDef.fields, typeMap, fieldsMeta)
@@ -38,6 +39,7 @@ export const getStruct = (
     doc(typeDef.description),
     `#[repr(C, packed)]`,
     derivesString,
+    typeAnnotation,
     serdeString,
     serdeCamelCase,
     `pub struct ${typeName} {`,

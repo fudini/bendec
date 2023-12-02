@@ -30,20 +30,34 @@ export const getEnum = (
   }
 
   const implConst = !!(meta?.implConst)
+  const typeAnnotation = meta?.annotation
+  const typeDeriveHelperAttribute = meta?.deriveHelperAttribute
   const variantsFields = variants
-    .map(([key, value, docs]) => smoosh([doc(docs, 2),`  ${key} = ${hexPad(value)},`]))
+    .map(([key, value, docs, dataType]) => {
+      const data = dataType !== undefined
+        ? `(${dataType})`
+        : ''
+      return smoosh([doc(docs, 2), `  ${key}${data} = ${hexPad(value)},`])
+    })
     .join('\n')
+  const hasData = !variants.every(([, , , dataType]) => dataType === undefined)
 
-  const derivesString = createDerives([
-    ...defaultDerives.enum,
-    ...extraDerivesArray,
-  ])
+  const derivesString = !hasData
+    ? createDerives([
+      ...defaultDerives.enum,
+      ...extraDerivesArray
+    ])
+    : createDerives([
+      ...extraDerivesArray
+    ])
 
   const enumBody =  smoosh([
 doc(description),
-`#[repr(${underlying})]
-${derivesString}
-pub enum ${name} {
+typeAnnotation,
+`#[repr(${underlying})]`,
+derivesString,
+typeDeriveHelperAttribute,
+`pub enum ${name} {
 ${variantsFields}
 }`])
 
@@ -87,7 +101,11 @@ ${variantsFieldsRev}
   }
 
   const implTryFromUnderlying = implTryFrom(underlying)
-  var impls = [enumBody, implDefault, implTryFromUnderlying]
+  var impls = [enumBody]
+
+  if (!hasData) {
+    impls.push(implDefault, implTryFromUnderlying)
+  }
 
   if (implConst) {
     impls.push(implConstInt)

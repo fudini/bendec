@@ -68,7 +68,7 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
     const offset = def.offset == undefined ? 0 : parseInt(def.offset as string)
     def.underlying = appendNamespace(def.underlying, ns)
     // Adjust the offset for this enum
-    const variants = def.variants.map(([name, value, docs]) => {
+    const variants = def.variants.map(([name, value, docs, dataType]) => {
 
       let valueNumber: number = 0
       if (typeof value == 'string') {
@@ -80,7 +80,7 @@ const toStrict = (lookup: Lookup, ns?: string) => (typeDef: TypeDefinition): Typ
       } else {
         valueNumber = value
       }
-      return [name, valueNumber + offset, docs]
+      return [name, valueNumber + offset, docs, dataType]
     })
 
     const bitflags = !!def.bitflags

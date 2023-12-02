@@ -82,6 +82,21 @@ union Animal2 {
     Toucan2 uToucan2;
 };
 
+enum class AnimalKind3: uint16_t {
+    Zebra3 = 8193,
+    Toucan3 = 8194
+};
+
+static const std::map<std::string, AnimalKind3> Name2AnimalKind3 {
+    { "Zebra3", AnimalKind3::Zebra3 },
+    { "Toucan3", AnimalKind3::Toucan3 }
+};
+
+static const std::map<AnimalKind3, std::string> AnimalKind32Name {
+    { AnimalKind3::Zebra3, "Zebra3" },
+    { AnimalKind3::Toucan3, "Toucan3" }
+};
+
 enum class Bitflags: uint8_t {
     A = 1,
     B = 2,

@@ -66,6 +66,8 @@ export type TypeMeta = {
   fields?: FieldsMeta,
   bitflags?: boolean
   implConst?: boolean
+  annotation?: string
+  deriveHelperAttribute?: string
 }
 
 export type EnumConversionError = {

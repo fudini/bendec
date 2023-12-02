@@ -40,6 +40,11 @@
   
   export type Animal2 = Zebra2 | Toucan2
 
+  export enum AnimalKind3 {
+    Zebra3 = 0x2001,
+    Toucan3 = 0x2002,
+  }
+
   export enum Bitflags {
     A = 0x0001,
     B = 0x0002,

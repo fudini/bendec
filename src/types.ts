@@ -46,8 +46,8 @@ export interface Struct {
 
 // enum type is also only to generate types and is not validated by BendecJS
 // It will alias to 'underlying' unsigned primitive
-export type EnumVariant = [string, number | string, string?]
-export type EnumVariantStrict = [string, number, string?]
+export type EnumVariant = [string, number | string, string?, string?]
+export type EnumVariantStrict = [string, number, string?, string?]
 export interface Enum {
   kind?: Kind.Enum
   name: string

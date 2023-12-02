@@ -1,8 +1,13 @@
 import { negate, isEmpty, padStart } from 'lodash'
 
-// convert to hex and pad to 8 chars
+// convert to hex and pad to the length of the smallest unsigned integer
 export const hexPad = (n: number): string => {
-  return "0x" + ("0000" + n.toString(16)).substr(-4)
+  const bits = Math.ceil(Math.log2(n + 1))
+  const bytes = Math.max(Math.ceil(bits / 8), 1)
+  const fullLength = Math.max(Math.pow(2, Math.ceil(Math.log2(bytes))) * 2, 4)
+
+  const hexString = n.toString(16)
+  return "0x" + ("0".repeat(fullLength - hexString.length) + hexString)
 }
 
 // convert to hex and pad to 8 chars

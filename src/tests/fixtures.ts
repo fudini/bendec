@@ -276,6 +276,12 @@ const unions: TypeDefinition[] = [{
   members: ['Zebra2', 'Toucan2'],
   discriminator: ['header', 'animalKind']
 }, {
+  kind: Kind.Enum,
+  name: 'AnimalKind3',
+  underlying: 'u16',
+  offset: '0x2000',
+  variants: [['Zebra3', 1, undefined, 'Zebra'], ['Toucan3', 2]]
+}, {
   // Enum bitflags
   name: 'Bitflags',
   underlying: 'u8',
