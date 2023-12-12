@@ -1,14 +1,16 @@
 import { snakeCase } from 'lodash'
-import { TypeDefinitionStrict } from '../../../'
+import { TypeMeta } from '../../rust/types'
+import { EnumStrict, TypeDefinitionStrict } from '../../../'
 import { Kind, StructStrict, UnionStrict } from '../../../types'
 import { doc } from '../../rust/utils'
 import { indent } from '../../utils'
+import { getUnionEnum } from './union-enum'
 
 const getUnion2 = (
   { name, discriminator, members, description }: UnionStrict,
-  discTypeDef: TypeDefinitionStrict
+  discTypeDef: EnumStrict
 ) => {
-  
+
   const unionMembers = members.map(member => {
     return `  pub ${snakeCase(member)}: ${member},`
   }).join('\n')
@@ -26,7 +28,8 @@ ${unionMembers}
   // we need to generate serde for union as it can't be derived
   const unionSerdeSerialize = `impl Serialize for ${name} {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where S: Serializer,
+  where
+    S: Serializer,
   {
     unsafe {
       match self.${snakeCase(members[0])}.${discPath} {
@@ -68,7 +71,8 @@ ${unionGetSizeMembers}
 
 export const getUnion = (
   typeDef: UnionStrict,
-  types: TypeDefinitionStrict[]
+  types: TypeDefinitionStrict[],
+  meta: TypeMeta,
 ): string => {
   // determine the type of the discriminator from one of union members
   // TODO: validate if all members have discriminator
@@ -76,7 +80,7 @@ export const getUnion = (
   const memberType = <StructStrict>types.find(({ name }) => name === memberName)
 
   const discTypeDef = typeDef.discriminator.reduce((currentTypeDef, pathSection) => {
-    
+
     if (currentTypeDef.kind !== Kind.Struct) {
       throw new Error(`The path to union discriminator can only contain Structs, ${currentTypeDef.name} is not a Struct`)
     }
@@ -91,7 +95,10 @@ export const getUnion = (
     return <StructStrict>types.find(({ name }) => name === discTypeField.type)
   }, memberType as TypeDefinitionStrict)
 
-  return getUnion2(typeDef, discTypeDef)
+  if (meta) {
+    return getUnionEnum(typeDef, discTypeDef as EnumStrict, meta)
+  }
+  return getUnion2(typeDef, discTypeDef as EnumStrict)
 }
 
 

@@ -8,6 +8,7 @@ import {
 } from '../tools/rsGenerator'
 import { generateString as generateStringCpp } from '../tools/cppGenerator'
 import { getFixture, codeEquals, clean } from './utils'
+import { EnumVariantStrict } from '../types'
 
 test('TypeScript - custom type mapping', t => {
   const types = [{ name: 'u64', size: 8 }]
@@ -85,6 +86,14 @@ test('Rust - unions and enums', t => {
     meta: {
       "AnimalKind": {
         implConst: true
+      },
+      "AnimalUnionEnum": {
+        union: {
+          underlying: 'u8',
+          discFn(variantInt: number) {
+            return variantInt + 100
+          },
+        }
       }
     }
   }
@@ -163,7 +172,7 @@ test('Rust - newtypes', t => {
         newtype: { kind: NewtypeKind.Public }
       },
       "FieldMetaTest": {
-        fields: { }
+        fields: {}
       }
     },
     extraDerives: {

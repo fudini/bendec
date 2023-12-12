@@ -163,7 +163,7 @@ test('Bendec wrapper', t => {
 
   userAdd.header.msgType = MsgType.USER_ADD
   userAdd.user.firstName = 'genezyp'
-  userAdd.user.lastName = 'bazakbal' 
+  userAdd.user.lastName = 'bazakbal'
   userAdd.user.age = 255
   userAdd.user.uri.protocol = 'aabbaabbaa'
   userAdd.user.uri.host = '1122334455'
@@ -225,7 +225,7 @@ test('Bendec wrapper 2', t => {
 
   userAdd.set_header_msgType(MsgType.USER_ADD)
   userAdd.set_user_firstName('genezyp')
-  userAdd.set_user_lastName('bazakbal' )
+  userAdd.set_user_lastName('bazakbal')
   userAdd.set_user_age(255)
   userAdd.set_user_uri_protocol('aabbaabbaa')
   userAdd.set_user_uri_host('1122334455')

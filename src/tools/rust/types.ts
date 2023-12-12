@@ -1,4 +1,4 @@
-import { TypeDefinition, TypeDefinitionStrict } from '../../'
+import { TypeDefinition, TypeDefinitionStrict, EnumVariantStrict } from '../../'
 
 export type FieldName = string
 // Metadata for the struct fields
@@ -62,10 +62,20 @@ export type NewtypeDef = NewtypePublic
 
 // Metadata for the type will contain newtype annotations
 export type TypeMeta = {
-  newtype?: NewtypeDef,
-  fields?: FieldsMeta,
+  newtype?: NewtypeDef
+  fields?: FieldsMeta
   bitflags?: boolean
   implConst?: boolean
+  union?: UnionMeta
+}
+
+// This is only for union types generation
+// used if you want to represent your unions as enums
+// You have to define the size od the discriminator
+// and provide values for fields that form it
+export type UnionMeta = {
+  underlying: string,
+  discFn?(variant: number): number
 }
 
 export type EnumConversionError = {
@@ -96,5 +106,3 @@ export type Options = {
   forEachType?: ([generated, context, meta]: [string, TypeDefinitionStrict, TypeMeta]) => string
   transparentBitflags?: boolean
 }
-
-
