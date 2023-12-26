@@ -206,7 +206,7 @@
       "type": "object",
       "properties": {
         "kind": {
-          "const": "Union",
+          "const": "Array",
           "$ref": "#/$defs/Kind"
         },
         "name": {
