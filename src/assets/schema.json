@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/fudini/bendec/tree/master/src/assets/schema.json",
+  "title": "Bendec",
+  "description": "Schema for Bendec JSON typedef files",
+  "$defs": {
+    "Element": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Primitive"
+        },
+        {
+          "$ref": "#/$defs/Alias"
+        },
+        {
+          "$ref": "#/$defs/Struct"
+        },
+        {
+          "$ref": "#/$defs/Enum"
+        },
+        {
+          "$ref": "#/$defs/Union"
+        },
+        {
+          "$ref": "#/$defs/Array"
+        }
+      ]
+    },
+    "Kind": {
+      "type": "string",
+      "enum": [
+        "Primitive",
+        "Alias",
+        "Struct",
+        "Enum",
+        "Union",
+        "Array"
+      ]
+    },
+    "Primitive": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "Primitive",
+          "$ref": "#/$defs/Kind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "size": {
+          "type": "number"
+        }
+      }
+    },
+    "Alias": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "Alias",
+          "$ref": "#/$defs/Kind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "alias": {
+          "type": "string"
+        }
+      }
+    },
+    "Field": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "length": {
+          "type": "number",
+          "description": "length is specified it's an array"
+        }
+      }
+    },
+    "Struct": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "Struct",
+          "$ref": "#/$defs/Kind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Field"
+          }
+        }
+      }
+    },
+    "Enum": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "Enum",
+          "$ref": "#/$defs/Kind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "underlying": {
+          "type": "string",
+          "description": "Underlying primitive type"
+        },
+        "offset": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "description": "Name"
+              },
+              {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "description": "Value"
+              },
+              {
+                "type": "string",
+                "description": "Description"
+              }
+            ],
+            "items": false
+          }
+        },
+        "bitflags": {
+          "type": "boolean"
+        },
+        "implConst": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Union": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "Union",
+          "$ref": "#/$defs/Kind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "discriminator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Array": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "Union",
+          "$ref": "#/$defs/Kind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "length": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/Primitive"
+    },
+    {
+      "$ref": "#/$defs/Alias"
+    },
+    {
+      "$ref": "#/$defs/Struct"
+    },
+    {
+      "$ref": "#/$defs/Enum"
+    },
+    {
+      "$ref": "#/$defs/Union"
+    },
+    {
+      "$ref": "#/$defs/Array"
+    }
+  ]
+}
