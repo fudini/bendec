@@ -89,9 +89,11 @@ export const getUnion = (
       .fields
       .find(({ name }) => name === pathSection)
 
+    // TODO: fails because it needs to know the type of the field
     if (discTypeField === undefined) {
       throw new Error(`no field '${pathSection}' in struct '${currentTypeDef.name}'`)
     }
+
     return <StructStrict>types.find(({ name }) => name === discTypeField.type)
   }, memberType as TypeDefinitionStrict)
 

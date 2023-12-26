@@ -62,6 +62,7 @@ export type NewtypeDef = NewtypePublic
 
 // Metadata for the type will contain newtype annotations
 export type TypeMeta = {
+  annotations?: string[]
   newtype?: NewtypeDef
   fields?: FieldsMeta
   bitflags?: boolean

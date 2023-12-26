@@ -84,6 +84,9 @@ test('Rust - unions and enums', t => {
       constructor: 'EnumValueError::new(other, "{{ name }}")'
     },
     meta: {
+      'Zebra2': {
+        annotations: ['Test']
+      },
       "AnimalKind": {
         implConst: true
       },

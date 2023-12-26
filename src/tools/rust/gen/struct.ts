@@ -16,13 +16,15 @@ export const getStruct = (
 ) => {
   const typeName = typeDef.name
   const fieldsMeta = meta?.fields
+  const annotations = meta?.annotations || []
+  const annotationsString = annotations.join('\n')
 
   const members = typeDef.fields
     ? getMembers(lookup, typeDef.fields, typeMap, fieldsMeta)
     : []
 
   const membersString = members.join('\n')
-  
+
   // TODO: maybe glue it together and pass in
   const allDerives = [...defaultDerives, ...extraDerivesArray]
   const derivesString = createDerives(allDerives)
@@ -37,6 +39,7 @@ export const getStruct = (
   return smoosh([
     doc(typeDef.description),
     `#[repr(C, packed)]`,
+    annotationsString,
     derivesString,
     serdeString,
     serdeCamelCase,
@@ -63,8 +66,8 @@ const getMembers = (
       : rustType
 
     const fieldAnnotations = fieldsMeta?.[field.name]?.annotations || []
-    const generatedField =  `  pub ${snakeCase(field.name)}: ${finalRustType},`
-    
+    const generatedField = `  pub ${snakeCase(field.name)}: ${finalRustType},`
+
     const type = lookup[field.type]
 
     if (type === undefined) {
