@@ -1,9 +1,9 @@
-import { snakeCase } from 'lodash'
+import { max } from 'lodash'
 import { TypeMeta } from '../../rust/types'
 import { EnumStrict } from '../../../'
 import { UnionStrict } from '../../../types'
 import { doc } from '../../rust/utils'
-import { hexPad, indent } from '../../utils'
+import { hexPad, indent, smoosh } from '../../utils'
 
 // Union represented as enum
 const getUnionEnum = (
@@ -11,27 +11,43 @@ const getUnionEnum = (
   discTypeDef: EnumStrict,
   meta: TypeMeta,
 ) => {
+  const annotations = meta?.annotations || []
+  const annotationsString = annotations.join('\n')
   const discTypeVariantLookup = Object.fromEntries(
-    discTypeDef.variants.map(([variant, variantInt, desc]) => [variant, variantInt]))
+    discTypeDef.variants.map(([variant, variantInt, _desc]) => [variant, variantInt]))
 
   const { underlying = 'u8', discFn = v => v } = meta.union
 
   const padDigits = { u8: 2, u16: 4, u32: 8, u64: 16 }[underlying]
 
-  const unionMembers = members.map(member => {
+  const unionMembers: [string, number][] = members.map(member => {
     const variantInt = discTypeVariantLookup[member]
     const value = hexPad(discFn(variantInt), padDigits)
-    return `  ${member}(${member}) = ${value},` // ${variantInt}`
-  }).join('\n')
+    return [`  ${member}(${member}) = ${value},`, variantInt]
+  })
+
+  // So we can align the commends like rustfmt does by default
+  const longestVariant = max(unionMembers.map(([v]) => v.length))
+
+  const unionMembersWithComment = unionMembers
+    .map(([variant, variantInt]: [string, number]) => {
+
+      const value = hexPad(variantInt, padDigits)
+      return variant.padEnd(longestVariant) + ' // ' + value
+    })
+    .join('\n')
 
   // prettier-ignore
-  const union = `${doc(description)}
-#[repr(${ underlying})]
-#[derive(Serialize)]
-#[serde(untagged)]
-    pub enum ${name} {
-      ${ unionMembers}
-    } `
+  const union = smoosh([
+    doc(description),
+    `#[repr(${ underlying})]`,
+    annotationsString,
+    `#[derive(Serialize)]`,
+    `#[serde(untagged)]`,
+    `pub enum ${name} {`,
+    `  ${ unionMembersWithComment }`,
+    `} `
+  ])
 
   // prettier-ignore
   const unionDeserializeMembers = members.map(member => {

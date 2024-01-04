@@ -276,12 +276,6 @@ const unions: TypeDefinition[] = [{
   members: ['Zebra2', 'Toucan2'],
   discriminator: ['header', 'animalKind']
 }, {
-  // union with nested discriminator
-  kind: Kind.Union,
-  name: 'AnimalUnionEnum',
-  members: ['Zebra2', 'Toucan2'],
-  discriminator: ['header', 'animalKind']
-}, {
   // Enum bitflags
   name: 'Bitflags',
   underlying: 'u8',

@@ -122,6 +122,7 @@ pub struct Header {
 }
 
 #[repr(C, packed)]
+#[derive(TestAnnotation)]
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Zebra2 {
@@ -177,12 +178,23 @@ impl Animal2 {
   }
 }
 
+bitflags::bitflags! {
+  #[derive(Serialize, Deserialize)]
+  #[repr(transparent)]
+  pub struct Bitflags: u8 {
+    const A    = 0b00000001;
+    const B    = 0b00000010;
+    const LONG = 0b00000100;
+  }
+}
+
 #[repr(u8)]
+#[derive(TestAnnotation)]
 #[derive(Serialize)]
 #[serde(untagged)]
 pub enum AnimalUnionEnum {
-  Zebra2(Zebra2) = 0x65,
-  Toucan2(Toucan2) = 0x66,
+  Zebra2(Zebra2) = 0x65,   // 0x01
+  Toucan2(Toucan2) = 0x66, // 0x02
 }
 
 impl AnimalUnionEnum {
@@ -197,12 +209,3 @@ impl AnimalUnionEnum {
   }
 }
 
-bitflags::bitflags! {
-  #[derive(Serialize, Deserialize)]
-  #[repr(transparent)]
-  pub struct Bitflags: u8 {
-    const A    = 0b00000001;
-    const B    = 0b00000010;
-    const LONG = 0b00000100;
-  }
-}
