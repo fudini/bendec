@@ -122,8 +122,8 @@ pub struct Header {
 }
 
 #[repr(C, packed)]
-#[derive(TestAnnotation)]
 #[derive(Serialize, Deserialize)]
+#[derive(TestAnnotation)]
 #[serde(deny_unknown_fields)]
 pub struct Zebra2 {
   pub header: Header,
