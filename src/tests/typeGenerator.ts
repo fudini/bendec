@@ -8,6 +8,7 @@ import {
 } from '../tools/rsGenerator'
 import { generateString as generateStringCpp } from '../tools/cppGenerator'
 import { getFixture, codeEquals, clean } from './utils'
+import { Kind, EnumVariantStrict } from '../types'
 
 test('TypeScript - custom type mapping', t => {
   const types = [{ name: 'u64', size: 8 }]
@@ -83,12 +84,34 @@ test('Rust - unions and enums', t => {
       constructor: 'EnumValueError::new(other, "{{ name }}")'
     },
     meta: {
+      'Zebra2': {
+        annotations: ['#[derive(TestAnnotation)]']
+      },
       "AnimalKind": {
         implConst: true
+      },
+      "AnimalUnionEnum": {
+        annotations: ['#[derive(TestAnnotation)]'],
+        union: {
+          underlying: 'u8',
+          discVariant: 'AnimalKind2',
+          discFn(variantInt: number) {
+            return variantInt + 100
+          },
+        }
       }
     }
   }
-  const cleanedGenerated = generateStringRust(unions, options)
+  const unionsWithExtras = [
+    ...unions,
+    {
+      kind: 5, // Kind.Union wtf TS
+      name: 'AnimalUnionEnum',
+      members: ['Zebra2', 'Toucan2'],
+      discriminator: ['header', 'animalKind']
+    }]
+
+  const cleanedGenerated = generateStringRust(unionsWithExtras, options)
   const cleanedFixture = getFixture('./generated/rust/unions_enums.rs')
 
   codeEquals(t)(cleanedGenerated, cleanedFixture)
@@ -163,7 +186,7 @@ test('Rust - newtypes', t => {
         newtype: { kind: NewtypeKind.Public }
       },
       "FieldMetaTest": {
-        fields: { }
+        fields: {}
       }
     },
     extraDerives: {

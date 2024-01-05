@@ -59,7 +59,8 @@ pub union Animal {
 
 impl Serialize for Animal {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where S: Serializer,
+  where
+    S: Serializer,
   {
     unsafe {
       match self.zebra.kind {
@@ -122,6 +123,7 @@ pub struct Header {
 
 #[repr(C, packed)]
 #[derive(Serialize, Deserialize)]
+#[derive(TestAnnotation)]
 #[serde(deny_unknown_fields)]
 pub struct Zebra2 {
   pub header: Header,
@@ -143,7 +145,8 @@ pub union Animal2 {
 
 impl Serialize for Animal2 {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where S: Serializer,
+  where
+    S: Serializer,
   {
     unsafe {
       match self.zebra_2.header.animal_kind {
@@ -155,7 +158,7 @@ impl Serialize for Animal2 {
 }
 
 impl Animal2 {
-  pub fn deserialize<'de, D>(de: D, disc: AnimalKind2) -> Result<Self, D::Error> 
+  pub fn deserialize<'de, D>(de: D, disc: AnimalKind2) -> Result<Self, D::Error>
   where
     D: Deserializer<'de>,
   {
@@ -184,3 +187,25 @@ bitflags::bitflags! {
     const LONG = 0b00000100;
   }
 }
+
+#[repr(u8)]
+#[derive(TestAnnotation)]
+#[derive(Serialize)]
+#[serde(untagged)]
+pub enum AnimalUnionEnum {
+  Zebra2(Zebra2) = 0x65,   // 0x01
+  Toucan2(Toucan2) = 0x66, // 0x02
+}
+
+impl AnimalUnionEnum {
+  pub fn deserialize<'de, D>(de: D, disc: AnimalKind2) -> Result<Self, D::Error>
+  where
+    D: Deserializer<'de>,
+  {
+    match disc {
+      AnimalKind2::Zebra2 => Zebra2::deserialize(de).map(Self::Zebra2),
+      AnimalKind2::Toucan2 => Toucan2::deserialize(de).map(Self::Toucan2),
+    }
+  }
+}
+
