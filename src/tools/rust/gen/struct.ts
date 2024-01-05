@@ -39,8 +39,8 @@ export const getStruct = (
   return smoosh([
     doc(typeDef.description),
     `#[repr(C, packed)]`,
-    annotationsString,
     derivesString,
+    annotationsString,
     serdeString,
     serdeCamelCase,
     `pub struct ${typeName} {`,
