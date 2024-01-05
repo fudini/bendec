@@ -1,4 +1,4 @@
-import { TypeDefinition, TypeDefinitionStrict, EnumVariantStrict } from '../../'
+import { TypeDefinition, TypeDefinitionStrict, EnumStrict, EnumVariantStrict } from '../../'
 
 export type FieldName = string
 // Metadata for the struct fields
@@ -76,6 +76,7 @@ export type TypeMeta = {
 // and provide values for fields that form it
 export type UnionMeta = {
   underlying: string,
+  discVariant: string,
   discFn?(variant: number): number
 }
 

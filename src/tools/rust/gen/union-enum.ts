@@ -15,13 +15,17 @@ const getUnionEnum = (
   const annotationsString = annotations.join('\n')
   const discTypeVariantLookup = Object.fromEntries(
     discTypeDef.variants.map(([variant, variantInt, _desc]) => [variant, variantInt]))
-
   const { underlying = 'u8', discFn = v => v } = meta.union
 
   const padDigits = { u8: 2, u16: 4, u32: 8, u64: 16 }[underlying]
 
   const unionMembers: [string, number][] = members.map(member => {
     const variantInt = discTypeVariantLookup[member]
+    if (variantInt == undefined) {
+      const error = `There is no ${member} in enum ${discTypeDef.name}`
+      const variants = `Possible variants: ${Object.keys(discTypeVariantLookup)}`
+      throw new Error([error, variants].join('\n'))
+    }
     const value = hexPad(discFn(variantInt), padDigits)
     return [`  ${member}(${member}) = ${value},`, variantInt]
   })
@@ -40,12 +44,12 @@ const getUnionEnum = (
   // prettier-ignore
   const union = smoosh([
     doc(description),
-    `#[repr(${ underlying})]`,
+    `#[repr(${underlying})]`,
     annotationsString,
     `#[derive(Serialize)]`,
     `#[serde(untagged)]`,
     `pub enum ${name} {`,
-    `  ${ unionMembersWithComment }`,
+    `  ${unionMembersWithComment}`,
     `} `
   ])
 

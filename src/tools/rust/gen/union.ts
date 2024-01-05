@@ -74,6 +74,18 @@ export const getUnion = (
   types: TypeDefinitionStrict[],
   meta: TypeMeta,
 ): string => {
+
+  if (meta?.union) {
+    const union = meta.union
+    const discTypeDef = types.find(def => def.name == union.discVariant)
+
+    if (discTypeDef.kind != Kind.Enum) {
+      console.error(`Error generating enum/union ${typeDef.name}`)
+      throw new Error(`type ${union.discVariant} is not an enum`)
+    }
+    return getUnionEnum(typeDef, discTypeDef as EnumStrict, meta)
+  }
+
   // determine the type of the discriminator from one of union members
   // TODO: validate if all members have discriminator
   const memberName = typeDef.members[0]
@@ -97,9 +109,6 @@ export const getUnion = (
     return <StructStrict>types.find(({ name }) => name === discTypeField.type)
   }, memberType as TypeDefinitionStrict)
 
-  if (meta) {
-    return getUnionEnum(typeDef, discTypeDef as EnumStrict, meta)
-  }
   return getUnion2(typeDef, discTypeDef as EnumStrict)
 }
 

@@ -94,6 +94,7 @@ test('Rust - unions and enums', t => {
         annotations: ['#[derive(TestAnnotation)]'],
         union: {
           underlying: 'u8',
+          discVariant: 'AnimalKind2',
           discFn(variantInt: number) {
             return variantInt + 100
           },
