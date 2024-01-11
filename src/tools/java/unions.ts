@@ -1,7 +1,7 @@
-import {Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types";
-import {header, indent} from "./utils";
-import {upperFirst} from "lodash";
-import {Kind, StructStrict, TypeDefinitionStrict, Union} from "../../types";
+import {Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types"
+import {header, indentBlock} from "./utils"
+import {upperFirst} from "lodash"
+import {Kind, StructStrict, TypeDefinitionStrict, Union} from "../../types"
 
 export const getUnion = (
     typeDef,
@@ -23,14 +23,14 @@ export const getUnion = (
 
   const discOffset = typeDef.discriminator.reduce(([currentTypeDef, acc], pathSection) => {
     const discTypeField = (<StructStrict>currentTypeDef).fields.find(({ name }) => name === pathSection)
-    const fieldIndex = currentTypeDef.fields.findIndex((f) => f.type === discTypeField.type);
+    const fieldIndex = currentTypeDef.fields.findIndex((f) => f.type === discTypeField.type)
     const fieldOffset = currentTypeDef.fields
       .filter((_f, i) => i < fieldIndex)
       .reduce((acc, field) => {
-        const type = types.find((stype) => stype.name === field.type);
-        acc += type.size * (field.length || 1);
-        return acc;
-      }, 0);
+        const type = types.find((stype) => stype.name === field.type)
+        acc += type.size * (field.length || 1)
+        return acc
+      }, 0)
     const discType = <StructStrict>types.find(({ name }) => name === discTypeField.type)
     return [discType, acc+fieldOffset]
   }, [memberType, 0])
@@ -38,76 +38,83 @@ export const getUnion = (
   const imports : string = typeDef.discriminator
     .map(f => `import ${options.bendecPackageName}.${upperFirst(discTypeDef.name)};`)
     .reduce((a, b) => {
-      if (a.indexOf(b) < 0) a.push(b);
-      return a;
+      if (a.indexOf(b) < 0) a.push(b)
+      return a
     }, [])
-    .join('\n');
+    .join('\n')
 
   const members = types.filter(x => x.name == typeDef.name)
     .filter(x => (x as Union).discriminator.toString() == (typeDef as Union).discriminator.toString())
     .map(x => (x as Union).members)
-    .reduce((acc, val) => acc.concat(val), []);
-  return `${header(
-      options.bendecPackageName,
-      imports
-  )}
-import java.util.Optional;
-
-public interface ${typeDef.name} {
-${generateGetDiscriminator(typeDef, discTypeDef, firstDiscPathType, discOffset)}
-${generateSimplifiedFactory(typeDef.name, discTypeDef)}
-${generateFactory(typeDef.name, discTypeDef, members)}
-${generateTypeClassMap(discTypeDef, members)}
-}`;
-};
+    .reduce((acc, val) => acc.concat(val), [])
+  return indentBlock(`${indentBlock(header(options.bendecPackageName, imports), 4,  0)}
+    import java.util.Optional;
+    
+    public interface ${typeDef.name} {
+        ${indentBlock(generateGetDiscriminator(typeDef, discTypeDef, firstDiscPathType, discOffset), 8, 0)}
+        
+        ${indentBlock(generateSimplifiedFactory(typeDef.name, discTypeDef), 8, 0)}
+        
+        ${indentBlock(generateFactory(typeDef.name, discTypeDef, members), 8, 0)}
+        
+        ${indentBlock(generateTypeClassMap(discTypeDef, members), 8, 0)}
+    }`)
+}
 
 const generateGetDiscriminator = (typeDef, discTypeDef, firstDiscPathType, discTypeOffset) => {
-  let nestedObjects : string = '';
+  let nestedObjects : string = ''
   for (let field of typeDef.discriminator) {
-    nestedObjects += `.get${upperFirst(field)}()`;
+    nestedObjects += `.get${upperFirst(field)}()`
   }
-  return `${indent(1)}default ${upperFirst(discTypeDef.name)} get${upperFirst(discTypeDef.name)}() {
-${indent(2)}return this${nestedObjects};
-${indent(1)}}
-${indent(1)}${upperFirst(firstDiscPathType.type)} get${upperFirst(firstDiscPathType.name)}();
+  return indentBlock(`default ${upperFirst(discTypeDef.name)} get${upperFirst(discTypeDef.name)}() {
+        return this${nestedObjects};
+    }
+    ${upperFirst(firstDiscPathType.type)} get${upperFirst(firstDiscPathType.name)}();
 
-${indent(1)}static ${discTypeDef.name} get${discTypeDef.name}(byte[] bytes) {
-${indent(2)}return ${discTypeDef.name}.get${discTypeDef.name}(bytes, ${discTypeOffset[1]});
-${indent(1)}}\n`;
+    static ${discTypeDef.name} get${discTypeDef.name}(byte[] bytes) {
+        return ${discTypeDef.name}.get${discTypeDef.name}(bytes, ${discTypeOffset[1]});
+    }\n`)
 }
 
 const generateSimplifiedFactory = (unionName, discTypeDef) : string => {
-  return `${indent(1)}static Optional<${unionName}> createObject(byte[] bytes) {
-${indent(2)}return createObject(get${upperFirst(discTypeDef.name)}(bytes), bytes);
-${indent(1)}}\n`;
+  return indentBlock(`static Optional<${unionName}> createObject(byte[] bytes) {
+        return createObject(get${upperFirst(discTypeDef.name)}(bytes), bytes);
+    }\n`)
 }
 
 const generateFactory = (unionName, discTypeDef, members) => {
-  return `${indent(1)}static Optional<${unionName}> createObject(${discTypeDef.name} type, byte[] bytes) {
-${indent(2)}switch (type) {
-${members.map((v) => `${indent(3)}case ${v.toUpperCase()}:
-${indent(4)}return Optional.of(new ${v}(bytes));`).join("\n")}
-${indent(3)}default:
-${indent(4)}return Optional.empty();
-${indent(2)}}
-${indent(1)}}`
+  const cases = members.map(v => {
+      return indentBlock(`case ${v.toUpperCase()}:
+          return Optional.of(new ${v}(bytes));
+      `, 4, 0)
+    }).join("\n")
+
+  return indentBlock(`static Optional<${unionName}> createObject(${discTypeDef.name} type, byte[] bytes) {
+        switch (type) {
+            ${indentBlock(cases, 12, 0)}
+            default:
+                return Optional.empty();
+        }
+    }`)
 }
 
 const generateTypeClassMap = (discTypeDef, members) => {
-  return `
-${indent(1)}static Class findClassByDiscriminator(${discTypeDef.name} type) {
-${indent(2)}return  typeToClassMap.get(type);
-${indent(1)}}
+  const classToTypeMapInitializer = members.map((v) => `put(${v}.class, ${discTypeDef.name}.${v.toUpperCase()});`).join("\n");
+  const typeToClassMapInitializer = members.map((v) => `put(${discTypeDef.name}.${v.toUpperCase()}, ${v}.class);`).join("\n")
+  return indentBlock(`
+    static Class findClassByDiscriminator(${discTypeDef.name} type) {
+        return  typeToClassMap.get(type);
+    }
 
-${indent(1)}static ${discTypeDef.name} findDiscriminatorByClass(Class clazz) {
-${indent(2)}return  classToTypeMap.get(clazz);
-${indent(1)}}
+    static ${discTypeDef.name} findDiscriminatorByClass(Class clazz) {
+        return  classToTypeMap.get(clazz);
+    }
 
-${indent(1)}HashMap<Class, ${discTypeDef.name}> classToTypeMap = new HashMap<>(){{
-${members.map((v) => `${indent(2)}put(${v}.class, ${discTypeDef.name}.${v.toUpperCase()});`).join("\n")}
-${indent(1)}}};
+    HashMap<Class, ${discTypeDef.name}> classToTypeMap = new HashMap<>(){{
+        ${indentBlock(classToTypeMapInitializer, 8, 0)}
+    }};
 
-${indent(1)}HashMap<${discTypeDef.name}, Class> typeToClassMap = new HashMap<>() {{
-${members.map((v) => `${indent(2)}put(${discTypeDef.name}.${v.toUpperCase()}, ${v}.class);`).join("\n")}
-${indent(1)}}};`
+    HashMap<${discTypeDef.name}, Class> typeToClassMap = new HashMap<>() {{
+        ${indentBlock(typeToClassMapInitializer, 8, 0)}
+    }};`)
 }
