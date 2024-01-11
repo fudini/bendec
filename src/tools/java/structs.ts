@@ -69,26 +69,6 @@ const getConstructors = (
     .map((field) => `${indent(2)}this.${field.name} = ${field.name};`)
     .join("\n");
 
-  let setLength = "";
-  let setDiscriminator = "";
-  const headerField = fields.find((f) => f.name === "header");
-  if (headerField) {
-    const headerType = types.find((t) => t.name === headerField.type && t.kind === Kind.Struct);
-    if (!!(headerType as Struct).fields.find(f => f.name === "length"))
-      setLength = `
-${indent(2)}this.header.setLength(this.byteLength);`
-
-    const unions : Union[] = types.filter(t => t.kind === Kind.Union) as Union[];
-    for (let u of unions) {
-      const discriminator = (u as Union).discriminator.length > 1 ? (u as Union).discriminator[1] : undefined;
-      const headerDiscriminatorField = discriminator ? (headerType as Struct).fields.find(hf => hf.name === discriminator) : undefined;
-      if (headerDiscriminatorField) {
-        setDiscriminator = `
-${indent(2)}this.header.set${upperFirst(discriminator)}(${upperFirst(headerDiscriminatorField.type)}.${name.toLocaleUpperCase()});`
-      }
-    }
-  }
-
   let currentLength = 0;
   const byteAssignments = fields
     .map((field) => {
@@ -109,7 +89,7 @@ ${indent(2)}this.header.set${upperFirst(discriminator)}(${upperFirst(headerDiscr
     .join("\n");
   const bytesContructors = `
 ${indent(1)}public ${name}(byte[] bytes, int offset) {
-${byteAssignments}${setLength}${setDiscriminator}
+${byteAssignments}
 ${indent(1)}}
 
 ${indent(1)}public ${name}(byte[] bytes) {
@@ -121,7 +101,7 @@ ${indent(1)}}
 `;
   return `
 ${indent(1)}public ${name}(${parameters}) {
-${assignments}${setLength}${setDiscriminator}
+${assignments}
 ${indent(1)}}
 ${bytesContructors}
 `;

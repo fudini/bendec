@@ -31,13 +31,11 @@ public class Zebra2 implements ByteSerializable, JsonSerializable, Animal2 {
     public Zebra2(Header header, int legs) {
         this.header = header;
         this.legs = legs;
-        this.header.setAnimalKind(AnimalKind2.ZEBRA2);
     }
 
     public Zebra2(byte[] bytes, int offset) {
         this.header = new Header(bytes, offset);
         this.legs = BendecUtils.uInt8FromByteArray(bytes, offset + 1);
-        this.header.setAnimalKind(AnimalKind2.ZEBRA2);
     }
 
     public Zebra2(byte[] bytes) {

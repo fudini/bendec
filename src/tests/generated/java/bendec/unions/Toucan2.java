@@ -31,13 +31,11 @@ public class Toucan2 implements ByteSerializable, JsonSerializable, Animal2 {
     public Toucan2(Header header, int wingspan) {
         this.header = header;
         this.wingspan = wingspan;
-        this.header.setAnimalKind(AnimalKind2.TOUCAN2);
     }
 
     public Toucan2(byte[] bytes, int offset) {
         this.header = new Header(bytes, offset);
         this.wingspan = BendecUtils.uInt16FromByteArray(bytes, offset + 1);
-        this.header.setAnimalKind(AnimalKind2.TOUCAN2);
     }
 
     public Toucan2(byte[] bytes) {
