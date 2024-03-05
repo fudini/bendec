@@ -24,7 +24,7 @@ export function binSerializableGenerator(packageName: string) : JavaInterface {
 }
 
 export const byteSerializableFile = (packageName?: string) => indentBlock(
-  `${header(packageName, "import java.nio.ByteBuffer;")}
+  `${indentBlock(header(packageName, "import java.nio.ByteBuffer;"), 2)}
   
   public interface ByteSerializable {
   
@@ -57,8 +57,7 @@ const getStructMethods = (
       }`);
     })
     .join("\n")
-  return indentBlock(`
-      @Override
+  return indentBlock(`@Override
       public byte[] toBytes() {
           ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
           ${indentBlock(bufferFilling, 10, 0)}
@@ -68,8 +67,7 @@ const getStructMethods = (
       @Override  
       public void toBytes(ByteBuffer buffer) {
           ${indentBlock(bufferFilling, 10, 0)}
-      }
-      `)
+      }`)
 }
 
 const getEnumMethods = (
@@ -87,16 +85,17 @@ const getEnumMethods = (
       typeDef.size,
       0
     )
-    return indentBlock(`/**
+
+    const enumGetter = !typeDef.bitflags ? indentBlock(`/**
        * Get ${typeDef.name} from bytes
        * @param bytes byte[]
        * @param offset - int
        */
       public static ${typeDef.name} get${typeDef.name}(byte[] bytes, int offset) {
           return get${typeDef.name}(${byteOperators.read.split(";")[0].split("= ")[1]});
-      }
-      
-      byte[] toBytes() {
+      }\n\n\n`) : ""
+
+    return enumGetter + indentBlock(`byte[] toBytes() {
           ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
           ${byteOperators.write}
           return buffer.array();

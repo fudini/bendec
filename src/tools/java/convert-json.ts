@@ -36,6 +36,7 @@ function convertByType(
         underlying: object.underlying!,
         variants: object.variants! as any,
         description: object.description,
+        bitflags: object.bitflags
       }
     case "Union":
       return {

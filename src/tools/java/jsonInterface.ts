@@ -84,11 +84,21 @@ const getEnumJsonMethods = (
   typeMap: TypeMapping
 ) : string => {
   if (typeDef.kind === Kind.Enum) {
-    return indentBlock(`
-      public TextNode toJson() {
-          return JsonNodeFactory.instance.textNode(name());
-      }
-      `)
+    if (typeDef.bitflags) {
+      return indentBlock(`
+        public ArrayNode toJson() {
+            ArrayNode arrayNode = JsonSerializable.MAPPER.createArrayNode();
+            this.getFlags().stream().map(Enum::toString).forEach(arrayNode::add);
+            return arrayNode;
+        }
+        `)
+    } else {
+      return indentBlock(`
+        public TextNode toJson() {
+            return JsonNodeFactory.instance.textNode(name());
+        }
+        `)
+    }
   } else {
     return "";
   }
