@@ -1,5 +1,6 @@
 import {Field} from "../.."
-import {Kind, Struct, TypeDefinitionStrict} from "../../types"
+import {Struct, TypeDefinitionStrict} from "../../types"
+import {CustomSerde} from "./utils";
 
 export interface TypeReadWriteDefinition {
   read: string;
@@ -22,16 +23,20 @@ export type JavaInterface = {
   interfaceName: string;
   interfaceBody: JavaFile;
   imports: string,
-  structMethods: (properties: FieldWithJavaProperties[], types: TypeDefinitionStrictWithSize[], typeDef: Struct, typeMap: TypeMapping) => string;
-  enumMethods: (properties: FieldWithJavaProperties[], types: TypeDefinitionStrictWithSize[], typeDef: TypeDefinitionStrictWithSize, typeMap: TypeMapping) => string;
+  structMethods: (properties: FieldWithJavaProperties[], genBase: GenerationBase, typeDef: Struct) => string;
+  enumMethods: (properties: FieldWithJavaProperties[], genBase: GenerationBase, typeDef: TypeDefinitionStrictWithSize) => string;
   addInterfaceOrNot: (typeDef) => boolean;
 }
 
 export interface Options {
-  typeMapping?: TypeMapping;
-  bendecPackageName: string;
-  interfaces?: JavaInterface[];
+  bendecPackageName: string
+  interfaces?: JavaInterface[]
+  customTypeMapping?: TypeMapping
+  customSerDe?: CustomSerde
+  typeExtender?: TypeExtender[]
 }
+
+export type TypeExtender = (genBase: GenerationBase, typeDef) => string
 
 export const getInterfacesImports = (interfaces: JavaInterface[]): string => {
   return interfaces.map(i => i.imports).filter((x: string) => x.length > 0).join("\n");
@@ -42,4 +47,11 @@ export interface FieldWithJavaProperties extends Field {
   javaType: string;
   finalTypeName: string;
   typeLength?: number;
+}
+
+export type GenerationBase = {
+  types: TypeDefinitionStrictWithSize[]
+  typeMap: Record<string, string>
+  options: Options
+  path: string
 }

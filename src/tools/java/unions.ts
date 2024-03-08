@@ -1,22 +1,17 @@
-import {Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types"
+import {GenerationBase, Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types"
 import {header, indentBlock} from "./utils"
 import {upperFirst} from "lodash"
 import {Kind, StructStrict, TypeDefinitionStrict, Union} from "../../types"
 
-export const getUnion = (
-    typeDef,
-    typeMap: TypeMapping,
-    types: TypeDefinitionStrictWithSize[],
-    options: Options
-) => {
+export const getUnion = (typeDef, genBase: GenerationBase) => {
   const memberName = typeDef.members[0]
-  const memberType = <StructStrict>types.find(({ name }) => name === memberName)
+  const memberType = <StructStrict>genBase.types.find(({ name }) => name === memberName)
   const discTypeDef = typeDef.discriminator.reduce((currentTypeDef, pathSection) => {
     if (currentTypeDef.kind !== Kind.Struct) {
       throw new Error(`The path to union discriminator can only contain Structs, ${currentTypeDef.name} is not a Struct`)
     }
     const discTypeField = (<StructStrict>currentTypeDef).fields.find(({ name }) => name === pathSection)
-    return <StructStrict>types.find(({ name }) => name === discTypeField.type)
+    return <StructStrict>genBase.types.find(({ name }) => name === discTypeField.type)
   }, memberType as TypeDefinitionStrict)
 
   const firstDiscPathType = (<StructStrict>memberType).fields.find(({ name }) => name === typeDef.discriminator[0])
@@ -27,27 +22,31 @@ export const getUnion = (
     const fieldOffset = currentTypeDef.fields
       .filter((_f, i) => i < fieldIndex)
       .reduce((acc, field) => {
-        const type = types.find((stype) => stype.name === field.type)
+        const type = genBase.types.find((stype) => stype.name === field.type)
         acc += type.size * (field.length || 1)
         return acc
       }, 0)
-    const discType = <StructStrict>types.find(({ name }) => name === discTypeField.type)
+    const discType = <StructStrict>genBase.types.find(({ name }) => name === discTypeField.type)
     return [discType, acc+fieldOffset]
   }, [memberType, 0])
 
   const imports : string = typeDef.discriminator
-    .map(f => `import ${options.bendecPackageName}.${upperFirst(discTypeDef.name)};`)
+    .map(f => `import ${genBase.options.bendecPackageName}.${upperFirst(discTypeDef.name)};`)
     .reduce((a, b) => {
       if (a.indexOf(b) < 0) a.push(b)
       return a
     }, [])
     .join('\n')
 
-  const members = types.filter(x => x.name == typeDef.name)
+  const members = genBase.types.filter(x => x.name == typeDef.name)
     .filter(x => (x as Union).discriminator.toString() == (typeDef as Union).discriminator.toString())
     .map(x => (x as Union).members)
     .reduce((acc, val) => acc.concat(val), [])
-  return indentBlock(`${indentBlock(header(options.bendecPackageName, imports), 4,  0)}
+
+  let extension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+  if (extension) extension = "\n\n" + extension + "\n\n"
+
+  return indentBlock(`${indentBlock(header(genBase.options.bendecPackageName, imports), 4,  0)}
     import java.util.Optional;
     
     public interface ${typeDef.name} {
@@ -56,7 +55,7 @@ export const getUnion = (
         ${indentBlock(generateSimplifiedFactory(typeDef.name, discTypeDef), 8, 0)}
         
         ${indentBlock(generateFactory(typeDef.name, discTypeDef, members), 8, 0)}
-        
+        ${indentBlock(extension, 8, 0)}
         ${indentBlock(generateTypeClassMap(discTypeDef, members), 8, 0)}
     }`)
 }

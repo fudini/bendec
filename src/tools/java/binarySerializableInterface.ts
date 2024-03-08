@@ -1,10 +1,10 @@
 import {
-  FieldWithJavaProperties,
+  FieldWithJavaProperties, GenerationBase,
   JavaInterface,
   TypeDefinitionStrictWithSize,
-  TypeMapping,
+  TypeReadWriteDefinition,
 } from "./types"
-import {header, indentBlock, typesToByteOperators} from "./utils"
+import {header, indentBlock, javaTypeMapping} from "./utils"
 import {Kind, Struct} from "../../types"
 
 
@@ -38,18 +38,16 @@ export const byteSerializableFile = (packageName?: string) => indentBlock(
 
 const getStructMethods = (
   fields: FieldWithJavaProperties[],
-  types: TypeDefinitionStrictWithSize[],
-  typeDef: Struct,
-  typeMap: TypeMapping
+  genBase: GenerationBase,
+  typeDef: Struct
 ) => {
   const bufferFilling = fields
     .map((field) => {
       return indentBlock(`${
         typesToByteOperators(
-          types,
+          genBase,
           field.name,
           field.finalTypeName,
-          typeMap,
           field.typeSize,
           0,
           field.length || field.typeLength || 0
@@ -72,16 +70,14 @@ const getStructMethods = (
 
 const getEnumMethods = (
   fields: FieldWithJavaProperties[],
-  types: TypeDefinitionStrictWithSize[],
+  genBase: GenerationBase,
   typeDef: TypeDefinitionStrictWithSize,
-  typeMap: TypeMapping
 ) => {
   if (typeDef.kind === Kind.Enum) {
     const byteOperators = typesToByteOperators(
-      [],
+      genBase,
       "value",
       typeDef.underlying,
-      typeMap,
       typeDef.size,
       0
     )
@@ -104,5 +100,125 @@ const getEnumMethods = (
       void toBytes(ByteBuffer buffer) {
           ${byteOperators.write}
       }`)
+  }
+}
+
+export function typesToByteOperators(
+  genBase: GenerationBase,
+  fieldName: string,
+  type: string,
+  size: number,
+  offset?: number,
+  length?: number,
+  inIteration?: boolean
+): TypeReadWriteDefinition {
+  const iterationAppender = inIteration ? ` + i * ${size}` : "";
+  const addFieldOffsetString = offset ? ` + ${offset}` : "";
+
+  if (genBase.options.customSerDe && genBase.options.customSerDe[type]) {
+    const binSerDe = genBase.options.customSerDe[type]["ByteSerializable"]
+    if (binSerDe) {
+      return binSerDe(fieldName, addFieldOffsetString, iterationAppender)
+    }
+  }
+
+  switch (type) {
+    case "u8":
+      return {
+        read: `this.${fieldName} = BendecUtils.uInt8FromByteArray(bytes, offset${addFieldOffsetString}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.uInt8ToByteArray(this.${fieldName}));`,
+      }
+    case "u16":
+      return {
+        read: `this.${fieldName} = BendecUtils.uInt16FromByteArray(bytes, offset${addFieldOffsetString}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.uInt16ToByteArray(this.${fieldName}));`,
+      }
+    case "u32":
+      return {
+        read: `this.${fieldName} = BendecUtils.uInt32FromByteArray(bytes, offset${addFieldOffsetString}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.uInt32ToByteArray(this.${fieldName}));`,
+      }
+    case "u64":
+      return {
+        read: `this.${fieldName} = BendecUtils.uInt64FromByteArray(bytes, offset${addFieldOffsetString}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.uInt64ToByteArray(this.${fieldName}));`,
+      }
+    case "i64":
+      return {
+        read: `this.${fieldName} = BendecUtils.int64FromByteArray(bytes, offset${addFieldOffsetString}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.int64ToByteArray(this.${fieldName}));`,
+      }
+    case "f64":
+      return {
+        read: `this.${fieldName} = BendecUtils.float64FromByteArray(bytes, offset${addFieldOffsetString}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.f64ToByteArray(this.${fieldName}));`,
+      }
+    case "bool":
+      return {
+        read: `this.${fieldName} = BendecUtils.booleanFromByteArray(bytes, offset${addFieldOffsetString}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.booleanToByteArray(this.${fieldName}));`,
+      }
+    case "char":
+      return {
+        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addFieldOffsetString}, ${length}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
+          length || 0
+        }));`,
+      }
+    case "char[]":
+      return {
+        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addFieldOffsetString}, ${length}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
+          length || 0
+        }));`,
+      }
+    case "u8[]":
+      return {
+        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addFieldOffsetString}, ${length}${iterationAppender});`,
+        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
+          length || 0
+        }));`,
+      }
+    default:
+      if (type.includes("[]")) {
+        const unarrayedType = type.replace("[]", "")
+        const finalTypeName = genBase.typeMap[unarrayedType] || unarrayedType
+        const javaTypeName = javaTypeMapping(genBase, finalTypeName) || finalTypeName
+        const typeDef = genBase.types.find((t) => t.name === finalTypeName)
+        return {
+          read: indentBlock(`this.${fieldName} = new ${javaTypeName}[${length}];
+              for(int i = 0; i < ${fieldName}.length; i++) {
+                  ${typesToByteOperators(
+            genBase,
+            `${fieldName}[i]`,
+            unarrayedType,
+            typeDef.size,
+            offset,
+            length,
+            true
+          ).read}
+              }`),
+          write: indentBlock(`for(int i = 0; i < ${fieldName}.length; i++) {
+                ${typesToByteOperators(
+            genBase,
+            `${fieldName}[i]`,
+            unarrayedType,
+            typeDef.size,
+            offset,
+            length,
+            true
+          ).write}
+            }`),
+        }
+      } else {
+        const typeObject = genBase.types.find((t) => t.name === type)
+        const isEnum = typeObject && typeObject.kind === Kind.Enum
+        return {
+          read: `this.${fieldName} = ${
+            !isEnum ? `new ` : `${type}.get`
+          }${type}(bytes, offset${addFieldOffsetString}${iterationAppender});`,
+          write: `${fieldName}.toBytes(buffer);`,
+        }
+      }
   }
 }

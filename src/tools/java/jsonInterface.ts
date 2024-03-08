@@ -1,6 +1,6 @@
 import {header, indentBlock} from "./utils"
 import {
-  FieldWithJavaProperties,
+  FieldWithJavaProperties, GenerationBase,
   JavaInterface,
   TypeDefinitionStrictWithSize,
   TypeMapping,
@@ -35,7 +35,7 @@ export const jsonSerializableFile = (packageName: string) => indentBlock(`${head
     import com.fasterxml.jackson.databind.node.ObjectNode;
     import com.fasterxml.jackson.databind.ObjectMapper;
     import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-    import com.fasterxml.jackson.databind.node.TextNode;`, 4))}
+    import com.fasterxml.jackson.databind.node.TextNode;`, 4, 0))}
     
     public interface JsonSerializable {
     
@@ -49,16 +49,15 @@ export const jsonSerializableFile = (packageName: string) => indentBlock(`${head
 
 const getStructJsonMethods = (
   fields: FieldWithJavaProperties[],
-  types: TypeDefinitionStrictWithSize[],
-  typeDef: Struct,
-  typeMap: TypeMapping
+  genBase: GenerationBase,
+  typeDef: Struct
 ) : string => {
   const jsonFilling = fields
     .map((field) => {
       return `${typesToJsonOperators(
         field.name,
         field.finalTypeName,
-        typeMap,
+        genBase,
         field.length || field.typeLength || 0
         ).write}`
     })
@@ -79,9 +78,8 @@ const getStructJsonMethods = (
 
 const getEnumJsonMethods = (
   fields: FieldWithJavaProperties[],
-  types: TypeDefinitionStrictWithSize[],
+  genBase: GenerationBase,
   typeDef: TypeDefinitionStrictWithSize,
-  typeMap: TypeMapping
 ) : string => {
   if (typeDef.kind === Kind.Enum) {
     if (typeDef.bitflags) {
@@ -107,9 +105,17 @@ const getEnumJsonMethods = (
 const  typesToJsonOperators = (
   fieldName: string,
   type: string,
-  typeMap: TypeMapping,
+  genBase: GenerationBase,
   length?: number
 ): TypeReadWriteDefinition => {
+
+  if (genBase.options.customSerDe && genBase.options.customSerDe[type]) {
+    const jsonSerde = genBase.options.customSerDe[type]["JsonSerializable"]
+    if (jsonSerde) {
+      return jsonSerde(fieldName, "", "0")
+    }
+  }
+
   switch (type) {
     case "u8":
       return {

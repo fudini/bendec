@@ -1,13 +1,11 @@
 import {upperFirst} from "lodash"
 import {
-  FieldWithJavaProperties,
-  getInterfacesImports,
-  Options,
-  TypeDefinitionStrictWithSize,
-  TypeMapping,
+  FieldWithJavaProperties, GenerationBase,
+  getInterfacesImports
 } from "./types"
-import {addJavaFieldProperties, header, indentBlock, typesToByteOperators,} from "./utils"
-import {Struct} from "../../types"
+import {addJavaFieldProperties, header, indentBlock} from "./utils"
+import {Kind, Struct, Union} from "../../types"
+import {typesToByteOperators} from "./binarySerializableInterface";
 
 const getMembers = (fields: FieldWithJavaProperties[]) => {
   const length = fields.reduce((acc, field) => (acc += field.typeSize * (field.length || 1)), 0)
@@ -64,8 +62,7 @@ const getSetters = (fields: FieldWithJavaProperties[]) => {
 const getConstructors = (
   name: string,
   fields: FieldWithJavaProperties[],
-  typeMap: TypeMapping,
-  types: TypeDefinitionStrictWithSize[],
+  genBase: GenerationBase
 ) : string => {
   const parameters = fields
     .map(field => `${field.javaType} ${field.name}`)
@@ -82,10 +79,9 @@ const getConstructors = (
   const byteAssignments = fields.map((field) => {
       const outputString = `${
         typesToByteOperators(
-          types,
+          genBase,
           field.name,
           field.finalTypeName,
-          typeMap,
           field.typeSize,
           currentLength,
           field.length || field.typeLength
@@ -146,34 +142,34 @@ const getAdditionalMethods = (
 }
 
 
-export const getStruct = (
-  typeDef: Struct,
-  typeMap: TypeMapping,
-  types: TypeDefinitionStrictWithSize[],
-  options: Options,
-  unionInterfaces?: string[]
-) : string => {
+export const getStruct = (typeDef: Struct, genBase: GenerationBase) : string => {
+  let unionInterfaces = genBase.types.filter((t) => t.kind === Kind.Union)
+    .filter(u => (u as Union).members.includes(typeDef.name))
+    .map(u => u.name)
   const extendedTypeDef = {
     ...typeDef,
     fields: typeDef.fields.map((f) =>
-      addJavaFieldProperties(f, typeMap, types)
+      addJavaFieldProperties(f, genBase)
     ),
   }
-  const interfaces = options.interfaces.filter(i => i.addInterfaceOrNot(typeDef))
+  const interfaces = genBase.options.interfaces.filter(i => i.addInterfaceOrNot(typeDef))
     .map(i => i.interfaceName).concat(unionInterfaces)
     .filter((x: string) => x.length > 0).join(", ")
 
-  const interfacesBody = options.interfaces.map(i => i.structMethods(extendedTypeDef.fields, types, typeDef, typeMap))
+  const interfacesBody = genBase.options.interfaces.map(i => i.structMethods(extendedTypeDef.fields, genBase, typeDef))
     .filter((x: string) => x.length > 0).join("\n\n");
 
-  return indentBlock(`${indentBlock(header(options.bendecPackageName, getInterfacesImports(options.interfaces)), 4, 0)}
+  let extension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+  if (extension) extension = "\n\n" + extension + "\n\n"
+
+  return indentBlock(`${indentBlock(header(genBase.options.bendecPackageName, getInterfacesImports(genBase.options.interfaces)), 4, 0)}
     
     ${indentBlock(getStructDocumentation(extendedTypeDef), 5, 0)}
     public class ${extendedTypeDef.name} implements ${interfaces} {
         ${indentBlock(getMembers(extendedTypeDef.fields), 8,  0)}
         
-        ${indentBlock(getConstructors(extendedTypeDef.name, extendedTypeDef.fields, typeMap, types), 8, 0)}
-        
+        ${indentBlock(getConstructors(extendedTypeDef.name, extendedTypeDef.fields, genBase), 8, 0)}
+        ${indentBlock(extension, 8, 0)}
         ${indentBlock(getGetters(extendedTypeDef.fields), 8, 0)}
         
         ${indentBlock(getSetters(extendedTypeDef.fields), 8, 0)}

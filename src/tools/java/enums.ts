@@ -1,6 +1,6 @@
 import {EnumStrict, Kind} from "../.."
 import {header, indentBlock, javaTypeMapping} from "./utils"
-import {getInterfacesImports, Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types"
+import {GenerationBase, getInterfacesImports, Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types"
 
 const getEnumVariant = (variant) => {
   const variantDesc = variant[2] ? indentBlock(`/**
@@ -15,22 +15,21 @@ const getEnumMembers = (typeDef: TypeDefinitionStrictWithSize) => {
     .join(",\n") + ";"
 }
 
-export const getEnum = (
-  typeDef: TypeDefinitionStrictWithSize,
-  typeMap: TypeMapping,
-  types: TypeDefinitionStrictWithSize[],
-  options: Options
-) => {
+export const getEnum = (typeDef: TypeDefinitionStrictWithSize, genBase: GenerationBase) => {
   if (typeDef.kind === Kind.Enum) {
-    const javaTypeName = javaTypeMapping(
-      typeMap[typeDef.underlying] || typeDef.underlying
+    const javaTypeName = javaTypeMapping(genBase,
+      genBase.typeMap[typeDef.underlying] || typeDef.underlying
     );
-    const interfaceBody = options.interfaces.map(i => i.enumMethods(null, types, typeDef, typeMap))
+    const interfaceBody = genBase.options.interfaces.map(i => i.enumMethods(null, genBase, typeDef))
       .filter((x: string) => x.length > 0).join("\n\n")
+
+    let extension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+    if (extension) extension = "\n\n" + extension + "\n\n"
+
     if (typeDef.bitflags)
-      return getBitflags(javaTypeName, typeDef, interfaceBody, options)
+      return getBitflags(javaTypeName, typeDef, interfaceBody, genBase.options, extension)
     else
-      return getEnumClassic(javaTypeName, typeDef, interfaceBody, options)
+      return getEnumClassic(javaTypeName, typeDef, interfaceBody, genBase.options, extension)
   } else {
     return ""
   }
@@ -40,7 +39,8 @@ const getEnumClassic = (
   javaTypeName: string,
   typeDef: TypeDefinitionStrictWithSize,
   interfaceBody: string,
-  options: Options
+  options: Options,
+  extension: string
 ) => {
   return indentBlock(`${indentBlock(header(options.bendecPackageName, getInterfacesImports(options.interfaces)), 4, 0)}
     
@@ -81,7 +81,7 @@ const getEnumClassic = (
         public ${javaTypeName} get${typeDef.name}Value() {
             return value; 
         }
-        
+        ${indentBlock(extension, 8, 0)}
         ${indentBlock(interfaceBody, 8, 0)}
     }
     `)
@@ -91,7 +91,8 @@ const getBitflags = (
   javaTypeName: string,
   typeDef: TypeDefinitionStrictWithSize,
   interfaceBody: string,
-  options: Options
+  options: Options,
+  extension: string
 ) => {
   return indentBlock(`${indentBlock(header(options.bendecPackageName, getInterfacesImports(options.interfaces)), 4, 0)}
     
