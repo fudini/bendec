@@ -5,7 +5,7 @@ import {
   TypeReadWriteDefinition,
 } from "./types"
 import {header, indentBlock, javaTypeMapping} from "./utils"
-import {Kind, Struct} from "../../types"
+import {Enum, Kind, Struct} from "../../types"
 
 
 export function binSerializableGenerator(packageName: string) : JavaInterface {
@@ -213,9 +213,10 @@ export function typesToByteOperators(
       } else {
         const typeObject = genBase.types.find((t) => t.name === type)
         const isEnum = typeObject && typeObject.kind === Kind.Enum
+        const constructViaFactory = isEnum && (typeObject as Enum).bitflags === false
         return {
           read: `this.${fieldName} = ${
-            !isEnum ? `new ` : `${type}.get`
+            !constructViaFactory ? `new ` : `${type}.get`
           }${type}(bytes, offset${addFieldOffsetString}${iterationAppender});`,
           write: `${fieldName}.toBytes(buffer);`,
         }

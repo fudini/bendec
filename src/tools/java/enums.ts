@@ -23,13 +23,16 @@ export const getEnum = (typeDef: TypeDefinitionStrictWithSize, genBase: Generati
     const interfaceBody = genBase.options.interfaces.map(i => i.enumMethods(null, genBase, typeDef))
       .filter((x: string) => x.length > 0).join("\n\n")
 
-    let extension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
-    if (extension) extension = "\n\n" + extension + "\n\n"
+    let importsExtension = genBase.options.importExtender ? genBase.options.importExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+    if (importsExtension) importsExtension = "\n\n" + importsExtension + "\n\n"
+
+    let bodyExtension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+    if (bodyExtension) bodyExtension = "\n\n" + bodyExtension + "\n\n"
 
     if (typeDef.bitflags)
-      return getBitflags(javaTypeName, typeDef, interfaceBody, genBase.options, extension)
+      return getBitflags(javaTypeName, typeDef, interfaceBody, genBase.options, bodyExtension, importsExtension)
     else
-      return getEnumClassic(javaTypeName, typeDef, interfaceBody, genBase.options, extension)
+      return getEnumClassic(javaTypeName, typeDef, interfaceBody, genBase.options, bodyExtension, importsExtension)
   } else {
     return ""
   }
@@ -40,10 +43,11 @@ const getEnumClassic = (
   typeDef: TypeDefinitionStrictWithSize,
   interfaceBody: string,
   options: Options,
-  extension: string
+  bodyExtension: string,
+  importsExtension: string
 ) => {
   return indentBlock(`${indentBlock(header(options.bendecPackageName, getInterfacesImports(options.interfaces)), 4, 0)}
-    
+    ${indentBlock(importsExtension, 4, 0)}
     /**
      * Enum: ${typeDef.name}
      * ${typeDef.description}
@@ -81,7 +85,7 @@ const getEnumClassic = (
         public ${javaTypeName} get${typeDef.name}Value() {
             return value; 
         }
-        ${indentBlock(extension, 8, 0)}
+        ${indentBlock(bodyExtension, 8, 0)}
         ${indentBlock(interfaceBody, 8, 0)}
     }
     `)
@@ -92,10 +96,11 @@ const getBitflags = (
   typeDef: TypeDefinitionStrictWithSize,
   interfaceBody: string,
   options: Options,
-  extension: string
+  bodyExtension: string,
+  importsExtension: string
 ) => {
   return indentBlock(`${indentBlock(header(options.bendecPackageName, getInterfacesImports(options.interfaces)), 4, 0)}
-    
+    ${indentBlock(importsExtension, 4, 0)}
     /**
      * ${typeDef.name}
      * ${typeDef.description}
@@ -138,7 +143,7 @@ const getBitflags = (
         public int getValue() {
             return value;
         }
-        
+        ${indentBlock(bodyExtension, 8, 0)}
         ${indentBlock(interfaceBody, 8, 0)}
         
         public enum ${typeDef.name}Options {

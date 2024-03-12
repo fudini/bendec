@@ -159,17 +159,20 @@ export const getStruct = (typeDef: Struct, genBase: GenerationBase) : string => 
   const interfacesBody = genBase.options.interfaces.map(i => i.structMethods(extendedTypeDef.fields, genBase, typeDef))
     .filter((x: string) => x.length > 0).join("\n\n");
 
-  let extension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
-  if (extension) extension = "\n\n" + extension + "\n\n"
+  let importsExtension = genBase.options.importExtender ? genBase.options.importExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+  if (importsExtension) importsExtension = "\n\n" + importsExtension + "\n"
+
+  let bodyExtension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+  if (bodyExtension) bodyExtension = "\n\n" + bodyExtension + "\n\n"
 
   return indentBlock(`${indentBlock(header(genBase.options.bendecPackageName, getInterfacesImports(genBase.options.interfaces)), 4, 0)}
-    
+    ${indentBlock(importsExtension, 4, 0)}
     ${indentBlock(getStructDocumentation(extendedTypeDef), 5, 0)}
     public class ${extendedTypeDef.name} implements ${interfaces} {
         ${indentBlock(getMembers(extendedTypeDef.fields), 8,  0)}
         
         ${indentBlock(getConstructors(extendedTypeDef.name, extendedTypeDef.fields, genBase), 8, 0)}
-        ${indentBlock(extension, 8, 0)}
+        ${indentBlock(bodyExtension, 8, 0)}
         ${indentBlock(getGetters(extendedTypeDef.fields), 8, 0)}
         
         ${indentBlock(getSetters(extendedTypeDef.fields), 8, 0)}

@@ -43,19 +43,22 @@ export const getUnion = (typeDef, genBase: GenerationBase) => {
     .map(x => (x as Union).members)
     .reduce((acc, val) => acc.concat(val), [])
 
-  let extension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
-  if (extension) extension = "\n\n" + extension + "\n\n"
+  let importsExtension = genBase.options.importExtender ? genBase.options.importExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+  if (importsExtension) importsExtension = "\n\n" + importsExtension + "\n\n"
+
+  let bodyExtension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+  if (bodyExtension) bodyExtension = "\n\n" + bodyExtension + "\n\n"
 
   return indentBlock(`${indentBlock(header(genBase.options.bendecPackageName, imports), 4,  0)}
     import java.util.Optional;
-    
+    ${indentBlock(importsExtension, 4, 0)}
     public interface ${typeDef.name} {
         ${indentBlock(generateGetDiscriminator(typeDef, discTypeDef, firstDiscPathType, discOffset), 8, 0)}
         
         ${indentBlock(generateSimplifiedFactory(typeDef.name, discTypeDef), 8, 0)}
         
         ${indentBlock(generateFactory(typeDef.name, discTypeDef, members), 8, 0)}
-        ${indentBlock(extension, 8, 0)}
+        ${indentBlock(bodyExtension, 8, 0)}
         ${indentBlock(generateTypeClassMap(discTypeDef, members), 8, 0)}
     }`)
 }

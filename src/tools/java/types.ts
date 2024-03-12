@@ -34,9 +34,11 @@ export interface Options {
   customTypeMapping?: TypeMapping
   customSerDe?: CustomSerde
   typeExtender?: TypeExtender[]
+  importExtender?: ImportExtender[]
 }
 
 export type TypeExtender = (genBase: GenerationBase, typeDef) => string
+export type ImportExtender = TypeExtender
 
 export const getInterfacesImports = (interfaces: JavaInterface[]): string => {
   return interfaces.map(i => i.imports).filter((x: string) => x.length > 0).join("\n");
