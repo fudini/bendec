@@ -1,7 +1,7 @@
-import { header } from "./utils";
+import { header } from "./utils"
 
 export const utilsFile = (packageName?: string) => `${header(
-    packageName, ""
+  packageName, ""
 )}
 
 import java.time.Instant;
@@ -152,4 +152,4 @@ public class BendecUtils {
 
 }
 
-`;
+`

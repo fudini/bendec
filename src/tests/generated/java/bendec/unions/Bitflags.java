@@ -1,10 +1,7 @@
 package bendec.unions;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.nio.ByteBuffer;
 import bendec.unions.JsonSerializable;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -14,71 +11,92 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
- * Enum: Bitflags
+ * Bitflags
  * undefined
  */
-public enum Bitflags {
-    A(1),
-    B(2),
-    LONG(4),
-    UNKNOWN(99999);
-
-    private final int value;
-
+public class Bitflags {
+    private int value;
     private final int byteLength = 1;
+    
+    public Bitflags(int value) {
+        this.value = value;
+    }
 
+    public Bitflags(byte[] bytes, int offset) {
+        this(BendecUtils.uInt8FromByteArray(bytes, offset));
+    }
 
-    private static final Map<Integer, Bitflags> TYPES = new HashMap<>();
-    static {
-        for (Bitflags type : Bitflags.values()) {
-            TYPES.put(type.value, type);
+    public void add(BitflagsOptions flag) {
+        this.value = this.value | flag.getOptionValue();
+    }
+    
+    public void remove(BitflagsOptions flag) {
+        this.value = this.value ^ flag.getOptionValue();
+    }
+
+    public Set<BitflagsOptions> getFlags() {
+        HashSet<BitflagsOptions> options = new HashSet<>();
+        for (BitflagsOptions option : BitflagsOptions.values()) {
+            if (isAdded(option))
+                options.add(option);
         }
+        if (options.size() > 1)
+            options.remove(BitflagsOptions.TYPES.get(0));
+        return options;
     }
 
-
-    Bitflags(int newValue) {
-        value = newValue;
+    public boolean isAdded(BitflagsOptions flag) {
+        return (this.value | flag.getOptionValue()) == this.value;
     }
 
-    /**
-     Get Bitflags from java input
-     * @param newValue
-     * @return Bitflags enum
-     */
-    public static Bitflags getBitflags(int newValue) {
-        Bitflags val = TYPES.get(newValue);
-        return val == null ? Bitflags.UNKNOWN : val;
+    public int getValue() {
+        return value;
     }
-
-    /**
-     * Get Bitflags int value
-     * @return int value
-     */
-    public int getBitflagsValue() { return value; }
-
-
-    /**
-     Get Bitflags from bytes
-     * @param bytes byte[]
-     * @param offset - int
-     */
-    public static Bitflags getBitflags(byte[] bytes, int offset) {
-        return getBitflags(BendecUtils.uInt8FromByteArray(bytes, offset));
-    }
-
+    
     byte[] toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
         buffer.put(BendecUtils.uInt8ToByteArray(this.value));
         return buffer.array();
     }
-
+    
     void toBytes(ByteBuffer buffer) {
         buffer.put(BendecUtils.uInt8ToByteArray(this.value));
     }
-
-
-    public TextNode toJson() {
-        return JsonNodeFactory.instance.textNode(name());
+    
+    public ArrayNode toJson() {
+        ArrayNode arrayNode = JsonSerializable.MAPPER.createArrayNode();
+        this.getFlags().stream().map(Enum::toString).forEach(arrayNode::add);
+        return arrayNode;
     }
-
+    
+    public enum BitflagsOptions {
+        A(1),
+        B(2),
+        LONG(4);
+        
+        private final int optionValue;
+        private static final Map<Integer, BitflagsOptions> TYPES = new HashMap<>();
+        static {
+            for (BitflagsOptions type : BitflagsOptions.values()) {
+                TYPES.put(type.optionValue, type);
+            }
+        }
+        
+        /**
+         * Get BitflagsOptions by attribute
+         * @param val
+         * @return BitflagsOptions enum or null if variant is undefined
+         */
+        public static BitflagsOptions getBitflags(int val) {
+            return TYPES.get(val);
+        }
+        
+        BitflagsOptions(int newValue) {
+            this.optionValue = newValue;
+        }
+        
+        public int getOptionValue() {
+            return optionValue;
+        }
+    }
 }
