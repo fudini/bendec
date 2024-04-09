@@ -1,173 +1,65 @@
-import {AliasStrict, ArrayType, Field, Kind} from "../../types";
+import {AliasStrict, ArrayType, Field, Kind} from "../../types"
 import {
-  FieldWithJavaProperties,
+  FieldWithJavaProperties, GenerationBase,
   Options,
-  TypeDefinitionStrictWithSize,
-  TypeMapping,
   TypeReadWriteDefinition,
-} from "./types";
+} from "./types"
+import dedent from "ts-dedent"
 
 export const defaultOptions: Options = {
   bendecPackageName: "com.mycompany.bendec",
-};
+}
 
-export const defaultMapping: TypeMapping = {};
+export const header = (packageName?: string, imports?: string) => {
+  return indentBlock(`package ${packageName || "pl.bendec"};
+  
+  import java.math.BigInteger;
+  import java.util.*;
+  ${imports ? indentBlock(imports, 2, 0) : ""}
+  `)
+}
 
-export const header = (
-  packageName?: string,
-  imports?: string
-) => `package ${packageName || "pl.bendec"};
+export const entitiesHeader = (bendecPackageName: string, entitesPackageName: string) => {
+  return indentBlock(`package ${entitesPackageName};
+  
+  import ${bendecPackageName}.*;
+  import javax.persistence.*;
+  import java.math.BigInteger;
+  import java.time.Instant;
+  import java.time.LocalDateTime;
+  import java.util.TimeZone;`)
+}
 
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-${imports ? imports : ""}
-`;
-
-export const entitiesHeader = (
-  bendecPackageName: string,
-  entitesPackageName: string
-) =>
-  `package ${entitesPackageName};
-
-import ${bendecPackageName}.*;
-import javax.persistence.*;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.TimeZone;`;
-
-export const indent = (i: number) => {
-  return Array(i).fill("    ").join("");
-};
-
-export function typesToByteOperators(
-  types: TypeDefinitionStrictWithSize[],
-  fieldName: string,
-  type: string,
-  typeMap: TypeMapping,
-  size: number,
-  offset?: number,
-  length?: number,
-  inIteration?: boolean
-): TypeReadWriteDefinition {
-  const iterationAppender = inIteration ? ` + i * ${size}` : "";
-  const addOffsetString = offset ? ` + ${offset}` : "";
-  switch (type) {
-    case "u8":
-      return {
-        read: `this.${fieldName} = BendecUtils.uInt8FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.uInt8ToByteArray(this.${fieldName}));`,
-      };
-    case "u16":
-      return {
-        read: `this.${fieldName} = BendecUtils.uInt16FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.uInt16ToByteArray(this.${fieldName}));`,
-      };
-    case "u32":
-      return {
-        read: `this.${fieldName} = BendecUtils.uInt32FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.uInt32ToByteArray(this.${fieldName}));`,
-      };
-    case "u64":
-      return {
-        read: `this.${fieldName} = BendecUtils.uInt64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.uInt64ToByteArray(this.${fieldName}));`,
-      };
-    case "i64":
-      return {
-        read: `this.${fieldName} = BendecUtils.int64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.int64ToByteArray(this.${fieldName}));`,
-      };
-    case "f64":
-      return {
-        read: `this.${fieldName} = BendecUtils.float64FromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.f64ToByteArray(this.${fieldName}));`,
-      };
-    case "bool":
-      return {
-        read: `this.${fieldName} = BendecUtils.booleanFromByteArray(bytes, offset${addOffsetString}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.booleanToByteArray(this.${fieldName}));`,
-      };
-    case "char":
-      return {
-        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
-          length || 0
-        }));`,
-      };
-    case "char[]":
-      return {
-        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
-          length || 0
-        }));`,
-      };
-    case "u8[]":
-      return {
-        read: `this.${fieldName} = BendecUtils.stringFromByteArray(bytes, offset${addOffsetString}, ${length}${iterationAppender});`,
-        write: `buffer.put(BendecUtils.stringToByteArray(this.${fieldName}, ${
-          length || 0
-        }));`,
-      };
-    default:
-      if (type.includes("[]")) {
-        const unarrayedType = type.replace("[]", "");
-        const finalTypeName = typeMap[unarrayedType] || unarrayedType;
-        const javaTypeName = javaTypeMapping(finalTypeName) || finalTypeName;
-        const typeDef = types.find((t) => t.name === finalTypeName);
-        return {
-          read: `this.${fieldName} = new ${javaTypeName}[${length}];
-${indent(2)}for(int i = 0; i < ${fieldName}.length; i++) {
-${indent(3)}${
-            typesToByteOperators(
-              types,
-              `${fieldName}[i]`,
-              unarrayedType,
-              typeMap,
-              typeDef.size,
-              offset,
-              length,
-              true
-            ).read
-          }
-${indent(2)}}`,
-          write: `for(int i = 0; i < ${fieldName}.length; i++) {
-${indent(3)}${
-            typesToByteOperators(
-              types,
-              `${fieldName}[i]`,
-              unarrayedType,
-              typeMap,
-              typeDef.size,
-              offset,
-              length,
-              true
-            ).write
-          }
-${indent(2)}}`,
-        };
-      } else {
-        const typeObject = types.find((t) => t.name === type);
-        const isEnum = typeObject && typeObject.kind === Kind.Enum;
-        return {
-          read: `this.${fieldName} = ${
-            !isEnum ? `new ` : `${type}.get`
-          }${type}(bytes, offset${addOffsetString}${iterationAppender});`,
-          write: `${fieldName}.toBytes(buffer);`,
-        };
-      }
+export const indentBlock = (text: string, spaces: number = 0, firstLineIndent: number = -1) => {
+  let result = dedent(text).replace(/^/gm, " ".repeat(spaces))
+  if (firstLineIndent != -1) {
+    result = " ".repeat(firstLineIndent) + result.substr(spaces)
   }
+  return result
 }
 
-export function getFinalType(type: string, typeMap: TypeMapping) : string {
-  const fromMap = typeMap[type];
-  return !fromMap ? type : getFinalType(fromMap, typeMap);
+export type CustomSerde = Record<TypeName, MappingTargetType>
+export type MappingTargetType = Record<InterfaceName,TypeReadWriteGenerator>
+export type TypeReadWriteGenerator = (fieldName: string, addOffsetString: string, iterationAppender: string) => TypeReadWriteDefinition
+export type TypeName = string
+export type InterfaceName = string
+
+export function getFinalType(type: string, genBase: GenerationBase) : string {
+  if (genBase.options.customTypeMapping) {
+    const mapping = genBase.options.customTypeMapping[type]
+    if (mapping)
+      return type
+  }
+  const fromMap = genBase.typeMap[type]
+  return !fromMap ? type : getFinalType(fromMap, genBase)
 }
 
-export function javaTypeMapping(type: string) {
+export function javaTypeMapping(genBase: GenerationBase, type: string) {
+  if (genBase.options.customTypeMapping) {
+    const mapping = genBase.options.customTypeMapping[type]
+    if (mapping)
+      return mapping
+  }
   switch (type) {
     case "u8":
       return "int";
@@ -191,32 +83,28 @@ export function javaTypeMapping(type: string) {
       return "String";
     default: {
       if (type.includes("[]")) {
-        return `${javaTypeMapping(type.replace("[]", ""))}[]`;
+        return `${javaTypeMapping(genBase, type.replace("[]", ""))}[]`
       } else {
-        return type;
+        return type
       }
     }
   }
 }
 
-export function addJavaFieldProperties(
-  field: Field,
-  typeMap: TypeMapping,
-  types: TypeDefinitionStrictWithSize[]
-): FieldWithJavaProperties {
+export function addJavaFieldProperties(field: Field, genBase: GenerationBase): FieldWithJavaProperties {
   const key = field.type + (field.length ? "[]" : "");
-  let finalTypeName = getFinalType(key, typeMap);
+  let finalTypeName = getFinalType(key, genBase);
   if (finalTypeName.endsWith("[]")) {
-    const ff = types.find((stype) => stype.name === finalTypeName.replace("[]", ""))
+    const ff = genBase.types.find((stype) => stype.name === finalTypeName.replace("[]", ""))
     if (ff.kind === Kind.Alias)
-      finalTypeName = getFinalType(ff.alias, typeMap)+"[]";
+      finalTypeName = getFinalType(ff.alias, genBase)+"[]"
   }
-  const javaType = javaTypeMapping(finalTypeName) || finalTypeName;
+  const javaType = javaTypeMapping(genBase, finalTypeName) || finalTypeName
   const type =
-    types.find((stype) => stype.name === finalTypeName) ||
-    types.find((stype) => stype.name === field.type);
+    genBase.types.find((stype) => stype.name === finalTypeName) ||
+    genBase.types.find((stype) => stype.name === field.type)
   const aliasType = type.kind === Kind.Alias ?
-    types.find((s) => s.name === (type as AliasStrict).alias) : undefined
+    genBase.types.find((s) => s.name === (type as AliasStrict).alias) : undefined
   const typeLength = aliasType ? (aliasType as ArrayType).length : (type as any).length
   return {
     ...field,
@@ -224,6 +112,6 @@ export function addJavaFieldProperties(
     javaType,
     typeSize: type.size,
     typeLength,
-  };
+  }
 }
 

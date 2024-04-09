@@ -1,105 +1,179 @@
-import {Kind} from "../..";
-import {header, indent, javaTypeMapping} from "./utils";
-import {getInterfacesImports, Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types";
+import {EnumStrict, Kind} from "../.."
+import {header, indentBlock, javaTypeMapping} from "./utils"
+import {GenerationBase, getInterfacesImports, Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types"
 
 const getEnumVariant = (variant) => {
-  const variantDesc = variant[2] ? `${indent(1)}/**
-${indent(1)} * ${variant[2]}
-${indent(1)} */\n` : '';
-  return variantDesc + `${indent(1)}${variant[0].toUpperCase()}(${variant[1]}),\n`
+  const variantDesc = variant[2] ? indentBlock(`/**
+    * ${variant[2]}
+    */`, 1, 0)+"\n" : '';
+  return `${variantDesc}${variant[0].toUpperCase()}(${variant[1]})`
 }
 
 const getEnumMembers = (typeDef: TypeDefinitionStrictWithSize) => {
-  if (typeDef.kind === Kind.Enum) {
-    return typeDef.variants
-      .map(v => getEnumVariant(v))
-      .concat([
-        !!typeDef.variants.find((v) => v[0].toUpperCase() === "UNKNOWN")
-          ? ";"
-          : `${indent(1)}UNKNOWN(99999);`,
-      ])
-      .join("");
-  } else {
-    return "";
-  }
-};
-
-const getEnumMethods = (
-  typeDef: TypeDefinitionStrictWithSize,
-  typeMap: TypeMapping,
-  javaType: string,
-  options: Options
-) => {
-  if (typeDef.kind === Kind.Enum) {
-    return `
-${indent(1)}private static final Map<Integer, ${
-      typeDef.name
-    }> TYPES = new HashMap<>();
-${indent(1)}static {
-${indent(2)}for (${typeDef.name} type : ${typeDef.name}.values()) {
-${indent(3)}TYPES.put(type.value, type);
-${indent(2)}}
-${indent(1)}}
-
-
-${indent(1)}${typeDef.name}(${javaType} newValue) {
-${indent(2)}value = newValue;
-${indent(1)}}
-
-${indent(1)}/**
-${indent(1)} Get ${typeDef.name} from java input
-${indent(1)} * @param newValue
-${indent(1)} * @return ${typeDef.name} enum
-${indent(1)} */
-${indent(1)}public static ${typeDef.name} get${
-      typeDef.name
-    }(${javaType} newValue) {
-${indent(2)}${typeDef.name} val = TYPES.get(newValue);
-${indent(2)}return val == null ? ${typeDef.name}.UNKNOWN : val;
-${indent(1)}}
-
-${indent(1)}/**
-${indent(1)} * Get ${typeDef.name} int value
-${indent(1)} * @return int value
-${indent(1)} */
-${indent(1)}public ${javaType} get${typeDef.name}Value() { return value; }
-`;
-  } else {
-    return "";
-  }
-};
-
-export const getEnum = (
-  typeDef: TypeDefinitionStrictWithSize,
-  typeMap: TypeMapping,
-  types: TypeDefinitionStrictWithSize[],
-  options: Options
-) => {
-  if (typeDef.kind === Kind.Enum) {
-    const javaTypeName = javaTypeMapping(
-      typeMap[typeDef.underlying] || typeDef.underlying
-    );
-    return `${header(
-      options.bendecPackageName,
-      getInterfacesImports(options.interfaces),
-    )}
-/**
- * Enum: ${typeDef.name}
- * ${typeDef.description}
- */
-public enum ${typeDef.name} {
-${getEnumMembers(typeDef)}
-
-${indent(1)}private final ${javaTypeName} value;
-
-${indent(1)}private final int byteLength = ${typeDef.size};
-
-${getEnumMethods(typeDef, typeMap, javaTypeName, options)}
-${options.interfaces.map(i => i.enumMethods(null, types, typeDef, typeMap))
-        .filter((x: string) => x.length > 0).join("")}
+  return (typeDef as EnumStrict).variants
+    .map(v => getEnumVariant(v))
+    .join(",\n") + ";"
 }
-`;
+
+export const getEnum = (typeDef: TypeDefinitionStrictWithSize, genBase: GenerationBase) => {
+  if (typeDef.kind === Kind.Enum) {
+    const javaTypeName = javaTypeMapping(genBase,
+      genBase.typeMap[typeDef.underlying] || typeDef.underlying
+    );
+    const interfaceBody = genBase.options.interfaces.map(i => i.enumMethods(null, genBase, typeDef))
+      .filter((x: string) => x.length > 0).join("\n\n")
+
+    let importsExtension = genBase.options.importExtender ? genBase.options.importExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+    if (importsExtension) importsExtension = "\n\n" + importsExtension + "\n\n"
+
+    let bodyExtension = genBase.options.typeExtender ? genBase.options.typeExtender.map(t => t.call(typeDef, genBase, typeDef)).join("\n\n") : ""
+    if (bodyExtension) bodyExtension = "\n\n" + bodyExtension + "\n\n"
+
+    if (typeDef.bitflags)
+      return getBitflags(javaTypeName, typeDef, interfaceBody, genBase.options, bodyExtension, importsExtension)
+    else
+      return getEnumClassic(javaTypeName, typeDef, interfaceBody, genBase.options, bodyExtension, importsExtension)
   } else {
-    return "";
+    return ""
   }
-};
+}
+
+const getEnumClassic = (
+  javaTypeName: string,
+  typeDef: TypeDefinitionStrictWithSize,
+  interfaceBody: string,
+  options: Options,
+  bodyExtension: string,
+  importsExtension: string
+) => {
+  return indentBlock(`${indentBlock(header(options.bendecPackageName, getInterfacesImports(options.interfaces)), 4, 0)}
+    ${indentBlock(importsExtension, 4, 0)}
+    /**
+     * Enum: ${typeDef.name}
+     * ${typeDef.description}
+     */
+    public enum ${typeDef.name} {
+        ${indentBlock(getEnumMembers(typeDef), 8, 0)}
+        
+        private final ${javaTypeName} value;
+        private final int byteLength = ${typeDef.size};
+        
+        private static final Map<Integer, ${typeDef.name}> TYPES = new HashMap<>();
+        static {
+            for (${typeDef.name} type : ${typeDef.name}.values()) {
+                TYPES.put(type.value, type);
+            }
+        }
+        
+        ${typeDef.name}(${javaTypeName} newValue) {
+            value = newValue;
+        }
+        
+        /**
+         * Get ${typeDef.name} by attribute
+         * @param val
+         * @return ${typeDef.name} enum or null if variant is undefined
+         */
+        public static ${typeDef.name} get${typeDef.name}(${javaTypeName} val) {
+            return TYPES.get(val);
+        }
+        
+        /**
+         * Get ${typeDef.name} int value
+         * @return int value
+         */
+        public ${javaTypeName} get${typeDef.name}Value() {
+            return value; 
+        }
+        ${indentBlock(bodyExtension, 8, 0)}
+        ${indentBlock(interfaceBody, 8, 0)}
+    }
+    `)
+}
+
+const getBitflags = (
+  javaTypeName: string,
+  typeDef: TypeDefinitionStrictWithSize,
+  interfaceBody: string,
+  options: Options,
+  bodyExtension: string,
+  importsExtension: string
+) => {
+  return indentBlock(`${indentBlock(header(options.bendecPackageName, getInterfacesImports(options.interfaces)), 4, 0)}
+    ${indentBlock(importsExtension, 4, 0)}
+    /**
+     * ${typeDef.name}
+     * ${typeDef.description}
+     */
+    public class ${typeDef.name} {
+        private ${javaTypeName} value;
+        private final int byteLength = ${typeDef.size};
+        
+        public ${typeDef.name}(int value) {
+            this.value = value;
+        }
+    
+        public ${typeDef.name}(byte[] bytes, int offset) {
+            this(BendecUtils.uInt8FromByteArray(bytes, offset));
+        }
+    
+        public void add(${typeDef.name}Options flag) {
+            this.value = this.value | flag.getOptionValue();
+        }
+        
+        public void remove(${typeDef.name}Options flag) {
+            this.value = this.value ^ flag.getOptionValue();
+        }
+    
+        public Set<${typeDef.name}Options> getFlags() {
+            HashSet<${typeDef.name}Options> options = new HashSet<>();
+            for (${typeDef.name}Options option : ${typeDef.name}Options.values()) {
+                if (isAdded(option))
+                    options.add(option);
+            }
+            if (options.size() > 1)
+                options.remove(${typeDef.name}Options.TYPES.get(0));
+            return options;
+        }
+    
+        public boolean isAdded(${typeDef.name}Options flag) {
+            return (this.value | flag.getOptionValue()) == this.value;
+        }
+    
+        public int getValue() {
+            return value;
+        }
+        ${indentBlock(bodyExtension, 8, 0)}
+        ${indentBlock(interfaceBody, 8, 0)}
+        
+        public enum ${typeDef.name}Options {
+            ${indentBlock(getEnumMembers(typeDef), 12, 0)}
+            
+            private final ${javaTypeName} optionValue;
+            private static final Map<Integer, ${typeDef.name}Options> TYPES = new HashMap<>();
+            static {
+                for (${typeDef.name}Options type : ${typeDef.name}Options.values()) {
+                    TYPES.put(type.optionValue, type);
+                }
+            }
+            
+            /**
+             * Get ${typeDef.name}Options by attribute
+             * @param val
+             * @return ${typeDef.name}Options enum or null if variant is undefined
+             */
+            public static ${typeDef.name}Options get${typeDef.name}(${javaTypeName} val) {
+                return TYPES.get(val);
+            }
+            
+            ${typeDef.name}Options(${javaTypeName} newValue) {
+                this.optionValue = newValue;
+            }
+            
+            public int getOptionValue() {
+                return optionValue;
+            }
+        }
+    }
+    `)
+}
