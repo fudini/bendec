@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { indent } from '../utils'
-import { DefaultDerives } from './types'
+import { DefaultDerives, TypeMeta, TypeMetaStrict } from './types'
 
 // Create rust comment block with description
 export const doc = (description: string, ind: number = 0): string => {
@@ -30,3 +30,31 @@ export const defaultDerives: DefaultDerives = {
   bitflags: ['Serialize', 'Deserialize'],
   newtype: [],
 }
+
+export const typeMetaToStrict = (typeMeta?: TypeMeta): TypeMetaStrict => {
+
+  if (typeMeta === undefined) {
+    return {
+      annotations: [],
+      newtype: null,
+      fields: {},
+      bitflags: false,
+      implConst: false,
+      union: null,
+      publicFields: null,
+      privateFields: [],
+    }
+  }
+
+  return {
+    annotations: typeMeta.annotations || [],
+    newtype: typeMeta.newtype || null,
+    fields: typeMeta.fields || {},
+    bitflags: !!typeMeta.bitflags,
+    implConst: !!typeMeta.implConst,
+    union: typeMeta.union || null,
+    publicFields: typeMeta.publicFields || null,
+    privateFields: typeMeta.privateFields || [],
+  }
+}
+

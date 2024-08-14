@@ -14,7 +14,7 @@ import { getEnum } from './rust/gen/enum'
 import { getStruct } from './rust/gen/struct'
 import { getAlias } from './rust/gen/alias'
 import { smoosh } from './utils'
-import { toRustNS, defaultDerives as defaultDerivesConst } from './rust/utils'
+import { typeMetaToStrict, toRustNS, defaultDerives as defaultDerivesConst } from './rust/utils'
 
 let globalBigArraySizes = []
 
@@ -61,11 +61,8 @@ export const generateString = (
   const definitions = types.map(typeDef => {
     // This is what we pass into callback function for each type def
     const context = typeDef
-
     const typeName = typeDef.name
-
-    const typeMeta = meta[typeName]
-
+    const typeMeta = typeMetaToStrict(meta[typeName])
     const extraDerivesArray = get(extraDerives, typeName, [])
 
     if (typeMap[typeName]) {
@@ -145,7 +142,7 @@ export const generateString = (
 
   const result = definitions.map(([generated, context]: [string, TypeDefinitionStrict]) => {
     const typeName = context.name
-    const typeMeta = meta[typeName]
+    const typeMeta = typeMetaToStrict(meta[typeName])
     return options.forEachType([generated, context, typeMeta])
   }).join('\n\n')
   const extrasString = options.extras.join('\n')

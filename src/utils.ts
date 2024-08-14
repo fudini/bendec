@@ -8,7 +8,7 @@ import {
   Enum, EnumStrict,
   Union, UnionStrict,
   ArrayType, ArrayTypeStrict,
-  Lookup
+  Lookup,
 } from './types'
 
 type Variants = Record<string, number>
@@ -223,24 +223,24 @@ const getTypeSize = lookup => (type: string) => {
   const t = resolveType(lookup, type)
   const typeDef = lookup[t]
 
-  if(typeDef.kind === Kind.Array) {
+  if (typeDef.kind === Kind.Array) {
     return typeDef.length * getTypeSize(lookup)(typeDef.type)
   }
 
   // this is union so get the biggest of its variants
-  if(typeDef.kind === Kind.Union) {
+  if (typeDef.kind === Kind.Union) {
     return max(typeDef.members.map(getTypeSize(lookup)))
   }
 
   // primitive
-  if(typeDef.kind === Kind.Primitive) {
+  if (typeDef.kind === Kind.Primitive) {
     return typeDef.size
   }
 
-  if(typeDef.kind === Kind.Struct) {
+  if (typeDef.kind === Kind.Struct) {
     return sum(map(typeDef.fields, field => {
       let size = getTypeSize(lookup)(field.type)
-      if(field.length) {
+      if (field.length) {
         return size * field.length
       }
       return size
@@ -255,15 +255,15 @@ const resolveType = (lookup: Lookup, type: string) => {
 
   const lookedUp = lookup[type]
 
-  if(!lookedUp) {
+  if (!lookedUp) {
     throw `${Errors.TYPE_NOT_FOUND}:${type}`
   }
 
-  if(lookedUp.kind === Kind.Enum) {
+  if (lookedUp.kind === Kind.Enum) {
     return resolveType(lookup, lookedUp.underlying)
   }
 
-  if(lookedUp.kind === Kind.Alias) {
+  if (lookedUp.kind === Kind.Alias) {
     return resolveType(lookup, lookedUp.alias)
   }
 
