@@ -2,14 +2,14 @@ import { hexPad, smoosh } from '../../utils'
 import { doc, createDerives } from '../../rust/utils'
 import { EnumStrict } from '../../../types'
 import { EnumConversionError, DefaultDerives } from '../types'
-import { TypeMeta } from '../../rust/types'
+import { TypeMetaStrict } from '../../rust/types'
 import { getBitflags } from './bitflags'
 import _ from 'lodash'
 
 export const getEnum = (
   enumStrict: EnumStrict,
   conversionError: EnumConversionError,
-  meta: TypeMeta,
+  meta: TypeMetaStrict,
   defaultDerives: DefaultDerives,
   extraDerivesArray: string[],
   transparentBitflags: boolean,
@@ -25,11 +25,10 @@ export const getEnum = (
   } = enumStrict
 
   // Delegate to bitflags generator if needed
-  if (meta?.bitflags || bitflags) {
+  if (meta.bitflags || bitflags) {
     return getBitflags(enumStrict, defaultDerives.bitflags, extraDerivesArray, transparentBitflags)
   }
 
-  const implConst = !!(meta?.implConst)
   const variantsFields = variants
     .map(([key, value, docs]) => smoosh([doc(docs, 2),`  ${key} = ${hexPad(value)},`]))
     .join('\n')
@@ -89,7 +88,7 @@ ${variantsFieldsRev}
   const implTryFromUnderlying = implTryFrom(underlying)
   var impls = [enumBody, implDefault, implTryFromUnderlying]
 
-  if (implConst) {
+  if (meta.implConst) {
     impls.push(implConstInt)
   }
 

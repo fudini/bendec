@@ -1,5 +1,5 @@
 import { snakeCase } from 'lodash'
-import { TypeMeta } from '../../rust/types'
+import { TypeMetaStrict } from '../../rust/types'
 import { EnumStrict, TypeDefinitionStrict } from '../../../'
 import { Kind, StructStrict, UnionStrict } from '../../../types'
 import { doc } from '../../rust/utils'
@@ -72,10 +72,10 @@ ${unionGetSizeMembers}
 export const getUnion = (
   typeDef: UnionStrict,
   types: TypeDefinitionStrict[],
-  meta: TypeMeta,
+  meta: TypeMetaStrict,
 ): string => {
 
-  if (meta?.union) {
+  if (meta.union != null) {
     const union = meta.union
     const discTypeDef = types.find(def => def.name == union.discVariant)
 

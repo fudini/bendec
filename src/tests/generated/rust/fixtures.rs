@@ -74,10 +74,10 @@ pub type Price = u32;
 #[derive(Serialize, Deserialize, Copy)]
 #[serde(deny_unknown_fields)]
 pub struct Person {
-  pub a: u16,
+  a: u16,
   pub b: u32,
-  pub c: u32,
-  pub d: u8,
+  c: u32,
+  d: u8,
 }
 
 #[repr(C, packed)]

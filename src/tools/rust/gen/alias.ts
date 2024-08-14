@@ -1,6 +1,6 @@
 export * from '../../rust/types'
 
-import { NewtypeKind, NewtypeDef, TypeMeta } from '../../rust/types'
+import { NewtypeKind, NewtypeDef, TypeMetaStrict } from '../../rust/types'
 import { smoosh } from '../../utils'
 import { doc, createDerives, toRustNS } from '../../rust/utils'
 
@@ -8,17 +8,17 @@ import { doc, createDerives, toRustNS } from '../../rust/utils'
 export const getAlias = (
   name: string,
   alias: string,
-  meta: TypeMeta,
+  meta: TypeMetaStrict,
   defaultDerives: string[],
   extraDerivesArray: string[],
   description?: string,
 ): string => {
- 
+
   let newtype = meta?.newtype;
   let rustAlias = toRustNS(alias);
   let docString = doc(description)
 
-  if (newtype === undefined) {
+  if (newtype === null) {
     return smoosh([
       docString,
       `pub type ${name} = ${rustAlias};`
@@ -44,7 +44,7 @@ const getNewtypeDeref = (
   fn deref(&self) -> &Self::Target {
     &self.0
   }
-}` 
+}`
 }
 
 const getNewtypeIntoInner = (
@@ -55,7 +55,7 @@ const getNewtypeIntoInner = (
   pub fn into_inner(self) -> ${rustAlias} {
     self.0
   }
-}` 
+}`
 }
 
 // Returns a as_inner code for newtype impl
@@ -67,7 +67,7 @@ const getNewtypeAsInner = (
   pub fn as_inner(&self) -> ${rustAlias} {
     self.0
   }
-}` 
+}`
 }
 
 const getNewtypeConstr = (
@@ -83,7 +83,7 @@ const getNewtypeConstr = (
 
 // Return the body of new type
 const getNewtypeVisibility = (
-  name: string, 
+  name: string,
   alias: string,
   newtype: NewtypeDef
 ): string => {
@@ -104,9 +104,9 @@ const getNewtypeVisibility = (
 }
 
 const getNewtypeBody = (
-  name: string, 
+  name: string,
   alias: string,
-  newtype: NewtypeDef 
+  newtype: NewtypeDef
 ): string => {
 
   let rustAlias = toRustNS(alias);

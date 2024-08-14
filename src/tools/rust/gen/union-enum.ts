@@ -1,5 +1,5 @@
 import { max } from 'lodash'
-import { TypeMeta } from '../../rust/types'
+import { TypeMetaStrict } from '../../rust/types'
 import { EnumStrict } from '../../../'
 import { UnionStrict } from '../../../types'
 import { doc } from '../../rust/utils'
@@ -9,10 +9,9 @@ import { hexPad, indent, smoosh } from '../../utils'
 const getUnionEnum = (
   { name, members, description }: UnionStrict,
   discTypeDef: EnumStrict,
-  meta: TypeMeta,
+  meta: TypeMetaStrict,
 ) => {
-  const annotations = meta?.annotations || []
-  const annotationsString = annotations.join('\n')
+  const annotationsString = meta.annotations.join('\n')
   const discTypeVariantLookup = Object.fromEntries(
     discTypeDef.variants.map(([variant, variantInt, _desc]) => [variant, variantInt]))
   const { underlying = 'u8', discFn = v => v } = meta.union

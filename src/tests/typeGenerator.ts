@@ -41,6 +41,14 @@ test('Rust - fixtures', t => {
     defaultDerives: {
       struct: ['Serialize', 'Deserialize', 'Copy']
     },
+    meta: {
+      'Person': {
+        // It is possible to set both publicFields and privateFields,
+        // privateFields will just overwrite the publicFields
+        publicFields: ['a', 'b'],
+        privateFields: ['a']
+      }
+    },
     extraDerives: {
       'Header': ['Default']
     }

@@ -3,24 +3,22 @@ import { snakeCase } from 'lodash'
 import { doc, createDerives, toRustNS } from '../../rust/utils'
 import { Field } from '../../../'
 import { Lookup, StructStrict } from '../../../types'
-import { TypeMapping, TypeMeta, FieldName, FieldMeta } from '../../rust/types'
+import { TypeMapping, TypeMetaStrict, FieldName, FieldMeta } from '../../rust/types'
 
 export const getStruct = (
   typeDef: StructStrict,
   lookup: Lookup,
   typeMap: TypeMapping,
-  meta: TypeMeta,
+  meta: TypeMetaStrict,
   defaultDerives: string[],
   extraDerivesArray: string[],
   camelCase: boolean
 ) => {
   const typeName = typeDef.name
-  const fieldsMeta = meta?.fields
-  const annotations = meta?.annotations || []
-  const annotationsString = annotations.join('\n')
+  const annotationsString = meta.annotations.join('\n')
 
   const members = typeDef.fields
-    ? getMembers(lookup, typeDef.fields, typeMap, fieldsMeta)
+    ? getMembers(lookup, typeDef.fields, typeMap, meta.fields, meta)
     : []
 
   const membersString = members.join('\n')
@@ -54,6 +52,7 @@ const getMembers = (
   fields: Field[],
   typeMap: TypeMapping,
   fieldsMeta: Record<FieldName, FieldMeta>,
+  meta: TypeMetaStrict,
 ): string[] => {
 
   let fieldsArr = fields.map(field => {
@@ -66,7 +65,19 @@ const getMembers = (
       : rustType
 
     const fieldAnnotations = fieldsMeta?.[field.name]?.annotations || []
-    const generatedField = `  pub ${snakeCase(field.name)}: ${finalRustType},`
+
+    let visibility = 'pub '
+
+    // if publicFields is not null we default all fields visibility to private
+    if (meta.publicFields != null) {
+      visibility = meta.publicFields.includes(field.name) ? 'pub ' : ''
+    }
+
+    if (meta.privateFields.includes(field.name)) {
+      visibility = ''
+    }
+
+    const generatedField = `  ${visibility}${snakeCase(field.name)}: ${finalRustType},`
 
     const type = lookup[field.type]
 

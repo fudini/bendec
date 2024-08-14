@@ -68,6 +68,19 @@ export type TypeMeta = {
   bitflags?: boolean
   implConst?: boolean
   union?: UnionMeta
+  publicFields?: string[]
+  privateFields?: string[]
+}
+
+export type TypeMetaStrict = {
+  annotations: string[]
+  newtype: NewtypeDef | null
+  fields: FieldsMeta
+  bitflags: boolean
+  implConst: boolean
+  union: UnionMeta | null
+  publicFields: string[] | null
+  privateFields: string[]
 }
 
 // This is only for union types generation
@@ -105,6 +118,6 @@ export type Options = {
   camelCase?: boolean,
   enumConversionError?: EnumConversionError,
   // You have a chance to generate extra code for each typeDefinition
-  forEachType?: ([generated, context, meta]: [string, TypeDefinitionStrict, TypeMeta]) => string
+  forEachType?: ([generated, context, meta]: [string, TypeDefinitionStrict, TypeMetaStrict]) => string
   transparentBitflags?: boolean
 }
