@@ -120,4 +120,5 @@ export type Options = {
   // You have a chance to generate extra code for each typeDefinition
   forEachType?: ([generated, context, meta]: [string, TypeDefinitionStrict, TypeMetaStrict]) => string
   transparentBitflags?: boolean
+  visibilityPrefix?: string
 }

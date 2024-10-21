@@ -47,6 +47,7 @@ export const typeMetaToStrict = (typeMeta?: TypeMeta): TypeMetaStrict => {
   }
 
   return {
+    ...typeMeta,
     annotations: typeMeta.annotations || [],
     newtype: typeMeta.newtype || null,
     fields: typeMeta.fields || {},

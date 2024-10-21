@@ -12,13 +12,14 @@ export const getStruct = (
   meta: TypeMetaStrict,
   defaultDerives: string[],
   extraDerivesArray: string[],
-  camelCase: boolean
+  camelCase: boolean,
+  visibilityPrefix: string,
 ) => {
   const typeName = typeDef.name
   const annotationsString = meta.annotations.join('\n')
 
   const members = typeDef.fields
-    ? getMembers(lookup, typeDef.fields, typeMap, meta.fields, meta)
+    ? getMembers(lookup, typeDef.fields, typeMap, meta.fields, meta, visibilityPrefix)
     : []
 
   const membersString = members.join('\n')
@@ -53,6 +54,7 @@ const getMembers = (
   typeMap: TypeMapping,
   fieldsMeta: Record<FieldName, FieldMeta>,
   meta: TypeMetaStrict,
+  visibilityPrefix: string,
 ): string[] => {
 
   let fieldsArr = fields.map(field => {
@@ -70,11 +72,11 @@ const getMembers = (
 
     // if publicFields is not null we default all fields visibility to private
     if (meta.publicFields != null) {
-      visibility = meta.publicFields.includes(field.name) ? 'pub ' : ''
+      visibility = meta.publicFields.includes(field.name) ? 'pub ' : visibilityPrefix
     }
 
     if (meta.privateFields.includes(field.name)) {
-      visibility = ''
+      visibility = visibilityPrefix
     }
 
     const generatedField = `  ${visibility}${snakeCase(field.name)}: ${finalRustType},`

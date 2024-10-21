@@ -30,7 +30,8 @@ export const defaultOptions = {
     constructor: 'other'
   },
   forEachType: ([generated, _context, _meta]) => generated,
-  transparentBitflags: false
+  transparentBitflags: false,
+  visibilityPrefix: '',
 }
 
 export const defaultMapping: TypeMapping = {
@@ -118,7 +119,8 @@ export const generateString = (
           typeMeta,
           defaultDerives.struct,
           extraDerivesArray,
-          options.camelCase
+          options.camelCase,
+          options.visibilityPrefix,
         ),
         context
       ]
