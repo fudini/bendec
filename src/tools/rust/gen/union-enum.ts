@@ -29,7 +29,7 @@ const getUnionEnum = (
     return [`  ${member}(${member}) = ${value},`, variantInt]
   })
 
-  // So we can align the commends like rustfmt does by default
+  // So we can align the comments like rustfmt does by default
   const longestVariant = max(unionMembers.map(([v]) => v.length))
 
   const unionMembersWithComment = unionMembers
@@ -69,7 +69,29 @@ const getUnionEnum = (
   }
 } `
 
-  return [union, unionDeserializeJson].join('\n\n')
+  let impls = [union, unionDeserializeJson]
+
+  if (meta.implConst) {
+    const implConstIntValues = members
+      .map(member => {
+        const variantInt = discTypeVariantLookup[member]
+        const value = hexPad(discFn(variantInt), padDigits)
+        return `  pub const ${member}: ${underlying} = ${value};`
+      })
+      .join('\n')
+
+    const implConstInt = `pub struct ${name}Int;
+  #[allow(non_upper_case_globals, dead_code)]
+  impl ${name}Int {
+  ${implConstIntValues}
+  }
+  `
+
+    console.log(implConstInt)
+    impls.push(implConstInt)
+  }
+
+  return impls.join('\n\n')
 }
 
 export { getUnionEnum }

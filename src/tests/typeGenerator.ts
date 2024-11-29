@@ -106,7 +106,8 @@ test('Rust - unions and enums', t => {
           discFn(variantInt: number) {
             return variantInt + 100
           },
-        }
+        },
+        implConst: true
       }
     }
   }
@@ -116,7 +117,7 @@ test('Rust - unions and enums', t => {
       kind: 5, // Kind.Union wtf TS
       name: 'AnimalUnionEnum',
       members: ['Zebra2', 'Toucan2'],
-      discriminator: ['header', 'animalKind']
+      discriminator: ['header', 'animalKind'],
     }]
 
   const cleanedGenerated = generateStringRust(unionsWithExtras, options)
