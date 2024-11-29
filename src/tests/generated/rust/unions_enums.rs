@@ -209,3 +209,9 @@ impl AnimalUnionEnum {
   }
 }
 
+pub struct AnimalUnionEnumInt;
+#[allow(non_upper_case_globals, dead_code)]
+impl AnimalUnionEnumInt {
+  pub const Zebra2: u8 = 0x65;
+  pub const Toucan2: u8 = 0x66;
+}
