@@ -87,7 +87,6 @@ const getUnionEnum = (
   }
   `
 
-    console.log(implConstInt)
     impls.push(implConstInt)
   }
 
