@@ -6,7 +6,7 @@ const getEnumVariant = (variant) => {
   const variantDesc = variant[2] ? indentBlock(`/**
     * ${variant[2]}
     */`, 1, 0)+"\n" : '';
-  return `${variantDesc}${variant[0].toUpperCase()}(${variant[1]})`
+  return `${variantDesc}${variant[0]}(${variant[1]})`
 }
 
 const getEnumMembers = (typeDef: TypeDefinitionStrictWithSize) => {
