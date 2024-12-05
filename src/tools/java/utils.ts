@@ -8,7 +8,7 @@ import dedent from "ts-dedent"
 
 export const defaultOptions: Options = {
   bendecPackageName: "com.mycompany.bendec",
-  enumVariantsInCapitals: true,
+  enumVariantsOriginalCase: false,
 }
 
 export const header = (packageName?: string, imports?: string) => {

@@ -19,7 +19,6 @@ test('Java unions and enums', t => {
       binSerializableGenerator(bendecPackageName),
       jsonSerializableGenerator(bendecPackageName)
     ],
-    enumVariantsInCapitals: true,
 });
 
   const generationPath = path.join(__dirname.replace('dist', 'src'), "../..", tempDir, bendecPackageName.replace(".", "/"))
@@ -47,7 +46,6 @@ test('Java fixtures', t => {
       binSerializableGenerator(bendecPackageName),
       jsonSerializableGenerator(bendecPackageName)
     ],
-    enumVariantsInCapitals: true,
   });
 
   const generationPath = path.join(__dirname.replace('dist', 'src'), "../..", tempDir, bendecPackageName.replace(".", "/"))
@@ -75,7 +73,6 @@ test('Java arrays', t => {
       binSerializableGenerator(bendecPackageName),
       jsonSerializableGenerator(bendecPackageName)
     ],
-    enumVariantsInCapitals: true,
   });
 
   const generationPath = path.join(__dirname.replace('dist', 'src'), "../..", tempDir, bendecPackageName.replace(".", "/"))

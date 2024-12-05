@@ -57,9 +57,9 @@ export const getUnion = (typeDef, genBase: GenerationBase) => {
         
         ${indentBlock(generateSimplifiedFactory(typeDef.name, discTypeDef), 8, 0)}
         
-        ${indentBlock(generateFactory(typeDef.name, discTypeDef, genBase.options.enumVariantsInCapitals, members), 8, 0)}
+        ${indentBlock(generateFactory(typeDef.name, discTypeDef, genBase.options.enumVariantsOriginalCase, members), 8, 0)}
         ${indentBlock(bodyExtension, 8, 0)}
-        ${indentBlock(generateTypeClassMap(discTypeDef, genBase.options.enumVariantsInCapitals, members), 8, 0)}
+        ${indentBlock(generateTypeClassMap(discTypeDef, genBase.options.enumVariantsOriginalCase, members), 8, 0)}
     }`)
 }
 
@@ -84,17 +84,17 @@ const generateSimplifiedFactory = (unionName, discTypeDef) : string => {
     }\n`)
 }
 
-const toUpperCaseIf = (s: string, capitalize: boolean) : string => {
+const toUpperCaseIf = (s: string, originalCase: boolean) : string => {
 
-  if(capitalize) {
-    return s.toUpperCase();
+  if(originalCase) {
+    return s;
   }
-  return s;
+  return s.toUpperCase();
 }
 
-const generateFactory = (unionName, discTypeDef, capitalize: boolean, members) => {
+const generateFactory = (unionName, discTypeDef, originalCase: boolean, members) => {
   const cases = members.map(v => {
-      return indentBlock(`case ${toUpperCaseIf(v, capitalize)}:
+      return indentBlock(`case ${toUpperCaseIf(v, originalCase)}:
           return Optional.of(new ${v}(bytes));
       `, 4, 0)
     }).join("\n")
@@ -108,9 +108,9 @@ const generateFactory = (unionName, discTypeDef, capitalize: boolean, members) =
     }`)
 }
 
-const generateTypeClassMap = (discTypeDef, capitalize: boolean, members) => {
-  const classToTypeMapInitializer = members.map((v) => `put(${v}.class, ${discTypeDef.name}.${toUpperCaseIf(v, capitalize)});`).join("\n");
-  const typeToClassMapInitializer = members.map((v) => `put(${discTypeDef.name}.${toUpperCaseIf(v, capitalize)}, ${v}.class);`).join("\n")
+const generateTypeClassMap = (discTypeDef, originalCase: boolean, members) => {
+  const classToTypeMapInitializer = members.map((v) => `put(${v}.class, ${discTypeDef.name}.${toUpperCaseIf(v, originalCase)});`).join("\n");
+  const typeToClassMapInitializer = members.map((v) => `put(${discTypeDef.name}.${toUpperCaseIf(v, originalCase)}, ${v}.class);`).join("\n")
   return indentBlock(`
     static Class findClassByDiscriminator(${discTypeDef.name} type) {
         return  typeToClassMap.get(type);
