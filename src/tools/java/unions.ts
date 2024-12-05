@@ -57,9 +57,9 @@ export const getUnion = (typeDef, genBase: GenerationBase) => {
         
         ${indentBlock(generateSimplifiedFactory(typeDef.name, discTypeDef), 8, 0)}
         
-        ${indentBlock(generateFactory(typeDef.name, discTypeDef, members), 8, 0)}
+        ${indentBlock(generateFactory(typeDef.name, discTypeDef, genBase.options.enumVariantsInCapitals, members), 8, 0)}
         ${indentBlock(bodyExtension, 8, 0)}
-        ${indentBlock(generateTypeClassMap(discTypeDef, members), 8, 0)}
+        ${indentBlock(generateTypeClassMap(discTypeDef, genBase.options.enumVariantsInCapitals, members), 8, 0)}
     }`)
 }
 
@@ -84,9 +84,17 @@ const generateSimplifiedFactory = (unionName, discTypeDef) : string => {
     }\n`)
 }
 
-const generateFactory = (unionName, discTypeDef, members) => {
+const toUpperCaseIf = (s: string, capitalize: boolean) : string => {
+
+  if(capitalize) {
+    return s.toUpperCase();
+  }
+  return s;
+}
+
+const generateFactory = (unionName, discTypeDef, capitalize: boolean, members) => {
   const cases = members.map(v => {
-      return indentBlock(`case ${v.toUpperCase()}:
+      return indentBlock(`case ${toUpperCaseIf(v, capitalize)}:
           return Optional.of(new ${v}(bytes));
       `, 4, 0)
     }).join("\n")
@@ -100,9 +108,9 @@ const generateFactory = (unionName, discTypeDef, members) => {
     }`)
 }
 
-const generateTypeClassMap = (discTypeDef, members) => {
-  const classToTypeMapInitializer = members.map((v) => `put(${v}.class, ${discTypeDef.name}.${v.toUpperCase()});`).join("\n");
-  const typeToClassMapInitializer = members.map((v) => `put(${discTypeDef.name}.${v.toUpperCase()}, ${v}.class);`).join("\n")
+const generateTypeClassMap = (discTypeDef, capitalize: boolean, members) => {
+  const classToTypeMapInitializer = members.map((v) => `put(${v}.class, ${discTypeDef.name}.${toUpperCaseIf(v, capitalize)});`).join("\n");
+  const typeToClassMapInitializer = members.map((v) => `put(${discTypeDef.name}.${toUpperCaseIf(v, capitalize)}, ${v}.class);`).join("\n")
   return indentBlock(`
     static Class findClassByDiscriminator(${discTypeDef.name} type) {
         return  typeToClassMap.get(type);
