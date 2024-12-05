@@ -150,7 +150,7 @@ const getBitflags = (
         ${indentBlock(interfaceBody, 8, 0)}
         
         public enum ${typeDef.name}Options {
-            ${indentBlock(getEnumMembers(typeDef), 12, 0)}
+            ${indentBlock(getEnumMembers(typeDef, options.enumVariantsInCapitals), 12, 0)}
             
             private final ${javaTypeName} optionValue;
             private static final Map<Integer, ${typeDef.name}Options> TYPES = new HashMap<>();
