@@ -87,9 +87,9 @@ const generateSimplifiedFactory = (unionName, discTypeDef) : string => {
 const toUpperCaseIf = (s: string, originalCase: boolean) : string => {
 
   if(originalCase) {
-    return s;
+    return s
   }
-  return s.toUpperCase();
+  return s.toUpperCase()
 }
 
 const generateFactory = (unionName, discTypeDef, originalCase: boolean, members) => {
