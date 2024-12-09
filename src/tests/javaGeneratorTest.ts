@@ -19,7 +19,7 @@ test('Java unions and enums', t => {
       binSerializableGenerator(bendecPackageName),
       jsonSerializableGenerator(bendecPackageName)
     ],
-  });
+});
 
   const generationPath = path.join(__dirname.replace('dist', 'src'), "../..", tempDir, bendecPackageName.replace(".", "/"))
   const referencePath = path.join(__dirname.replace('dist', 'src'), "generated/java", bendecPackageName.replace(".", "/"))

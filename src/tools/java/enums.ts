@@ -2,16 +2,19 @@ import {EnumStrict, Kind} from "../.."
 import {header, indentBlock, javaTypeMapping} from "./utils"
 import {GenerationBase, getInterfacesImports, Options, TypeDefinitionStrictWithSize, TypeMapping} from "./types"
 
-const getEnumVariant = (variant) => {
+const getEnumVariant = (variant, originalCase: boolean) => {
   const variantDesc = variant[2] ? indentBlock(`/**
     * ${variant[2]}
     */`, 1, 0)+"\n" : '';
-  return `${variantDesc}${variant[0].toUpperCase()}(${variant[1]})`
+  if (originalCase)
+    return `${variantDesc}${variant[0]}(${variant[1]})`
+  else
+    return `${variantDesc}${variant[0].toUpperCase()}(${variant[1]})`
 }
 
-const getEnumMembers = (typeDef: TypeDefinitionStrictWithSize) => {
+const getEnumMembers = (typeDef: TypeDefinitionStrictWithSize, originalCase: boolean) => {
   return (typeDef as EnumStrict).variants
-    .map(v => getEnumVariant(v))
+    .map(v => getEnumVariant(v, originalCase))
     .join(",\n") + ";"
 }
 
@@ -53,7 +56,7 @@ const getEnumClassic = (
      * ${typeDef.description}
      */
     public enum ${typeDef.name} {
-        ${indentBlock(getEnumMembers(typeDef), 8, 0)}
+        ${indentBlock(getEnumMembers(typeDef, options.enumVariantsOriginalCase), 8, 0)}
         
         private final ${javaTypeName} value;
         private final int byteLength = ${typeDef.size};
@@ -147,7 +150,7 @@ const getBitflags = (
         ${indentBlock(interfaceBody, 8, 0)}
         
         public enum ${typeDef.name}Options {
-            ${indentBlock(getEnumMembers(typeDef), 12, 0)}
+            ${indentBlock(getEnumMembers(typeDef, options.enumVariantsOriginalCase), 12, 0)}
             
             private final ${javaTypeName} optionValue;
             private static final Map<Integer, ${typeDef.name}Options> TYPES = new HashMap<>();

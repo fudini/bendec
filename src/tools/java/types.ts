@@ -35,6 +35,7 @@ export interface Options {
   customSerDe?: CustomSerde
   typeExtender?: TypeExtender[]
   importExtender?: ImportExtender[]
+  enumVariantsOriginalCase?: boolean
 }
 
 export type TypeExtender = (genBase: GenerationBase, typeDef) => string
