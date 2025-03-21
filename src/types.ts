@@ -117,8 +117,8 @@ export interface VariantGetter {
 export interface Config {
   types?: TypeDefinition[]
   namespace?: string
-  readers?: Readers, 
-  writers?: Writers, 
+  readers?: Readers,
+  writers?: Writers,
   getVariant?: VariantGetter
 }
 
@@ -144,3 +144,5 @@ export interface Lookup {
 
 export type Decoder<T> = (buffer: Buffer) => T
 export type Encoder<T> = (o: T, b?: Buffer) => Buffer
+
+export type BufferWrapperFactory<T> = (b: Buffer) => BufferWrapper<T>
