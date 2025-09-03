@@ -86,12 +86,27 @@ const getEnumClassic = (
          * @return int value
          */
         public ${javaTypeName} get${typeDef.name}Value() {
-            return value; 
+            return value;
         }
         ${indentBlock(bodyExtension, 8, 0)}
         ${indentBlock(interfaceBody, 8, 0)}
     }
     `)
+}
+
+const getAdditionalMethods = (
+  name: string
+) : string => {
+  return indentBlock(
+    `@Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner("|", "[", "]");
+        for (${name}Options option: ${name}Options.values()) {
+            if (isAdded(option))
+                sj.add(option.name());
+        }
+        return sj.toString();
+    }`)
 }
 
 const getBitflags = (
@@ -148,7 +163,9 @@ const getBitflags = (
         }
         ${indentBlock(bodyExtension, 8, 0)}
         ${indentBlock(interfaceBody, 8, 0)}
-        
+
+        ${indentBlock(getAdditionalMethods(typeDef.name), 8, 0)}
+
         public enum ${typeDef.name}Options {
             ${indentBlock(getEnumMembers(typeDef, options.enumVariantsOriginalCase), 12, 0)}
             
