@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * <h2>LargeMessage</h2>
- 
+
  * <p>Byte length: 301</p>
  * <p>Header header | size 1</p>
  * <p>Person person1 | size 11</p>
@@ -45,7 +45,7 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
     private String name3;
     private String name4;
     public static final int byteLength = 301;
-    
+
     public LargeMessage(Header header, Person person1, Person person2, long aaa, long bbb, long ccc, long ddd, long eee, int fff, int ggg, String name1, String name2, String name3, String name4) {
         this.header = header;
         this.person1 = person1;
@@ -62,7 +62,7 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         this.name3 = name3;
         this.name4 = name4;
     }
-    
+
     public LargeMessage(byte[] bytes, int offset) {
         this.header = new Header(bytes, offset);
         this.person1 = new Person(bytes, offset + 1);
@@ -79,126 +79,126 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         this.name3 = BendecUtils.stringFromByteArray(bytes, offset + 173, 64);
         this.name4 = BendecUtils.stringFromByteArray(bytes, offset + 237, 64);
     }
-    
+
     public LargeMessage(byte[] bytes) {
         this(bytes, 0);
     }
-    
+
     public LargeMessage() {
     }
-    
+
     public Header getHeader() {
         return this.header;
     }
-    
+
     public Person getPerson1() {
         return this.person1;
     }
-    
+
     public Person getPerson2() {
         return this.person2;
     }
-    
+
     public long getAaa() {
         return this.aaa;
     }
-    
+
     public long getBbb() {
         return this.bbb;
     }
-    
+
     public long getCcc() {
         return this.ccc;
     }
-    
+
     public long getDdd() {
         return this.ddd;
     }
-    
+
     public long getEee() {
         return this.eee;
     }
-    
+
     public int getFff() {
         return this.fff;
     }
-    
+
     public int getGgg() {
         return this.ggg;
     }
-    
+
     public String getName1() {
         return this.name1;
     }
-    
+
     public String getName2() {
         return this.name2;
     }
-    
+
     public String getName3() {
         return this.name3;
     }
-    
+
     public String getName4() {
         return this.name4;
     }
-    
+
     public void setHeader(Header header) {
         this.header = header;
     }
-    
+
     public void setPerson1(Person person1) {
         this.person1 = person1;
     }
-    
+
     public void setPerson2(Person person2) {
         this.person2 = person2;
     }
-    
+
     public void setAaa(long aaa) {
         this.aaa = aaa;
     }
-    
+
     public void setBbb(long bbb) {
         this.bbb = bbb;
     }
-    
+
     public void setCcc(long ccc) {
         this.ccc = ccc;
     }
-    
+
     public void setDdd(long ddd) {
         this.ddd = ddd;
     }
-    
+
     public void setEee(long eee) {
         this.eee = eee;
     }
-    
+
     public void setFff(int fff) {
         this.fff = fff;
     }
-    
+
     public void setGgg(int ggg) {
         this.ggg = ggg;
     }
-    
+
     public void setName1(String name1) {
         this.name1 = name1;
     }
-    
+
     public void setName2(String name2) {
         this.name2 = name2;
     }
-    
+
     public void setName3(String name3) {
         this.name3 = name3;
     }
-    
+
     public void setName4(String name4) {
         this.name4 = name4;
     }
-    
+
     @Override
     public byte[] toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
@@ -218,8 +218,8 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         buffer.put(BendecUtils.stringToByteArray(this.name4, 64));
         return buffer.array();
     }
-    
-    @Override  
+
+    @Override
     public void toBytes(ByteBuffer buffer) {
         header.toBytes(buffer);
         person1.toBytes(buffer);
@@ -236,8 +236,8 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         buffer.put(BendecUtils.stringToByteArray(this.name3, 64));
         buffer.put(BendecUtils.stringToByteArray(this.name4, 64));
     }
-    
-    @Override  
+
+    @Override
     public ObjectNode toJson() {
         ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         object.set("header", header.toJson());
@@ -256,8 +256,8 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         object.put("name4", name4);
         return object;
     }
-    
-    @Override  
+
+    @Override
     public ObjectNode toJson(ObjectNode object) {
         object.set("header", header.toJson());
         object.set("person1", person1.toJson());
@@ -275,7 +275,7 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         object.put("name4", name4);
         return object;
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(header,
@@ -293,7 +293,7 @@ public class LargeMessage implements ByteSerializable, JsonSerializable {
         name3,
         name4);
     }
-    
+
     @Override
     public String toString() {
         return "LargeMessage {" +
