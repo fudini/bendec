@@ -36,14 +36,14 @@ export const jsonSerializableFile = (packageName: string) => indentBlock(`${head
     import com.fasterxml.jackson.databind.ObjectMapper;
     import com.fasterxml.jackson.databind.node.JsonNodeFactory;
     import com.fasterxml.jackson.databind.node.TextNode;`, 4, 0))}
-    
+
     public interface JsonSerializable {
-    
+
         JsonMapper MAPPER = new JsonMapper();
-      
+
         abstract ObjectNode toJson();
         abstract ObjectNode toJson(ObjectNode object);
-    
+
     }
     `)
 
@@ -62,14 +62,14 @@ const getStructJsonMethods = (
         ).write}`
     })
     .join("\n")
-  return indentBlock(`@Override  
+  return indentBlock(`@Override
     public ObjectNode toJson() {
         ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         ${indentBlock(jsonFilling, 8, 0)}
         return object;
     }
-    
-    @Override  
+
+    @Override
     public ObjectNode toJson(ObjectNode object) {
         ${indentBlock(jsonFilling, 8, 0)}
         return object;

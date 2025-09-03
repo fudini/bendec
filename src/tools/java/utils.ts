@@ -13,7 +13,7 @@ export const defaultOptions: Options = {
 
 export const header = (packageName?: string, imports?: string) => {
   return indentBlock(`package ${packageName || "pl.bendec"};
-  
+
   import java.math.BigInteger;
   import java.util.*;
   ${imports ? indentBlock(imports, 2, 0) : ""}
@@ -22,7 +22,7 @@ export const header = (packageName?: string, imports?: string) => {
 
 export const entitiesHeader = (bendecPackageName: string, entitesPackageName: string) => {
   return indentBlock(`package ${entitesPackageName};
-  
+
   import ${bendecPackageName}.*;
   import javax.persistence.*;
   import java.math.BigInteger;

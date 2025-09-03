@@ -54,9 +54,9 @@ export const getUnion = (typeDef, genBase: GenerationBase) => {
     ${indentBlock(importsExtension, 4, 0)}
     public interface ${typeDef.name} {
         ${indentBlock(generateGetDiscriminator(typeDef, discTypeDef, firstDiscPathType, discOffset), 8, 0)}
-        
+
         ${indentBlock(generateSimplifiedFactory(typeDef.name, discTypeDef), 8, 0)}
-        
+
         ${indentBlock(generateFactory(typeDef.name, discTypeDef, genBase.options.enumVariantsOriginalCase, members), 8, 0)}
         ${indentBlock(bodyExtension, 8, 0)}
         ${indentBlock(generateTypeClassMap(discTypeDef, genBase.options.enumVariantsOriginalCase, members), 8, 0)}

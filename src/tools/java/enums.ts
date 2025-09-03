@@ -57,21 +57,21 @@ const getEnumClassic = (
      */
     public enum ${typeDef.name} {
         ${indentBlock(getEnumMembers(typeDef, options.enumVariantsOriginalCase), 8, 0)}
-        
+
         private final ${javaTypeName} value;
         private final int byteLength = ${typeDef.size};
-        
+
         private static final Map<Integer, ${typeDef.name}> TYPES = new HashMap<>();
         static {
             for (${typeDef.name} type : ${typeDef.name}.values()) {
                 TYPES.put(type.value, type);
             }
         }
-        
+
         ${typeDef.name}(${javaTypeName} newValue) {
             value = newValue;
         }
-        
+
         /**
          * Get ${typeDef.name} by attribute
          * @param val
@@ -80,7 +80,7 @@ const getEnumClassic = (
         public static ${typeDef.name} get${typeDef.name}(${javaTypeName} val) {
             return TYPES.get(val);
         }
-        
+
         /**
          * Get ${typeDef.name} int value
          * @return int value
@@ -126,23 +126,23 @@ const getBitflags = (
     public class ${typeDef.name} {
         private ${javaTypeName} value;
         private final int byteLength = ${typeDef.size};
-        
+
         public ${typeDef.name}(int value) {
             this.value = value;
         }
-    
+
         public ${typeDef.name}(byte[] bytes, int offset) {
             this(BendecUtils.uInt8FromByteArray(bytes, offset));
         }
-    
+
         public void add(${typeDef.name}Options flag) {
             this.value = this.value | flag.getOptionValue();
         }
-        
+
         public void remove(${typeDef.name}Options flag) {
             this.value = this.value ^ flag.getOptionValue();
         }
-    
+
         public Set<${typeDef.name}Options> getFlags() {
             HashSet<${typeDef.name}Options> options = new HashSet<>();
             for (${typeDef.name}Options option : ${typeDef.name}Options.values()) {
@@ -153,11 +153,11 @@ const getBitflags = (
                 options.remove(${typeDef.name}Options.TYPES.get(0));
             return options;
         }
-    
+
         public boolean isAdded(${typeDef.name}Options flag) {
             return (this.value | flag.getOptionValue()) == this.value;
         }
-    
+
         public int getValue() {
             return value;
         }
@@ -168,7 +168,7 @@ const getBitflags = (
 
         public enum ${typeDef.name}Options {
             ${indentBlock(getEnumMembers(typeDef, options.enumVariantsOriginalCase), 12, 0)}
-            
+
             private final ${javaTypeName} optionValue;
             private static final Map<Integer, ${typeDef.name}Options> TYPES = new HashMap<>();
             static {
@@ -176,7 +176,7 @@ const getBitflags = (
                     TYPES.put(type.optionValue, type);
                 }
             }
-            
+
             /**
              * Get ${typeDef.name}Options by attribute
              * @param val
@@ -185,11 +185,11 @@ const getBitflags = (
             public static ${typeDef.name}Options get${typeDef.name}(${javaTypeName} val) {
                 return TYPES.get(val);
             }
-            
+
             ${typeDef.name}Options(${javaTypeName} newValue) {
                 this.optionValue = newValue;
             }
-            
+
             public int getOptionValue() {
                 return optionValue;
             }

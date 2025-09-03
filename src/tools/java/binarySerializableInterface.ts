@@ -25,14 +25,14 @@ export function binSerializableGenerator(packageName: string) : JavaInterface {
 
 export const byteSerializableFile = (packageName?: string) => indentBlock(
   `${indentBlock(header(packageName, "import java.nio.ByteBuffer;"), 2)}
-  
+
   public interface ByteSerializable {
-  
+
       public int byteLength = 0;
-  
+
       public abstract void toBytes(ByteBuffer buffer);
       public abstract byte[] toBytes();
-  
+
   }
   `)
 
@@ -61,8 +61,8 @@ const getStructMethods = (
           ${indentBlock(bufferFilling, 10, 0)}
           return buffer.array();
       }
-      
-      @Override  
+
+      @Override
       public void toBytes(ByteBuffer buffer) {
           ${indentBlock(bufferFilling, 10, 0)}
       }`)
@@ -96,7 +96,7 @@ const getEnumMethods = (
           ${byteOperators.write}
           return buffer.array();
       }
-      
+
       void toBytes(ByteBuffer buffer) {
           ${byteOperators.write}
       }`)

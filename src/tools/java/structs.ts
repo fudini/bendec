@@ -94,11 +94,11 @@ const getConstructors = (
     public ${name}(byte[] bytes, int offset) {
         ${indentBlock(byteAssignments, 8, 0)}
     }
-    
+
     public ${name}(byte[] bytes) {
         this(bytes, 0);
     }
-    
+
     public ${name}() {
     }`)
   return indentBlock(parametersConstructor + "\n\n" + bytesConstructors,0)
@@ -132,7 +132,7 @@ const getAdditionalMethods = (
     public int hashCode() {
         return Objects.hash(${fields.map((f) => f.name).join(",\n        ")});
     }
-    
+
     @Override
     public String toString() {
         return "${name} {" +
@@ -170,15 +170,15 @@ export const getStruct = (typeDef: Struct, genBase: GenerationBase) : string => 
     ${indentBlock(getStructDocumentation(extendedTypeDef), 5, 0)}
     public class ${extendedTypeDef.name} implements ${interfaces} {
         ${indentBlock(getMembers(extendedTypeDef.fields), 8,  0)}
-        
+
         ${indentBlock(getConstructors(extendedTypeDef.name, extendedTypeDef.fields, genBase), 8, 0)}
         ${indentBlock(bodyExtension, 8, 0)}
         ${indentBlock(getGetters(extendedTypeDef.fields), 8, 0)}
-        
+
         ${indentBlock(getSetters(extendedTypeDef.fields), 8, 0)}
-        
+
         ${indentBlock(interfacesBody, 8, 0)}
-        
+
         ${indentBlock(getAdditionalMethods(extendedTypeDef.name, extendedTypeDef.fields), 8, 0)}
     }`);
 

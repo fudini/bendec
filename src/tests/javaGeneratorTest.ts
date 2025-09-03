@@ -31,7 +31,7 @@ test('Java unions and enums', t => {
     codeEquals(t)(generatedFile, referenceFile)
   }
   generationDir.closeSync()
-  rmSync(tempDir, {recursive: true, force: true});
+//   rmSync(tempDir, {recursive: true, force: true});
   t.end()
 })
 
@@ -58,7 +58,7 @@ test('Java fixtures', t => {
     codeEquals(t)(generatedFile, referenceFile)
   }
   generationDir.closeSync()
-  rmSync(tempDir, {recursive: true, force: true});
+//   rmSync(tempDir, {recursive: true, force: true});
   t.end()
 })
 
@@ -85,6 +85,6 @@ test('Java arrays', t => {
     codeEquals(t)(generatedFile, referenceFile)
   }
   generationDir.closeSync()
-  rmSync(tempDir, {recursive: true, force: true});
+//   rmSync(tempDir, {recursive: true, force: true});
   t.end()
 })
