@@ -52,7 +52,7 @@ public class Bitflags {
     public int getValue() {
         return value;
     }
-    
+
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner("|", "[", "]");
@@ -62,17 +62,17 @@ public class Bitflags {
         }
         return sj.toString();
     }
-    
+
     byte[] toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
         buffer.put(BendecUtils.uInt8ToByteArray(this.value));
         return buffer.array();
     }
-    
+
     void toBytes(ByteBuffer buffer) {
         buffer.put(BendecUtils.uInt8ToByteArray(this.value));
     }
-    
+
     public ArrayNode toJson() {
         ArrayNode arrayNode = JsonSerializable.MAPPER.createArrayNode();
         this.getFlags().stream().map(Enum::toString).forEach(arrayNode::add);
