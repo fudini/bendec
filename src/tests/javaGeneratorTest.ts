@@ -8,6 +8,26 @@ import {binSerializableGenerator} from "../tools/java/binarySerializableInterfac
 
 const {mkdirSync, rmSync, opendirSync, readFileSync} = require('fs')
 
+import {indentBlock} from "../tools/java/utils"
+
+function generateExtensions(genBase, typeDef) {
+  if (typeDef.name == 'Bitflags') {
+    return indentBlock(
+        `@Override
+        public String toString() {
+            StringJoiner sj = new StringJoiner("|", "[", "]");
+            for (${typeDef.name}Options option: ${typeDef.name}Options.values()) {
+                if (isAdded(option))
+                    sj.add(option.name());
+            }
+            return sj.toString();
+        }`
+    )
+  } else {
+    return ''
+  }
+}
+
 test('Java unions and enums', t => {
   const tempDir = "./java/tmp"
   mkdirSync(tempDir, {recursive: true})
@@ -19,6 +39,7 @@ test('Java unions and enums', t => {
       binSerializableGenerator(bendecPackageName),
       jsonSerializableGenerator(bendecPackageName)
     ],
+    typeExtender: [generateExtensions],
 });
 
   const generationPath = path.join(__dirname.replace('dist', 'src'), "../..", tempDir, bendecPackageName.replace(".", "/"))
