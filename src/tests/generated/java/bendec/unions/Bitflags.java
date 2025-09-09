@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 public class Bitflags {
     private int value;
     private final int byteLength = 1;
-    
+
     public Bitflags(int value) {
         this.value = value;
     }
@@ -29,7 +29,7 @@ public class Bitflags {
     public void add(BitflagsOptions flag) {
         this.value = this.value | flag.getOptionValue();
     }
-    
+
     public void remove(BitflagsOptions flag) {
         this.value = this.value ^ flag.getOptionValue();
     }
@@ -52,28 +52,38 @@ public class Bitflags {
     public int getValue() {
         return value;
     }
-    
+
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner("|", "[", "]");
+        for (BitflagsOptions option: BitflagsOptions.values()) {
+            if (isAdded(option))
+                sj.add(option.name());
+        }
+        return sj.toString();
+    }
+
     byte[] toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
         buffer.put(BendecUtils.uInt8ToByteArray(this.value));
         return buffer.array();
     }
-    
+
     void toBytes(ByteBuffer buffer) {
         buffer.put(BendecUtils.uInt8ToByteArray(this.value));
     }
-    
+
     public ArrayNode toJson() {
         ArrayNode arrayNode = JsonSerializable.MAPPER.createArrayNode();
         this.getFlags().stream().map(Enum::toString).forEach(arrayNode::add);
         return arrayNode;
     }
-    
+
     public enum BitflagsOptions {
         A(1),
         B(2),
         LONG(4);
-        
+
         private final int optionValue;
         private static final Map<Integer, BitflagsOptions> TYPES = new HashMap<>();
         static {
@@ -81,7 +91,7 @@ public class Bitflags {
                 TYPES.put(type.optionValue, type);
             }
         }
-        
+
         /**
          * Get BitflagsOptions by attribute
          * @param val
@@ -90,11 +100,11 @@ public class Bitflags {
         public static BitflagsOptions getBitflags(int val) {
             return TYPES.get(val);
         }
-        
+
         BitflagsOptions(int newValue) {
             this.optionValue = newValue;
         }
-        
+
         public int getOptionValue() {
             return optionValue;
         }

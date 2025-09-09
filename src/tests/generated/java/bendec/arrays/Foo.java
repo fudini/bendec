@@ -29,7 +29,7 @@ public class Foo implements ByteSerializable, JsonSerializable {
     private String id5;
     private String id6;
     public static final int byteLength = 274;
-    
+
     public Foo(Test[] id1, Test[] id2, String id3, String id4, String id5, String id6) {
         this.id1 = id1;
         this.id2 = id2;
@@ -38,7 +38,7 @@ public class Foo implements ByteSerializable, JsonSerializable {
         this.id5 = id5;
         this.id6 = id6;
     }
-    
+
     public Foo(byte[] bytes, int offset) {
         this.id1 = new Test[3];
         for(int i = 0; i < id1.length; i++) {
@@ -53,62 +53,62 @@ public class Foo implements ByteSerializable, JsonSerializable {
         this.id5 = BendecUtils.stringFromByteArray(bytes, offset + 18, 128);
         this.id6 = BendecUtils.stringFromByteArray(bytes, offset + 146, 128);
     }
-    
+
     public Foo(byte[] bytes) {
         this(bytes, 0);
     }
-    
+
     public Foo() {
     }
-    
+
     public Test[] getId1() {
         return this.id1;
     }
-    
+
     public Test[] getId2() {
         return this.id2;
     }
-    
+
     public String getId3() {
         return this.id3;
     }
-    
+
     public String getId4() {
         return this.id4;
     }
-    
+
     public String getId5() {
         return this.id5;
     }
-    
+
     public String getId6() {
         return this.id6;
     }
-    
+
     public void setId1(Test[] id1) {
         this.id1 = id1;
     }
-    
+
     public void setId2(Test[] id2) {
         this.id2 = id2;
     }
-    
+
     public void setId3(String id3) {
         this.id3 = id3;
     }
-    
+
     public void setId4(String id4) {
         this.id4 = id4;
     }
-    
+
     public void setId5(String id5) {
         this.id5 = id5;
     }
-    
+
     public void setId6(String id6) {
         this.id6 = id6;
     }
-    
+
     @Override
     public byte[] toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
@@ -124,8 +124,8 @@ public class Foo implements ByteSerializable, JsonSerializable {
         buffer.put(BendecUtils.stringToByteArray(this.id6, 128));
         return buffer.array();
     }
-    
-    @Override  
+
+    @Override
     public void toBytes(ByteBuffer buffer) {
         for(int i = 0; i < id1.length; i++) {
             id1[i].toBytes(buffer);
@@ -138,8 +138,8 @@ public class Foo implements ByteSerializable, JsonSerializable {
         buffer.put(BendecUtils.stringToByteArray(this.id5, 128));
         buffer.put(BendecUtils.stringToByteArray(this.id6, 128));
     }
-    
-    @Override  
+
+    @Override
     public ObjectNode toJson() {
         ObjectNode object = JsonSerializable.MAPPER.createObjectNode();
         ArrayNode arrayId1=JsonSerializable.MAPPER.createArrayNode();
@@ -158,8 +158,8 @@ public class Foo implements ByteSerializable, JsonSerializable {
         object.put("id6", id6);
         return object;
     }
-    
-    @Override  
+
+    @Override
     public ObjectNode toJson(ObjectNode object) {
         ArrayNode arrayId1=JsonSerializable.MAPPER.createArrayNode();
         for(int i = 0; i < id1.length; i++) {
@@ -177,7 +177,7 @@ public class Foo implements ByteSerializable, JsonSerializable {
         object.put("id6", id6);
         return object;
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(id1,
@@ -187,7 +187,7 @@ public class Foo implements ByteSerializable, JsonSerializable {
         id5,
         id6);
     }
-    
+
     @Override
     public String toString() {
         return "Foo {" +

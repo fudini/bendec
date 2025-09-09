@@ -20,21 +20,21 @@ public enum AnimalKind {
      */
     ZEBRA(4097),
     TOUCAN(4098);
-    
+
     private final int value;
     private final int byteLength = 2;
-    
+
     private static final Map<Integer, AnimalKind> TYPES = new HashMap<>();
     static {
         for (AnimalKind type : AnimalKind.values()) {
             TYPES.put(type.value, type);
         }
     }
-    
+
     AnimalKind(int newValue) {
         value = newValue;
     }
-    
+
     /**
      * Get AnimalKind by attribute
      * @param val
@@ -43,15 +43,15 @@ public enum AnimalKind {
     public static AnimalKind getAnimalKind(int val) {
         return TYPES.get(val);
     }
-    
+
     /**
      * Get AnimalKind int value
      * @return int value
      */
     public int getAnimalKindValue() {
-        return value; 
+        return value;
     }
-    
+
     /**
      * Get AnimalKind from bytes
      * @param bytes byte[]
@@ -60,17 +60,17 @@ public enum AnimalKind {
     public static AnimalKind getAnimalKind(byte[] bytes, int offset) {
         return getAnimalKind(BendecUtils.uInt16FromByteArray(bytes, offset));
     }
-    
+
     byte[] toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(this.byteLength);
         buffer.put(BendecUtils.uInt16ToByteArray(this.value));
         return buffer.array();
     }
-    
+
     void toBytes(ByteBuffer buffer) {
         buffer.put(BendecUtils.uInt16ToByteArray(this.value));
     }
-    
+
     public TextNode toJson() {
         return JsonNodeFactory.instance.textNode(name());
     }
