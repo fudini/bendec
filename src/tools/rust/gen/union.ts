@@ -2,23 +2,28 @@ import { snakeCase } from 'lodash'
 import { TypeMetaStrict } from '../../rust/types'
 import { EnumStrict, TypeDefinitionStrict } from '../../../'
 import { Kind, StructStrict, UnionStrict } from '../../../types'
-import { doc } from '../../rust/utils'
-import { indent } from '../../utils'
+import { doc, createDerives } from '../../rust/utils'
+import { indent, smoosh } from '../../utils'
 import { getUnionEnum } from './union-enum'
 
 const getUnion2 = (
   { name, discriminator, members, description }: UnionStrict,
-  discTypeDef: EnumStrict
+  discTypeDef: EnumStrict,
+  extraDerivesArray: string[],
 ) => {
 
   const unionMembers = members.map(member => {
     return `  pub ${snakeCase(member)}: ${member},`
   }).join('\n')
 
-  const union = `${doc(description)}
-pub union ${name} {
-${unionMembers}
-}`
+  const derivesString = createDerives(extraDerivesArray)
+  const union = smoosh([
+    doc(description),
+    derivesString,
+    `pub union ${name} {`,
+    unionMembers,
+    `}`
+  ])
 
   const serdeMembers = members.map(member => {
     return `${discTypeDef.name}::${member} => self.${snakeCase(member)}.serialize(serializer),`
@@ -73,6 +78,7 @@ export const getUnion = (
   typeDef: UnionStrict,
   types: TypeDefinitionStrict[],
   meta: TypeMetaStrict,
+  extraDerivesArray: string[],
 ): string => {
 
   if (meta.union != null) {
@@ -109,7 +115,7 @@ export const getUnion = (
     return <StructStrict>types.find(({ name }) => name === discTypeField.type)
   }, memberType as TypeDefinitionStrict)
 
-  return getUnion2(typeDef, discTypeDef as EnumStrict)
+  return getUnion2(typeDef, discTypeDef as EnumStrict, extraDerivesArray)
 }
 
 

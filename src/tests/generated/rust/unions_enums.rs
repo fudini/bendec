@@ -8,16 +8,12 @@ pub use super::shared::*;
 // primitive built-in: u16
 
 #[repr(u16)]
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize, Default)]
 pub enum AnimalKind {
   /// This is a zebra
+  #[default]
   Zebra = 0x1001,
   Toucan = 0x1002,
-}
-impl Default for AnimalKind {
-  fn default() -> Self {
-    Self::Zebra
-  }
 }
 impl std::convert::TryFrom<u16> for AnimalKind {
   type Error = EnumValueError;
@@ -52,6 +48,7 @@ pub struct Toucan {
   pub wingspan: u16,
 }
 
+#[derive(Copy, Clone)]
 pub union Animal {
   pub zebra: Zebra,
   pub toucan: Toucan,
@@ -93,15 +90,11 @@ impl Animal {
 }
 
 #[repr(u8)]
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize, ExtraDerive)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize, Default, ExtraDerive)]
 pub enum AnimalKind2 {
+  #[default]
   Zebra2 = 0x0001,
   Toucan2 = 0x0002,
-}
-impl Default for AnimalKind2 {
-  fn default() -> Self {
-    Self::Zebra2
-  }
 }
 impl std::convert::TryFrom<u8> for AnimalKind2 {
   type Error = EnumValueError;

@@ -30,7 +30,17 @@ export const getEnum = (
   }
 
   const variantsFields = variants
-    .map(([key, value, docs]) => smoosh([doc(docs, 2),`  ${key} = ${hexPad(value)},`]))
+    .map(([key, value, docs], i) => {
+      // first variant is a default (by default)
+      const defaultAnnotation = i == 0 ? '#[default]' : ''
+      return smoosh(
+        [
+          doc(docs, 2),
+          defaultAnnotation,
+          `  ${key} = ${hexPad(value)},`
+        ]
+      )
+    })
     .join('\n')
 
   const derivesString = createDerives([
@@ -45,13 +55,6 @@ ${derivesString}
 pub enum ${name} {
 ${variantsFields}
 }`])
-
-  const [firstVariantName] = variants[0]
-  const implDefault = `impl Default for ${name} {
-  fn default() -> Self {
-    Self::${firstVariantName}
-  }
-}`
 
   const implConstIntValues = variants
     .map(([key, value]) => `  pub const ${key}: ${underlying} = ${hexPad(value)};`)
@@ -86,7 +89,7 @@ ${variantsFieldsRev}
   }
 
   const implTryFromUnderlying = implTryFrom(underlying)
-  var impls = [enumBody, implDefault, implTryFromUnderlying]
+  var impls = [enumBody, implTryFromUnderlying]
 
   if (meta.implConst) {
     impls.push(implConstInt)

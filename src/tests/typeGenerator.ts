@@ -86,6 +86,8 @@ test('Rust - unions and enums', t => {
     extraDerives: {
       'Zebra': ['Copy', 'Clone'],
       'AnimalKind2': ['ExtraDerive'],
+      // Union test
+      'Animal': ['Copy', 'Clone'],
     },
     enumConversionError: {
       type: 'EnumValueError',

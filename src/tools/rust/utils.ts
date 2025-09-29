@@ -26,7 +26,7 @@ export const createDerives = (derives: string[]): string => {
 
 export const defaultDerives: DefaultDerives = {
   struct: ['Serialize', 'Deserialize'],
-  enum: ['Debug', 'Copy', 'Clone', 'Eq', 'PartialEq', 'Serialize', 'Deserialize'],
+  enum: ['Debug', 'Copy', 'Clone', 'Eq', 'PartialEq', 'Serialize', 'Deserialize', 'Default'],
   bitflags: ['Serialize', 'Deserialize'],
   newtype: [],
 }

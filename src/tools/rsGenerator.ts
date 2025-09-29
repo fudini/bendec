@@ -93,7 +93,7 @@ export const generateString = (
     }
 
     if (typeDef.kind === Kind.Union) {
-      return [getUnion(typeDef, types, typeMeta), context]
+      return [getUnion(typeDef, types, typeMeta, extraDerivesArray), context]
     }
 
     if (typeDef.kind === Kind.Enum) {
