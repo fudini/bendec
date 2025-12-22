@@ -94,6 +94,21 @@ const getEnumClassic = (
     `)
 }
 
+export function typeToFromByteArray(
+  type: string
+): string {
+  switch (type) {
+    case "u8":
+      return `uInt8FromByteArray`;
+    case "u16":
+      return `uInt16FromByteArray`;
+    case "u32":
+      return `uInt32FromByteArray`;
+    case "u64":
+      return `uInt64FromByteArray`;
+  }
+}
+
 const getBitflags = (
   javaTypeName: string,
   typeDef: TypeDefinitionStrictWithSize,
@@ -117,7 +132,7 @@ const getBitflags = (
         }
 
         public ${typeDef.name}(byte[] bytes, int offset) {
-            this(BendecUtils.uInt8FromByteArray(bytes, offset));
+            this(BendecUtils.${typeToFromByteArray((typeDef as EnumStrict).underlying)}(bytes, offset));
         }
 
         public void add(${typeDef.name}Options flag) {
