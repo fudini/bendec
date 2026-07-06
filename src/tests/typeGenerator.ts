@@ -7,6 +7,7 @@ import {
   Options,
 } from '../tools/rsGenerator'
 import { generateString as generateStringCpp } from '../tools/cppGenerator'
+import { generateString as generateStringLua } from '../tools/luaJitGenerator'
 import { getFixture, codeEquals, clean } from './utils'
 import { Kind, EnumVariantStrict } from '../types'
 
@@ -229,6 +230,27 @@ test('CPP unions and enums', t => {
 test('CPP arrays', t => {
   const generated = generateStringCpp(arrays)
   const fixture = getFixture('./generated/cpp/arrays.hpp')
+  codeEquals(t)(generated, fixture)
+  t.end()
+})
+
+test('LuaJIT fixtures', t => {
+  const generated = generateStringLua(types)
+  const fixture = getFixture('./generated/luajit/fixtures.lua')
+  codeEquals(t)(generated, fixture)
+  t.end()
+})
+
+test('LuaJIT unions and enums', t => {
+  const generated = generateStringLua(unions)
+  const fixture = getFixture('./generated/luajit/unions_enums.lua')
+  codeEquals(t)(generated, fixture)
+  t.end()
+})
+
+test('LuaJIT arrays', t => {
+  const generated = generateStringLua(arrays)
+  const fixture = getFixture('./generated/luajit/arrays.lua')
   codeEquals(t)(generated, fixture)
   t.end()
 })
