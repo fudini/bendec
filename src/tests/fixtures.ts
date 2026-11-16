@@ -1,7 +1,11 @@
-import { invertLookup, EnumVariant } from '../'
-import { Kind, TypeDefinition } from '../types'
+import { invertLookup } from '../'
+import { TypeDefinition } from '../types'
+import { primitives } from './fixtures/primitives'
+import { enums } from './fixtures/enums'
+import { unions } from './fixtures/unions'
+import { arrays } from './fixtures/arrays'
+import { newtypes } from './fixtures/newtypes'
 
-// TODO: Split this file
 const MsgType = {
   HEADER: 0,
   USER_ADD: 1,
@@ -11,9 +15,7 @@ const MsgType = {
 }
 
 const types: TypeDefinition[] = [
-  { name: 'u8', size: 1 },
-  { name: 'u16', size: 2 },
-  { name: 'u32', size: 4 },
+  ...primitives,
   { name: 'char', alias: 'u8' },
   { name: 'Age', alias: 'u8', description: 'alias description' },
   {
@@ -175,117 +177,6 @@ const types: TypeDefinition[] = [
   }
 ]
 
-const enums: TypeDefinition[] = [
-  { name: 'u8', size: 1 },
-  {
-    // Enum definition
-    name: 'Foo',
-    underlying: 'u8',
-    variants: [
-      ['Variant1', 1],
-      ['Variant2', 2],
-      ['Variant3', 3],
-    ] as EnumVariant[]
-  }, {
-    // Enum field
-    name: 'Bar',
-    fields: [{
-      name: 'int',
-      type: 'u8'
-    }, {
-      name: 'foo',
-      type: 'Foo'
-    }]
-  }]
-
-const unions: TypeDefinition[] = [{
-  kind: Kind.Primitive,
-  name: 'u8',
-  size: 1
-}, {
-  kind: Kind.Primitive,
-  name: 'u16',
-  size: 2
-}, {
-  kind: Kind.Enum,
-  name: 'AnimalKind',
-  underlying: 'u16',
-  offset: "0x1000",
-  variants: [['Zebra', 1, "This is a zebra"], ['Toucan', 2]]
-}, {
-  kind: Kind.Struct,
-  name: 'Zebra',
-  fields: [{
-    name: 'kind',
-    type: 'AnimalKind'
-  }, {
-    name: 'legs',
-    type: 'u8'
-  }]
-}, {
-  kind: Kind.Struct,
-  name: 'Toucan',
-  fields: [{
-    name: 'kind',
-    type: 'AnimalKind'
-  }, {
-    name: 'wingspan',
-    type: 'u16'
-  }]
-}, {
-  kind: Kind.Union,
-  name: 'Animal',
-  members: ['Zebra', 'Toucan'],
-  discriminator: ['kind']
-}, {
-  kind: Kind.Enum,
-  name: 'AnimalKind2',
-  underlying: 'u8',
-  variants: [['Zebra2', 1], ['Toucan2', 2]]
-}, {
-  kind: Kind.Struct,
-  name: 'Header',
-  fields: [{
-    name: 'animalKind',
-    type: 'AnimalKind2'
-  }]
-}, {
-  kind: Kind.Struct,
-  name: 'Zebra2',
-  fields: [{
-    name: 'header',
-    type: 'Header'
-  }, {
-    name: 'legs',
-    type: 'u8'
-  }]
-}, {
-  kind: Kind.Struct,
-  name: 'Toucan2',
-  fields: [{
-    name: 'header',
-    type: 'Header'
-  }, {
-    name: 'wingspan',
-    type: 'u16'
-  }]
-}, {
-  // union with nested discriminator
-  kind: Kind.Union,
-  name: 'Animal2',
-  members: ['Zebra2', 'Toucan2'],
-  discriminator: ['header', 'animalKind']
-}, {
-  // Enum bitflags
-  name: 'Bitflags',
-  underlying: 'u8',
-  bitflags: true,
-  variants: [
-    ['A', 0b0001],
-    ['B', 0b0010],
-    ['Long', 0b0100],
-  ] as EnumVariant[]
-}]
 
 const largeMessage = {
   header: {
@@ -322,121 +213,6 @@ const largeMessage2 = Object.assign({}, largeMessage, {
   name3: Buffer.from('asdfasdfasdfasdfasdfadsfasdf', 'ascii'),
   name4: Buffer.from('oiuoiuoiuoiuoiuoiuoiuoiuoiu', 'ascii')
 })
-
-const arrays: TypeDefinition[] = [{
-  kind: Kind.Primitive,
-  name: 'u8',
-  size: 1
-}, {
-  kind: Kind.Alias,
-  name: 'char',
-  alias: 'u8'
-}, {
-  kind: Kind.Array,
-  name: 'Char3',
-  type: 'char',
-  length: 3
-}, {
-  kind: Kind.Array,
-  name: 'BigArray',
-  type: 'char',
-  length: 128
-}, {
-  kind: Kind.Array,
-  name: 'BigArrayNewtype',
-  type: 'char',
-  length: 128
-}, {
-  kind: Kind.Struct,
-  name: 'Test',
-  fields: [{
-    name: 'one',
-    type: 'u8'
-  }, {
-    name: 'two',
-    type: 'u8'
-  }],
-}, {
-  kind: Kind.Array,
-  name: 'Test3',
-  type: 'Test',
-  length: 3
-}, {
-  kind: Kind.Alias,
-  name: 'Ident',
-  alias: 'Test3'
-}, {
-  kind: Kind.Struct,
-  name: 'Foo',
-  description: 'This is the description of the struct Foo',
-  fields: [{
-    name: 'id1', // alias to array of structs
-    type: 'Ident'
-  }, {
-    name: 'id2',
-    type: 'Test3', // array of structs
-  }, {
-    name: 'id3',
-    type: 'Char3', // array of chars
-  }, {
-    name: 'id4', // old way of specifying field length
-    type: 'char',
-    length: 3
-  }, {
-    name: 'id5',
-    type: 'BigArray'
-  }, {
-    name: 'id6',
-    type: 'BigArrayNewtype'
-  }]
-}]
-
-const newtypes: TypeDefinition[] = [{
-  kind: Kind.Primitive,
-  name: 'u8',
-  size: 1
-}, {
-  kind: Kind.Alias,
-  name: 'Public',
-  description: 'Public description',
-  alias: 'u8'
-}, {
-  kind: Kind.Alias,
-  name: 'WithNew',
-  description: 'Generated description',
-  alias: 'u8'
-}, {
-  kind: Kind.Alias,
-  name: 'WithDeref',
-  description: 'Generated description',
-  alias: 'u8'
-}, {
-  kind: Kind.Alias,
-  name: 'WithIntoInner',
-  description: 'Generated description',
-  alias: 'u8'
-}, {
-  kind: Kind.Alias,
-  name: 'WithAsInner',
-  description: 'Generated description',
-  alias: 'u8'
-}, {
-  kind: Kind.Alias,
-  name: 'InPath',
-  description: 'InPath description',
-  alias: 'u8'
-}, {
-  kind: Kind.Alias,
-  name: 'InCrate',
-  description: 'InCrate description',
-  alias: 'u8'
-}, {
-  // The Array can also be promoted to a newtype
-  kind: Kind.Array,
-  name: 'FooArray',
-  type: 'u8',
-  length: 10,
-}]
 
 const camel: TypeDefinition[] = [
   { name: 'u8', size: 1 },

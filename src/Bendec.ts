@@ -28,6 +28,7 @@ import {
   getTypeSize,
   normalizeTypes,
   appendNamespace,
+  resolveType,
 } from './utils'
 
 const error = new Error('You used encode/decode without specifying getVariant methods in config')
@@ -106,28 +107,35 @@ class Bendec<T> {
     // We're only interested in custom structs
     // So Our TypeDefinition type Union has 'kind' parameter specified
     types
-      .filter(type => type.kind == Kind.Struct)
+      .filter(type => type.kind == Kind.Struct || type.kind == Kind.Alias)
       .forEach(type => {
+        let originalName = type.name
+        if (type.kind == Kind.Alias) {
+          let resolvedName = resolveType(this.lookup, type.name)
+          originalName = type.name
+          type = this.lookup[resolvedName]
+          if (type.kind != Kind.Struct) return
+        }
 
         let decodeFunc = <any>genReadFunction(this.readers, this.lookup, type.name)
         let encodeFunc = <any>genWriteFunction(this.writers, this.lookup, type.name)
-        this.decoders.set(type.name, decodeFunc)
-        this.encoders.set(type.name, encodeFunc)
+        this.decoders.set(originalName, decodeFunc)
+        this.encoders.set(originalName, encodeFunc)
 
         let wrapFunc = <any>genWrapFunction(this.readers, this.writers, this.lookup, type.name)
 
-        this.wrapperFactories.set(type.name, wrapFunc)
+        this.wrapperFactories.set(originalName, wrapFunc)
 
         // instantiate with empty buffer
         let wrapInstance = wrapFunc(Buffer.alloc((<any>this.lookup[type.name]).size))
-        
-        this.wrappers.set(type.name, wrapInstance)
+
+        this.wrappers.set(originalName, wrapInstance)
 
         let wrapFunc2 = <any>genWrapFunction2(this.readers, this.writers, this.lookup, type.name)
         // instantiate with empty buffer
         let wrapInstance2 = wrapFunc2(Buffer.alloc((<any>this.lookup[type.name]).size))
-        
-        this.wrappers2.set(type.name, wrapInstance2)
+
+        this.wrappers2.set(originalName, wrapInstance2)
       })
 
     // for union types we generate the getVariant function

@@ -17,7 +17,6 @@ import { User, UserAdd } from './types'
 const readers = { 'char[]': asciiReader }
 const writers = { 'char[]': asciiWriter }
 
-
 const user: User = {
   firstName: 'Genezyp',
   lastName: 'Bazakbal',
@@ -367,6 +366,15 @@ test('Arrays and array alias', t => {
   t.deepEqual(foo, decoded)
   t.end()
 })
+
+test('Alias needs to have a decoder / encoder', t => {
+
+  const b1 = new Bendec<any>({ types, readers, writers })
+  b1.getEncoder('CustomerAdd')
+  b1.getDecoder('CustomerAdd')
+
+  t.end()
+});
 
 require('./typeGenerator')
 require('./imports')
